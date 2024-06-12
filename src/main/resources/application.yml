@@ -26,4 +26,9 @@ mail:
   port: 587
   username: beganov.asadi@gmail.com
   password: ffsf hyzl lkjn xuwl
-  link-api: 164.92.125.200
+  link-api: localhost
+
+cloudinary:
+  cloud_name: do3joihks
+  api_key: 183873297347987
+  api_secret: 9OhJ6rcogLtTX54eWcIKLV5svf4
