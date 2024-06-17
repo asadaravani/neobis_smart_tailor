@@ -5,13 +5,8 @@ server:
 spring:
   application:
     name: SmartTailor
-
-  datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
-    username: postgres
-    password: password
-    driver-class-name: org.postgresql.Driver
-
+  profiles:
+    active: dev
   jpa:
     hibernate:
       ddl-auto: update
@@ -38,3 +33,5 @@ cloudinary:
   cloud_name: do3joihks
   api_key: 183873297347987
   api_secret: 9OhJ6rcogLtTX54eWcIKLV5svf4
+
+
