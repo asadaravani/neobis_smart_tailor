@@ -4,6 +4,7 @@ import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import kg.neobis.smarttailor.config.CloudinaryConfig;
 import kg.neobis.smarttailor.service.CloudinaryService;
+import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -12,18 +13,12 @@ import java.io.IOException;
 import java.util.Map;
 
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class CloudinaryServiceImpl implements CloudinaryService {
 
     private final Cloudinary cloudinary;
 
-    @Autowired
-    public CloudinaryServiceImpl(CloudinaryConfig cloudinaryConfig) {
-        this.cloudinary = new Cloudinary(ObjectUtils.asMap(
-                "cloud_name", cloudinaryConfig.getCloudName(),
-                "api_key", cloudinaryConfig.getApiKey(),
-                "api_secret", cloudinaryConfig.getApiSecret()));
-    }
+
     @Override
     public String uploadImage(MultipartFile file) throws IOException {
         Map uploadResult = cloudinary.uploader().upload(file.getBytes(), ObjectUtils.emptyMap());
