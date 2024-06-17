@@ -15,9 +15,8 @@ import java.time.LocalDateTime;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
-@NoArgsConstructor
 @SuperBuilder
-public class ConfirmationCode extends BaseEntity{
+public class ConfirmationCode extends BaseEntity {
 
     @Column(nullable = false)
     Integer code;
@@ -32,6 +31,16 @@ public class ConfirmationCode extends BaseEntity{
     @Column(nullable = false)
     LocalDateTime expiryTime;
 
-    @ManyToOne @JoinColumn
+    @ManyToOne
+    @JoinColumn
     AppUser user;
+
+    public ConfirmationCode() {
+        this.createdTime = LocalDateTime.now();
+        this.expiryTime = LocalDateTime.now().plusMinutes(5);
+    }
+
+    public boolean isExpired() {
+        return LocalDateTime.now().isAfter(this.expiryTime);
+    }
 }

@@ -18,15 +18,21 @@ spring:
     show-sql: true
     open-in-view: false
 
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: beganov.asadi@gmail.com
+    password: ffsf hyzl lkjn xuwl
+    link-api: localhost
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+
 jwt:
   secret: 3167ceee9cb36d05a553fd48752e077e8e2c7edef0c046f7bc7a38678f7bd8da
-
-mail:
-  host: smtp.gmail.com
-  port: 587
-  username: beganov.asadi@gmail.com
-  password: ffsf hyzl lkjn xuwl
-  link-api: localhost
 
 cloudinary:
   cloud_name: do3joihks
