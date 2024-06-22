@@ -7,7 +7,6 @@ import jakarta.persistence.ManyToOne;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.CreationTimestamp;
 import java.time.LocalDateTime;
 
 @Entity
@@ -21,10 +20,6 @@ public class ConfirmationCode extends BaseEntity {
     @Column(nullable = false)
     Integer code;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    LocalDateTime createdTime;
-
     @Column
     LocalDateTime confirmedAt;
 
@@ -36,7 +31,6 @@ public class ConfirmationCode extends BaseEntity {
     AppUser user;
 
     public ConfirmationCode() {
-        this.createdTime = LocalDateTime.now();
         this.expiryTime = LocalDateTime.now().plusMinutes(5);
     }
 

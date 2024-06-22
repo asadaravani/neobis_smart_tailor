@@ -1,18 +1,16 @@
-package kg.neobis.smarttailor.exception.handler;
+package kg.neobis.smarttailor.dtos;
 
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
 
-@Setter
 @Getter
+@Setter
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ExceptionResponse {
-    HttpStatus httpStatus;
-    String exceptionClassName;
+public class ErrorResponse {
+    Integer status;
     String message;
 }

@@ -3,33 +3,29 @@ package kg.neobis.smarttailor.config;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import lombok.AccessLevel;
-import lombok.Getter;
-import lombok.RequiredArgsConstructor;
-import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
-@ConfigurationProperties(prefix = "cloudinary")
-@RequiredArgsConstructor
-@Getter
-@Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class CloudinaryConfig {
 
+    @Value("${cloudinary.cloud-name}")
     String cloudName;
-    String apiKey;
-    String apiSecret;
 
+    @Value("${cloudinary.api-key}")
+    String apiKey;
+
+    @Value("${cloudinary.api-secret}")
+    String apiSecret;
 
     @Bean
     public Cloudinary cloudinary() {
         return new Cloudinary(ObjectUtils.asMap(
                 "cloud_name", cloudName,
                 "api_key", apiKey,
-                "api_secret", apiSecret
-        ));
+                "api_secret", apiSecret));
     }
 }
