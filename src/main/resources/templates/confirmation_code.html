@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="x-apple-disable-message-reformatting">
+    <title>Код для верификфции</title>
+
+</head>
+<body style=" margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            width:100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;">
+
+<div style="  display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+           ">
+    <div style="
+
+            background-color: #ffffff;
+
+            text-align: center;">
+        <h1 style=" padding-top: 50px;
+            margin-bottom: 20px;
+            color: #292929;">Доброго времени суток</h1>
+        <br/>
+        <div style="margin-bottom: 20px;
+            color: #666666;
+">Код для верификации</div>
+        <p th:text="${confirmCode}" style=" display: inline-block;
+            background-color: #292929;
+            color: #ffffff;
+            text-decoration: none;
+            padding: 12px 24px;
+            border-radius: 25px;
+            transition: background-color 0.3s ease;"></p>
+        <div style=" margin-top: 20px;
+            color: #666666;">Команда <b>Smart Tailor!</b></div>
+        <img src="https://res.cloudinary.com/drbxd4tkj/image/upload/v1718629562/wwt7altwplftmhmrhwt9.png" alt="photo" style="  width: 100%;
+            height: 450px;
+            border-radius: 70px;
+            margin-top: 40px;">
+    </div>
+
+</div>
+</body>
+</html>

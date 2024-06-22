@@ -1,5 +1,7 @@
 package kg.neobis.smarttailor.service.impl;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.ConfirmationCode;
 import kg.neobis.smarttailor.repository.ConfirmationCodeRepository;
@@ -10,7 +12,12 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+import org.thymeleaf.context.Context;
+import org.thymeleaf.spring6.SpringTemplateEngine;
+
+
 import java.time.LocalDateTime;
 
 
@@ -20,6 +27,7 @@ import java.time.LocalDateTime;
 public class EmailServiceImpl implements EmailService {
 
     ConfirmationCodeRepository confirmationCodeRepository;
+    SpringTemplateEngine engine;
     JavaMailSender javaMailSender;
 
     @Override
@@ -36,18 +44,29 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendEmail(SimpleMailMessage email) {
+    public void sendEmail(MimeMessage email) {
+
         javaMailSender.send(email);
     }
 
     @Override
-    public SimpleMailMessage createMail(AppUser user, ConfirmationCode confirmationCode) {
+    public MimeMessage createMail(AppUser user, ConfirmationCode confirmationCode) throws MessagingException {
 
-        SimpleMailMessage mailMessage = new SimpleMailMessage();
-        mailMessage.setTo(user.getEmail());
-        mailMessage.setSubject("Email Verification");
-        mailMessage.setText("Confirmation code: " + confirmationCode.getCode());
 
-        return mailMessage;
+
+        Context context = new Context();
+        context.setVariable("confirmCode", confirmationCode.getCode());
+        String emailBody = engine.process("confirmation_code", context);
+
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper =
+                new MimeMessageHelper(mimeMessage, "utf-8");
+        helper.setText(emailBody, true);
+        helper.setTo(user.getEmail());
+        helper.setSubject("Код верификации.");
+        helper.setFrom("smart_tailor@gmail.com");
+        return mimeMessage;
+
+
     }
 }

@@ -1,6 +1,7 @@
 package kg.neobis.smarttailor.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
 import kg.neobis.smarttailor.common.EndpointConstants;
 import kg.neobis.smarttailor.dtos.SignUpRequest;
@@ -30,7 +31,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/signUp")
-    public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest request, BindingResult result) {
+    public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest request, BindingResult result) throws MessagingException {
         if (result.hasErrors()) {
             return ResponseEntity.badRequest().body("Validation error: " + result.getAllErrors());
         }
@@ -38,7 +39,7 @@ public class AuthenticationController {
     }
 
     @PostMapping("/resendConfirmationCode")
-    public ResponseEntity<?> resendConfirmationCode(@RequestParam String email) {
+    public ResponseEntity<?> resendConfirmationCode(@RequestParam String email) throws MessagingException {
         authenticationService.resendConfirmationCode(email);
         return ResponseEntity.ok("Confirmation code has been resent to the email: " + email);
     }
