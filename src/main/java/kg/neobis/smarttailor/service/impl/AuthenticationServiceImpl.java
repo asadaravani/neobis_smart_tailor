@@ -1,5 +1,7 @@
 package kg.neobis.smarttailor.service.impl;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import kg.neobis.smarttailor.dtos.SignUpRequest;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.ConfirmationCode;
@@ -49,7 +51,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public ResponseEntity<?> signUp(SignUpRequest request) {
+    public ResponseEntity<?> signUp(SignUpRequest request){
 
         if (appUserRepository.existsUserByEmail(request.getEmail())) {
             throw new ResourceAlreadyExistsException("Error: Email is already in use!", HttpStatus.CONFLICT.value());
@@ -68,14 +70,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         user = appUserRepository.save(user);
 
         ConfirmationCode confirmationCode = confirmationCodeService.generateConfirmationCode(user);
-        SimpleMailMessage simpleMailMessage = emailService.createMail(user, confirmationCode);
+        MimeMessage simpleMailMessage;
+        try {
+            simpleMailMessage = emailService.createMail(user, confirmationCode);
+        } catch (MessagingException e) {
+            throw new IllegalStateException("Failed to send email");
+        }
         emailService.sendEmail(simpleMailMessage);
 
         return ResponseEntity.ok("confirmation code has been sent to the ".concat(request.getEmail()));
     }
 
     @Override
-    public void resendConfirmationCode(String email) {
+    public void resendConfirmationCode(String email){
 
         AppUser user = appUserRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Error: User not found with email: " + email, HttpStatus.NOT_FOUND.value()));
@@ -86,7 +93,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (confirmationCode == null) {
             confirmationCode = confirmationCodeService.generateConfirmationCode(user);
         }
-        SimpleMailMessage simpleMailMessage = emailService.createMail(user, confirmationCode);
+        MimeMessage simpleMailMessage;
+        try {
+            simpleMailMessage = emailService.createMail(user, confirmationCode);
+        } catch (MessagingException e) {
+            throw new IllegalStateException("Failed to send email");
+        }
         emailService.sendEmail(simpleMailMessage);
     }
 }
