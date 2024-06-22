@@ -1,5 +1,5 @@
 server:
-  port: 8080
+  port: 8090
   address: 0.0.0.0
 
 spring:
@@ -12,13 +12,17 @@ spring:
       ddl-auto: update
     show-sql: true
     open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+    database: postgresql
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
 
   mail:
     host: smtp.gmail.com
     port: 587
-    username: beganov.asadi@gmail.com
-    password: ffsf hyzl lkjn xuwl
-    link-api: localhost
+    username: u11se03r@gmail.com
+    password: tkvb tixr buig chlo
     properties:
       mail:
         smtp:
@@ -30,8 +34,6 @@ jwt:
   secret: 3167ceee9cb36d05a553fd48752e077e8e2c7edef0c046f7bc7a38678f7bd8da
 
 cloudinary:
-  cloud_name: do3joihks
-  api_key: 183873297347987
-  api_secret: 9OhJ6rcogLtTX54eWcIKLV5svf4
-
-
+  cloud-name: dn0akydmv
+  api-key: 883779744122919
+  api-secret: 2q8MUhDG4sUjtN47HZS823Zxjko
