@@ -18,8 +18,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.mail.SimpleMailMessage;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -32,7 +33,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     EmailService emailService;
 
     @Override
-    public ResponseEntity<?> confirmCode(String email, Integer code) {
+    public ResponseEntity<?> confirmEmail(String email, Integer code) {
 
         AppUser user = appUserRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Error: User not found with email: " + email, HttpStatus.NOT_FOUND.value()));
@@ -40,34 +41,46 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         ConfirmationCode confirmationCode = confirmationCodeRepository.findByUserAndCode(user, code)
                 .orElseThrow(() -> new ResourceNotFoundException("Error: Confirmation code for user wasn't found", HttpStatus.NOT_FOUND.value()));
 
+        if (confirmationCode.isExpired()) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Confirmation code has expired");
+        }
         if (confirmationCode.getCode().equals(code)) {
             user.setEnabled(true);
             appUserRepository.save(user);
-            confirmationCodeRepository.delete(confirmationCode);
-            return ResponseEntity.ok("User successfully confirmed");
-        } else {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Invalid confirmation code");
+            confirmationCode.setConfirmedAt(LocalDateTime.now());
+            confirmationCodeRepository.save(confirmationCode);
+            return ResponseEntity.ok("User confirmed successfully!");
         }
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Invalid confirmation code");
     }
 
     @Override
-    public ResponseEntity<?> signUp(SignUpRequest request){
+    public ResponseEntity<?> signUp(SignUpRequest request) {
 
-        if (appUserRepository.existsUserByEmail(request.getEmail())) {
-            throw new ResourceAlreadyExistsException("Error: Email is already in use!", HttpStatus.CONFLICT.value());
+        AppUser user;
+        if (!appUserRepository.existsUserByEmail(request.getEmail())) {
+            user = AppUser.builder()
+                    .surname(request.getSurname())
+                    .name(request.getName())
+                    .patronymic(request.getPatronymic())
+                    .email(request.getEmail())
+                    .phoneNumber(request.getPhoneNumber())
+                    .role(Role.USER)
+                    .enabled(false)
+                    .build();
+
+            user = appUserRepository.save(user);
+        } else {
+            user = appUserRepository.findUserByEmail(request.getEmail());
+            if (user.isEnabled()) {
+                throw new ResourceAlreadyExistsException("Error: Email is already in use!", HttpStatus.CONFLICT.value());
+            } else {
+                ConfirmationCode confirmationCode = confirmationCodeRepository.findConfirmationCodeByUser(user);
+                if (confirmationCode != null) {
+                    confirmationCodeRepository.delete(confirmationCode);
+                }
+            }
         }
-
-        AppUser user = AppUser.builder()
-                .surname(request.getSurname())
-                .name(request.getName())
-                .patronymic(request.getPatronymic())
-                .email(request.getEmail())
-                .phoneNumber(request.getPhoneNumber())
-                .role(Role.USER)
-                .enabled(false)
-                .build();
-
-        user = appUserRepository.save(user);
 
         ConfirmationCode confirmationCode = confirmationCodeService.generateConfirmationCode(user);
         MimeMessage simpleMailMessage;
@@ -82,7 +95,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public void resendConfirmationCode(String email){
+    public void resendConfirmationCode(String email) {
 
         AppUser user = appUserRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Error: User not found with email: " + email, HttpStatus.NOT_FOUND.value()));
@@ -90,9 +103,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         ConfirmationCode confirmationCode = confirmationCodeRepository.findByUser(user)
                 .orElse(null);
 
-        if (confirmationCode == null) {
-            confirmationCode = confirmationCodeService.generateConfirmationCode(user);
+        if (confirmationCode != null) {
+            confirmationCodeRepository.delete(confirmationCode);
         }
+        confirmationCode = confirmationCodeService.generateConfirmationCode(user);
+
         MimeMessage simpleMailMessage;
         try {
             simpleMailMessage = emailService.createMail(user, confirmationCode);

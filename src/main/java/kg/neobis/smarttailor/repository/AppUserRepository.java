@@ -13,5 +13,7 @@ public interface AppUserRepository extends JpaRepository<AppUser, Long> {
 
     Optional<AppUser> findByEmail(String email);
 
+    AppUser findUserByEmail(String email);
+
     List<AppUser> findAllByEnabledFalseAndCreatedAtBefore(LocalDateTime cutoff);
 }

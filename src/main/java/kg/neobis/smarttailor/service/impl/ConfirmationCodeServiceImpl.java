@@ -21,7 +21,7 @@ public class ConfirmationCodeServiceImpl implements ConfirmationCodeService {
     public ConfirmationCode generateConfirmationCode(AppUser user) {
         ConfirmationCode confirmationCode = new ConfirmationCode();
         Random random = new Random();
-        Integer code = 1000 + random.nextInt(9999);
+        Integer code = random.nextInt(1000, 9999);
         confirmationCode.setCode(code);
         confirmationCode.setUser(user);
         confirmationCodeRepository.save(confirmationCode);

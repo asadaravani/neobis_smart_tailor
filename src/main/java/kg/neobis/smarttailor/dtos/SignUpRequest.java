@@ -18,13 +18,13 @@ import lombok.experimental.FieldDefaults;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class SignUpRequest {
 
-    @NotBlank(message = "Last name is required")
-    @Pattern(regexp = "^[a-zA-Z]+$", message = "Last name should contain only letters")
+    @NotBlank(message = "Surname is required")
+    @Pattern(regexp = "^[a-zA-Z]+$", message = "Surname should contain only letters")
     @Size(min = 2, max = 50)
     String surname;
 
-    @NotBlank(message = "First name is required")
-    @Pattern(regexp = "^[a-zA-Z]+$", message = "First name should contain only letters")
+    @NotBlank(message = "Name is required")
+    @Pattern(regexp = "^[a-zA-Z]+$", message = "Name should contain only letters")
     @Size(min = 2, max = 50)
     String name;
 
@@ -39,7 +39,7 @@ public class SignUpRequest {
     String email;
 
     @NotBlank(message = "Phone number is required")
-    @Pattern(regexp = "^[+][0-9]+$", message = "Phone number should contain only numbers")
-    @Size(min = 10)
+    @Pattern(regexp = "^[+][0-9]+$", message = "Phone number should contain only country's code and abonent's numbers. Don't use spaces")
+    @Size(min = 10, max = 16)
     String phoneNumber;
 }

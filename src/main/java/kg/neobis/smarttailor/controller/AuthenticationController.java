@@ -25,9 +25,9 @@ public class AuthenticationController {
 
     AuthenticationService authenticationService;
 
-    @PostMapping("/confirmCode")
-    public ResponseEntity<?> confirmCode(@RequestParam String email, @RequestParam Integer code) {
-        return authenticationService.confirmCode(email, code);
+    @PostMapping("/confirmEmail")
+    public ResponseEntity<?> confirmEmail(@RequestParam String email, @RequestParam Integer code) {
+        return authenticationService.confirmEmail(email, code);
     }
 
     @PostMapping("/signUp")
