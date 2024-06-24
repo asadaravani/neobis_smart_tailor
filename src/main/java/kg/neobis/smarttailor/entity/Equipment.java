@@ -9,9 +9,7 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.CreationTimestamp;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -34,14 +32,7 @@ public class Equipment extends BaseEntity{
     @Column(nullable = false)
     BigDecimal price;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    LocalDateTime createdTime;
-
     @OneToMany
     @JoinColumn
     List<Image> images;
-
-
-
 }

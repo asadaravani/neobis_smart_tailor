@@ -9,8 +9,6 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.CreationTimestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -30,10 +28,6 @@ public class Service extends BaseEntity{
     @NotBlank(message = "Content cannot be blank")
     @Size(min = 5, max = 1000, message = "Description must be between 5 and 1000 characters")
     String description;
-
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    LocalDateTime createdTime;
 
     @ManyToOne
     AppUser author;
