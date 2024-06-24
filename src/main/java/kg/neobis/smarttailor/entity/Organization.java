@@ -6,8 +6,6 @@ import jakarta.validation.constraints.Size;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.CreationTimestamp;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -31,15 +29,10 @@ public class Organization extends BaseEntity{
     @Size(min = 5, max = 1000, message = "Description must be between 5 and 1000 characters")
     String description;
 
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    LocalDateTime createdTime;
-
     @OneToMany
     @JoinTable(
             name = "organization_employees",
             joinColumns = @JoinColumn(name = "app_user_id"),
             inverseJoinColumns = @JoinColumn(name = "position_id"))
     List<AppUser> organizationEmployees;
-
 }

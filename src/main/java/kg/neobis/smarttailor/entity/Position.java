@@ -24,7 +24,4 @@ public class Position extends BaseEntity{
     @Enumerated(EnumType.STRING)
     @Column(name = "access_right")
     List<AccessRight> accessRights;
-
-
-
 }

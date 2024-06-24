@@ -4,8 +4,6 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.CreationTimestamp;
-import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -18,10 +16,6 @@ public class Image extends BaseEntity{
 
     @Column
     String url;
-
-    @CreationTimestamp
-    @Column(nullable = false, updatable = false)
-    LocalDateTime createdTime;
 
     @ManyToOne
     @JoinColumn
