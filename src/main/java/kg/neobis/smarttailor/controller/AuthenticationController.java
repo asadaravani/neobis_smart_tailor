@@ -2,6 +2,7 @@ package kg.neobis.smarttailor.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import kg.neobis.smarttailor.common.EndpointConstants;
 import kg.neobis.smarttailor.dtos.AddAdminRequest;
@@ -49,6 +50,11 @@ public class AuthenticationController {
     @PostMapping("/admin/logIn")
     public ResponseEntity<LogInResponse> logInAdmin(@RequestBody LogInRequest request) {
         return ResponseEntity.status(HttpStatus.OK).body(authenticationService.logInAdmin(request));
+    }
+
+    @PostMapping("/logOut")
+    public ResponseEntity<?> logOut(HttpServletRequest request) {
+        return ResponseEntity.ok(authenticationService.logOut(request));
     }
 
     @PostMapping("/resendConfirmationCode")
