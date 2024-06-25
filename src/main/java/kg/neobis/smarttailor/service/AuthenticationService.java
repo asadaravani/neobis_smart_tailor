@@ -1,6 +1,7 @@
 package kg.neobis.smarttailor.service;
 
 import jakarta.mail.MessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import kg.neobis.smarttailor.dtos.AddAdminRequest;
 import kg.neobis.smarttailor.dtos.LogInRequest;
 import kg.neobis.smarttailor.dtos.LogInResponse;
@@ -14,6 +15,8 @@ public interface AuthenticationService {
     ResponseEntity<?> logIn(String email);
 
     LogInResponse logInAdmin(LogInRequest request);
+
+    ResponseEntity<?> logOut(HttpServletRequest request);
 
     ResponseEntity<?> confirmEmail(String email, Integer code);
 

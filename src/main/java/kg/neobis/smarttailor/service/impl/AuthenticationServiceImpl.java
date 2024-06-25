@@ -2,6 +2,7 @@ package kg.neobis.smarttailor.service.impl;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.servlet.http.HttpServletRequest;
 import kg.neobis.smarttailor.config.JwtUtil;
 import kg.neobis.smarttailor.dtos.AddAdminRequest;
 import kg.neobis.smarttailor.dtos.LogInRequest;
@@ -16,6 +17,7 @@ import kg.neobis.smarttailor.exception.ResourceNotFoundException;
 import kg.neobis.smarttailor.repository.AppUserRepository;
 import kg.neobis.smarttailor.repository.ConfirmationCodeRepository;
 import kg.neobis.smarttailor.service.AuthenticationService;
+import kg.neobis.smarttailor.service.BlackListTokenService;
 import kg.neobis.smarttailor.service.ConfirmationCodeService;
 import kg.neobis.smarttailor.service.EmailService;
 import lombok.AccessLevel;
@@ -37,6 +39,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     AppUserRepository appUserRepository;
     AuthenticationManager authenticationManager;
+    BlackListTokenService blackListTokenService;
     ConfirmationCodeRepository confirmationCodeRepository;
     ConfirmationCodeService confirmationCodeService;
     EmailService emailService;
@@ -112,6 +115,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         return ResponseEntity.ok("confirmation code has been sent to the ".concat(email));
     }
+
+    @Override
+    public ResponseEntity<?> logOut(HttpServletRequest request) {
+        String authHeader = request.getHeader("Authorization");
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            String jwtToken = authHeader.substring(7);
+            blackListTokenService.addTokenToBlacklist(jwtToken);
+            return ResponseEntity.ok("successful log out!");
+        }
+        return ResponseEntity.badRequest().body("invalid authorization header");
+    }
+
 
     @Override
     public LogInResponse logInAdmin(LogInRequest request) {
