@@ -30,7 +30,11 @@ public class ConfirmationCode extends BaseEntity {
     @JoinColumn
     AppUser user;
 
+    @Column(nullable = false, updatable = false)
+    private LocalDateTime createdTime;
+
     public ConfirmationCode() {
+        this.createdTime = LocalDateTime.now();
         this.expiryTime = LocalDateTime.now().plusMinutes(5);
     }
 
