@@ -1,0 +1,53 @@
+stages:
+  - build
+  - test
+  - deploy
+  
+default:
+  image: maven:3.8.1-openjdk-17
+  cache:
+    key: $CI_COMMIT_REF_SLUG
+    paths:
+      - .m2/
+
+variables:
+  MAVEN_OPTS: >-
+    -Dhttps.protocols=TLSv1.2
+    -Dmaven.repo.local=$CI_PROJECT_DIR/.m2/repository
+  MAVEN_CLI_OPTS: >-
+    -DskipTests
+
+build-JAR:
+  stage: build
+  script:
+    - mvn $MAVEN_CLI_OPTS package
+  artifacts:
+    paths:
+      - target/*.jar
+    expire_in: 1 hour
+
+test-code:
+  stage: test
+  script:
+    - mvn test
+
+deploy-Stage-JAR:
+  stage: deploy
+  only:
+    - main
+  dependencies:
+    - build-JAR
+  variables:
+    HOST: 46.101.135.225
+    USER: root
+    DEST_DIR: /opt/trpo
+  before_script:
+    - eval $(ssh-agent -s)
+    - echo "$STAGE_SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > ~/.ssh/config'
+    
+  script:
+  - scp -o StrictHostKeyChecking=no target/SmartTailor-0.0.1-SNAPSHOT.jar $USER@$HOST:$DEST_DIR/SmartTailor-0.0.1-SNAPSHOT.jar
+  - ssh -o StrictHostKeyChecking=no $USER@$HOST "/usr/bin/sudo /usr/bin/systemctl restart test.service"
+
