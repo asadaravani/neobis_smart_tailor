@@ -1,6 +1,6 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/postgres
+    url: jdbc:postgresql://46.101.135.225:5432/smarttailor
     username: postgres
-    password: password
+    password: pass1234!
     driver-class-name: org.postgresql.Driver
