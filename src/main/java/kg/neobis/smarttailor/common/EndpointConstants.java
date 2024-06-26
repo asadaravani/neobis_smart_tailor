@@ -1,5 +1,9 @@
 package kg.neobis.smarttailor.common;
 
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
+
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public final class EndpointConstants {
 
     private static final String API_PREFIX = "/api";
@@ -15,6 +19,4 @@ public final class EndpointConstants {
             "/swagger-ui/**",
             "/swagger-ui.html"
     };
-
-    private EndpointConstants() {}
 }
