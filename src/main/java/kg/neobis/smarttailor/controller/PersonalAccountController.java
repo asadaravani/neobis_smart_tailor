@@ -8,6 +8,7 @@ import kg.neobis.smarttailor.service.AppUserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -23,8 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 public class PersonalAccountController {
     AppUserService userService;
     @Operation(summary = "User Profile", description = "May change to token or Id")
-    @GetMapping("/profile/{email}")
-    public UserProfileDto getUserProfile(@PathVariable String email){
-        return userService.getUserProfile(email);
+    @GetMapping("/profile")
+    public UserProfileDto getUserProfile(Authentication authentication){
+        return userService.getUserProfile(authentication.getName());
     }
 }

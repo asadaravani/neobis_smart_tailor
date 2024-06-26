@@ -24,5 +24,5 @@ public class Subscription extends BaseEntity{
     LocalDateTime subscribedTime;
 
     @Column
-    LocalDateTime expiryTime;
+    LocalDateTime subscriptionTimeExpiry;
 }

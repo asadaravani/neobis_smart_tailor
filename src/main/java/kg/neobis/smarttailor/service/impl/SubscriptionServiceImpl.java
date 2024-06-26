@@ -26,7 +26,7 @@ public class SubscriptionServiceImpl implements SubscriptionService {
             return null;
         }
         else {
-            return subscription.getExpiryTime();
+            return subscription.getSubscriptionTimeExpiry();
         }
     }
 }
