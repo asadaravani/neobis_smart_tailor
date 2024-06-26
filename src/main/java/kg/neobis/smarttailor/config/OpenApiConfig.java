@@ -15,8 +15,8 @@ import io.swagger.v3.oas.annotations.servers.Server;
                         email = "smart-tailor@company.com"
 
                 ),
-                title = "Cooker corner mobile app",
-                description = "OpenApi documentation for Cooker Corner Spring Project",
+                title = "Smart Tailor web and mobile app",
+                description = "OpenApi documentation for Smart Tailor Spring Project",
                 version = "0.0.1"
         ),
         servers = {
