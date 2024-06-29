@@ -11,7 +11,6 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigInteger;
-import java.time.LocalDateTime;
 import java.util.List;
 
 @Entity
@@ -37,9 +36,6 @@ public class Service extends BaseEntity{
 
     @OneToMany(mappedBy = "service", orphanRemoval = true)
     List<Image> images;
-
-    @Column(updatable = false)
-    LocalDateTime createdTime;
 
     @Column
     BigInteger price;

@@ -4,10 +4,10 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
+import org.springframework.validation.annotation.Validated;
 
-@Builder
-public record SignUpRequest(
+@Validated
+public record CreateAdmin(
 
         @NotBlank(message = "Surname is required")
         @Pattern(regexp = "^[a-zA-Z]+$", message = "Surname should contain only letters")
@@ -28,6 +28,13 @@ public record SignUpRequest(
         @Email(message = "Invalid email format")
         @Pattern(regexp = "^[a-zA-Z][a-zA-Z0-9]+@[a-zA-Z]+\\.[a-zA-Z]{2,}$", message = "Email should contain only letters and digits before @")
         String email,
+
+        @NotBlank(message = "password is required")
+        @Pattern(
+                regexp = "^(?=.*[0-9])(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%^&+=])(?=\\S+$).{8,15}$",
+                message = "password must contain at least one digit, one lowercase letter, one uppercase letter, one special character (@#$%^&+=), and length between 8 and 15"
+        )
+        String password,
 
         @NotBlank(message = "Phone number is required")
         @Pattern(regexp = "^[+][0-9]+$", message = "Phone number should contain only country's code and abonent's numbers. Don't use spaces")

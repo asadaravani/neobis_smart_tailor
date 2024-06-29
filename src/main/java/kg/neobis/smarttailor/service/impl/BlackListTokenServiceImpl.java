@@ -13,16 +13,16 @@ import org.springframework.stereotype.Service;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class BlackListTokenServiceImpl implements BlackListTokenService {
 
-    BlackListTokenRepository blacklistTokenRepository;
+    BlackListTokenRepository repository;
 
     @Override
     public void addTokenToBlacklist(String token) {
         BlackListToken blacklistToken = new BlackListToken();
         blacklistToken.setToken(token);
-        blacklistTokenRepository.save(blacklistToken);
+        repository.save(blacklistToken);
     }
 
     public boolean isTokenBlacklisted(String token) {
-        return blacklistTokenRepository.existsByToken(token);
+        return repository.existsByToken(token);
     }
 }
