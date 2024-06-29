@@ -2,19 +2,16 @@ package kg.neobis.smarttailor.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
-import kg.neobis.smarttailor.dtos.AddAdminRequest;
-import kg.neobis.smarttailor.dtos.LogInRequest;
-import kg.neobis.smarttailor.dtos.LogInResponse;
+import kg.neobis.smarttailor.dtos.LoginAdmin;
+import kg.neobis.smarttailor.dtos.LoginResponse;
 import kg.neobis.smarttailor.dtos.SignUpRequest;
 import org.springframework.http.ResponseEntity;
 
 public interface AuthenticationService {
 
-    ResponseEntity<?> addAdmin(AddAdminRequest request);
+    ResponseEntity<?> login(String email);
 
-    ResponseEntity<?> logIn(String email);
-
-    LogInResponse logInAdmin(LogInRequest request);
+    LoginResponse loginAdmin(LoginAdmin request);
 
     ResponseEntity<?> logOut(HttpServletRequest request);
 

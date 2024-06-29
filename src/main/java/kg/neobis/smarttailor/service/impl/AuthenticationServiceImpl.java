@@ -4,9 +4,8 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletRequest;
 import kg.neobis.smarttailor.config.JwtUtil;
-import kg.neobis.smarttailor.dtos.AddAdminRequest;
-import kg.neobis.smarttailor.dtos.LogInRequest;
-import kg.neobis.smarttailor.dtos.LogInResponse;
+import kg.neobis.smarttailor.dtos.LoginAdmin;
+import kg.neobis.smarttailor.dtos.LoginResponse;
 import kg.neobis.smarttailor.dtos.SignUpRequest;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.ConfirmationCode;
@@ -14,8 +13,7 @@ import kg.neobis.smarttailor.enums.Role;
 import kg.neobis.smarttailor.exception.InvalidRequestException;
 import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
 import kg.neobis.smarttailor.exception.ResourceNotFoundException;
-import kg.neobis.smarttailor.repository.AppUserRepository;
-import kg.neobis.smarttailor.repository.ConfirmationCodeRepository;
+import kg.neobis.smarttailor.service.AppUserService;
 import kg.neobis.smarttailor.service.AuthenticationService;
 import kg.neobis.smarttailor.service.BlackListTokenService;
 import kg.neobis.smarttailor.service.ConfirmationCodeService;
@@ -37,55 +35,31 @@ import java.time.LocalDateTime;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationServiceImpl implements AuthenticationService {
 
-    AppUserRepository appUserRepository;
+    AppUserService appUserService;
     AuthenticationManager authenticationManager;
     BlackListTokenService blackListTokenService;
-    ConfirmationCodeRepository confirmationCodeRepository;
     ConfirmationCodeService confirmationCodeService;
     EmailService emailService;
     JwtUtil jwtUtil;
     PasswordEncoder passwordEncoder;
 
     @Override
-    public ResponseEntity<?> addAdmin(AddAdminRequest request) {
-
-        if (appUserRepository.existsUserByEmail(request.getEmail())) {
-            throw new ResourceAlreadyExistsException("email is occupied", HttpStatus.CONFLICT.value());
-        }
-
-        AppUser user = AppUser.builder()
-                .name(request.getName())
-                .surname(request.getSurname())
-                .patronymic(request.getPatronymic())
-                .email(request.getEmail())
-                .phoneNumber(request.getPhoneNumber())
-                .role(Role.ADMIN)
-                .password(passwordEncoder.encode(request.getPassword()))
-                .enabled(true)
-                .build();
-
-        appUserRepository.save(user);
-
-        return ResponseEntity.ok("successful registration!");
-    }
-    @Override
     public ResponseEntity<?> confirmEmail(String email, Integer code) {
 
-        AppUser user = appUserRepository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Error: User not found with email: " + email, HttpStatus.NOT_FOUND.value()));
+        AppUser user = appUserService.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: ".concat(email), HttpStatus.NOT_FOUND.value()));
 
-        ConfirmationCode confirmationCode = confirmationCodeRepository.findByUserAndCode(user, code)
-                .orElseThrow(() -> new ResourceNotFoundException("Error: Confirmation code for user wasn't found", HttpStatus.NOT_FOUND.value()));
+        ConfirmationCode confirmationCode = confirmationCodeService.findByUserAndCode(user, code)
+                .orElseThrow(() -> new ResourceNotFoundException("Confirmation code for user with email '".concat(email).concat("' wasn't found"), HttpStatus.NOT_FOUND.value()));
 
         if (confirmationCode.isExpired()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Error: Confirmation code has expired");
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Confirmation code has expired");
         }
         if (confirmationCode.getCode().equals(code)) {
             user.setEnabled(true);
-            appUserRepository.save(user);
+            appUserService.save(user);
             confirmationCode.setConfirmedAt(LocalDateTime.now());
-            confirmationCodeRepository.save(confirmationCode);
-
+            confirmationCodeService.save(confirmationCode);
             var jwtToken = jwtUtil.generateToken(user);
 
             return ResponseEntity.status(HttpStatus.OK).body(jwtToken);
@@ -94,14 +68,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public ResponseEntity<?> logIn(String email) {
+    public ResponseEntity<?> login(String email) {
 
-        var user = appUserRepository.findByEmail(email)
+        var user = appUserService.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Invalid email", HttpStatus.NOT_FOUND.value()));
 
-        ConfirmationCode confirmationCode = confirmationCodeRepository.findConfirmationCodeByUser(user);
+        ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
         if (confirmationCode != null) {
-            confirmationCodeRepository.delete(confirmationCode);
+            confirmationCodeService.delete(confirmationCode);
         }
 
         confirmationCode = confirmationCodeService.generateConfirmationCode(user);
@@ -117,6 +91,33 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
+    public LoginResponse loginAdmin(LoginAdmin request) {
+
+        if (request.email() == null || request.password() == null || request.email().isEmpty() || request.password().isEmpty()) {
+            throw new InvalidRequestException("email and password are required", HttpStatus.BAD_REQUEST.value());
+        }
+
+        AppUser user = appUserService.findByEmail(request.email())
+                .orElseThrow(() -> new ResourceNotFoundException("invalid email or password", HttpStatus.NOT_FOUND.value()));
+
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            throw new ResourceNotFoundException("invalid email or password", HttpStatus.NOT_FOUND.value());
+        }
+
+        authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        user.getUsername(),
+                        request.password()
+                )
+        );
+
+        var jwtToken = jwtUtil.generateToken(user);
+        return LoginResponse.builder()
+                .token(jwtToken)
+                .build();
+    }
+
+    @Override
     public ResponseEntity<?> logOut(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
@@ -127,45 +128,17 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return ResponseEntity.badRequest().body("invalid authorization header");
     }
 
-
-    @Override
-    public LogInResponse logInAdmin(LogInRequest request) {
-
-        if (request.getEmail() == null || request.getPassword() == null || request.getEmail().isEmpty() || request.getPassword().isEmpty()) {
-            throw new InvalidRequestException("email and password are required", HttpStatus.BAD_REQUEST.value());
-        }
-
-        AppUser user = appUserRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException("invalid email or password", HttpStatus.NOT_FOUND.value()));
-
-        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
-            throw new ResourceNotFoundException("invalid email or password", HttpStatus.NOT_FOUND.value());
-        }
-
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        user.getUsername(),
-                        request.getPassword()
-                )
-        );
-
-        var jwtToken = jwtUtil.generateToken(user);
-        return LogInResponse.builder()
-                .token(jwtToken)
-                .build();
-    }
-
     @Override
     public void resendConfirmationCode(String email) {
 
-        AppUser user = appUserRepository.findByEmail(email)
+        AppUser user = appUserService.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Error: User not found with email: " + email, HttpStatus.NOT_FOUND.value()));
 
-        ConfirmationCode confirmationCode = confirmationCodeRepository.findByUser(user)
+        ConfirmationCode confirmationCode = confirmationCodeService.findByUser(user)
                 .orElse(null);
 
         if (confirmationCode != null) {
-            confirmationCodeRepository.delete(confirmationCode);
+            confirmationCodeService.delete(confirmationCode);
         }
         confirmationCode = confirmationCodeService.generateConfirmationCode(user);
 
@@ -182,26 +155,26 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public ResponseEntity<?> signUp(SignUpRequest request) {
 
         AppUser user;
-        if (!appUserRepository.existsUserByEmail(request.getEmail())) {
+        if (!appUserService.existsUserByEmail(request.email())) {
             user = AppUser.builder()
-                    .surname(request.getSurname())
-                    .name(request.getName())
-                    .patronymic(request.getPatronymic())
-                    .email(request.getEmail())
-                    .phoneNumber(request.getPhoneNumber())
+                    .surname(request.surname())
+                    .name(request.name())
+                    .patronymic(request.patronymic())
+                    .email(request.email())
+                    .phoneNumber(request.phoneNumber())
                     .role(Role.USER)
                     .enabled(false)
                     .build();
 
-            user = appUserRepository.save(user);
+            user = appUserService.save(user);
         } else {
-            user = appUserRepository.findUserByEmail(request.getEmail());
+            user = appUserService.findUserByEmail(request.email());
             if (user.isEnabled()) {
                 throw new ResourceAlreadyExistsException("Error: Email is already in use!", HttpStatus.CONFLICT.value());
             } else {
-                ConfirmationCode confirmationCode = confirmationCodeRepository.findConfirmationCodeByUser(user);
+                ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
                 if (confirmationCode != null) {
-                    confirmationCodeRepository.delete(confirmationCode);
+                    confirmationCodeService.delete(confirmationCode);
                 }
             }
         }
@@ -215,6 +188,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
         emailService.sendEmail(simpleMailMessage);
 
-        return ResponseEntity.ok("confirmation code has been sent to the ".concat(request.getEmail()));
+        return ResponseEntity.ok("confirmation code has been sent to the ".concat(request.email()));
     }
 }

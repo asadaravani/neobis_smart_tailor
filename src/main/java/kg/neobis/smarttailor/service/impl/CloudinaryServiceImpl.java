@@ -3,18 +3,20 @@ package kg.neobis.smarttailor.service.impl;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
 import kg.neobis.smarttailor.service.CloudinaryService;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.Map;
 
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class CloudinaryServiceImpl implements CloudinaryService {
 
-    private final Cloudinary cloudinary;
-
+    Cloudinary cloudinary;
 
     @Override
     public String uploadImage(MultipartFile file) throws IOException {
@@ -32,5 +34,3 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         return withoutPath.substring(withoutPath.lastIndexOf("/") + 1, withoutPath.lastIndexOf("."));
     }
 }
-
-

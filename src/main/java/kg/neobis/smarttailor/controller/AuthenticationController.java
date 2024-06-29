@@ -5,9 +5,8 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import kg.neobis.smarttailor.common.EndpointConstants;
-import kg.neobis.smarttailor.dtos.AddAdminRequest;
-import kg.neobis.smarttailor.dtos.LogInRequest;
-import kg.neobis.smarttailor.dtos.LogInResponse;
+import kg.neobis.smarttailor.dtos.LoginAdmin;
+import kg.neobis.smarttailor.dtos.LoginResponse;
 import kg.neobis.smarttailor.dtos.SignUpRequest;
 import kg.neobis.smarttailor.service.AuthenticationService;
 import lombok.AccessLevel;
@@ -27,47 +26,39 @@ import org.springframework.web.bind.annotation.*;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationController {
 
-    AuthenticationService authenticationService;
+    AuthenticationService service;
 
-    @PostMapping("/admin/create")
-    public ResponseEntity<?> addAdmin(@Valid @RequestBody AddAdminRequest request, BindingResult result) {
-        if (result.hasErrors()) {
-            return ResponseEntity.badRequest().body("Validation error: " + result.getAllErrors());
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(authenticationService.addAdmin(request));
-    }
-
-    @PostMapping("/confirmEmail")
+    @PostMapping("/confirm-email")
     public ResponseEntity<?> confirmEmail(@RequestParam String email, @RequestParam Integer code) {
-        return authenticationService.confirmEmail(email, code);
+        return service.confirmEmail(email, code);
     }
 
-    @PostMapping("/logIn")
-    public ResponseEntity<?> logIn(@RequestParam String email) {
-        return ResponseEntity.ok(authenticationService.logIn(email));
+    @PostMapping("/login")
+    public ResponseEntity<?> login(@RequestParam String email) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.login(email));
     }
 
-    @PostMapping("/admin/logIn")
-    public ResponseEntity<LogInResponse> logInAdmin(@RequestBody LogInRequest request) {
-        return ResponseEntity.status(HttpStatus.OK).body(authenticationService.logInAdmin(request));
+    @PostMapping("/login-admin")
+    public ResponseEntity<LoginResponse> loginAdmin(@RequestBody LoginAdmin request) {
+        return ResponseEntity.status(HttpStatus.OK).body(service.loginAdmin(request));
     }
 
-    @PostMapping("/logOut")
+    @PostMapping("/log-out")
     public ResponseEntity<?> logOut(HttpServletRequest request) {
-        return ResponseEntity.ok(authenticationService.logOut(request));
+        return ResponseEntity.ok(service.logOut(request));
     }
 
-    @PostMapping("/resendConfirmationCode")
+    @PostMapping("/resend-confirmation-code")
     public ResponseEntity<?> resendConfirmationCode(@RequestParam String email) throws MessagingException {
-        authenticationService.resendConfirmationCode(email);
+        service.resendConfirmationCode(email);
         return ResponseEntity.ok("Confirmation code has been resent to the email: " + email);
     }
 
-    @PostMapping("/signUp")
+    @PostMapping("/sign-up")
     public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest request, BindingResult result) throws MessagingException {
         if (result.hasErrors()) {
             return ResponseEntity.badRequest().body("Validation error: " + result.getAllErrors());
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(authenticationService.signUp(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.signUp(request));
     }
 }
