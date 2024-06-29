@@ -24,4 +24,8 @@ public class Image extends BaseEntity{
     @ManyToOne
     @JoinColumn
     Service service;
+
+    @ManyToOne
+    @JoinColumn
+    Equipment equipment;
 }
