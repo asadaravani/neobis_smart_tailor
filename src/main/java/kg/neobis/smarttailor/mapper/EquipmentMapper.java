@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 public class EquipmentMapper {
     public List<EquipmentListDto> entityListToDtoList(List<Equipment> equipments) {
         return equipments.stream().map(equipment -> new EquipmentListDto(
+                equipment.getId(),
                 equipment.getImages().get(1).getUrl(),
                 equipment.getName(),
                 equipment.getPrice(),

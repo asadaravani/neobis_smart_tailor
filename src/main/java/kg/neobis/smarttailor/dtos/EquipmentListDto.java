@@ -10,5 +10,5 @@ import java.math.BigInteger;
  * DTO for {@link kg.neobis.smarttailor.entity.Equipment}
  */
 @Builder
-public record EquipmentListDto(String equipmentPhotoUrl, String name, BigDecimal price, String authorImageUrl, String authorFullName, String description) implements Serializable {
+public record EquipmentListDto(Long equipmentId, String equipmentPhotoUrl, String name, BigDecimal price, String authorImageUrl, String authorFullName, String description) implements Serializable {
 }
