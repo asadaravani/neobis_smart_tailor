@@ -32,7 +32,7 @@ import java.util.List;
 public class AppUser extends BaseEntity implements UserDetails {
 
     @Column
-    String imagePath;
+    String imageUrl;
 
     @Column
     String name;

@@ -1,8 +1,11 @@
 package kg.neobis.smarttailor.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
@@ -10,6 +13,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -18,21 +22,19 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
-@SuperBuilder
 public class Equipment extends BaseEntity{
 
-    @Column
     String name;
 
-    @Column(nullable = false, length = 1000)
-    @NotBlank(message = "Content cannot be blank")
-    @Size(min = 5, max = 1000, message = "Content must be between 5 and 1000 characters")
     String description;
 
     @Column(nullable = false)
     BigDecimal price;
 
-    @OneToMany
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    List<Image> images = new ArrayList<>();
+
+    @ManyToOne
     @JoinColumn
-    List<Image> images;
+    AppUser author;
 }

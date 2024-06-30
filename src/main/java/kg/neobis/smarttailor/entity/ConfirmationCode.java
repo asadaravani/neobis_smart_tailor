@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
-@SuperBuilder
 public class ConfirmationCode extends BaseEntity {
 
     @Column(nullable = false)
