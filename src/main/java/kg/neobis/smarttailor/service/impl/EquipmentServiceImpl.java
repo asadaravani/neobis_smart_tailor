@@ -8,8 +8,8 @@ import kg.neobis.smarttailor.dtos.EquipmentRequestDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Equipment;
 import kg.neobis.smarttailor.entity.Image;
-import kg.neobis.smarttailor.exception.EquipmentNotFoundException;
 import kg.neobis.smarttailor.exception.InvalidJsonException;
+import kg.neobis.smarttailor.exception.ResourceNotFoundException;
 import kg.neobis.smarttailor.mapper.EquipmentMapper;
 import kg.neobis.smarttailor.repository.EquipmentRepository;
 import kg.neobis.smarttailor.service.CloudinaryService;
@@ -22,8 +22,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.validation.Validator;
+import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -47,7 +48,7 @@ public class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     public EquipmentDto getEquipmentById(Long equipmentId) {
-        Equipment equipment = equipmentRepository.findById(equipmentId).orElseThrow(()-> new EquipmentNotFoundException("Equipment not found", HttpStatus.NOT_FOUND.value()));
+        Equipment equipment = equipmentRepository.findById(equipmentId).orElseThrow(()-> new ResourceNotFoundException( "Equipment not found", HttpStatus.NOT_FOUND.value()));
         return equipmentMapper.entityToDto(equipment);
     }
 
