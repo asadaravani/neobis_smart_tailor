@@ -7,6 +7,7 @@ import lombok.*;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -32,8 +33,13 @@ public class CustomerOrder extends BaseEntity{
     @Column(nullable = false, updatable = false)
     LocalDateTime completionDeadline;
 
-    @OneToMany(mappedBy = "customerOrder", orphanRemoval = true)
-    List<Image> images;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinTable(
+            name = "order_images",
+            joinColumns = @JoinColumn(name = "order_id"),
+            inverseJoinColumns = @JoinColumn(name = "image_id")
+    )
+    List<Image> images = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn

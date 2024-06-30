@@ -1,9 +1,15 @@
 package kg.neobis.smarttailor.entity;
 
-import jakarta.persistence.*;
-import lombok.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.SuperBuilder;
 
 @Entity
 @Getter
@@ -11,21 +17,9 @@ import lombok.experimental.SuperBuilder;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
-@SuperBuilder
 public class Image extends BaseEntity{
 
     @Column
     String url;
 
-    @ManyToOne
-    @JoinColumn
-    CustomerOrder customerOrder;
-
-    @ManyToOne
-    @JoinColumn
-    Service service;
-
-    @ManyToOne
-    @JoinColumn
-    Equipment equipment;
 }
