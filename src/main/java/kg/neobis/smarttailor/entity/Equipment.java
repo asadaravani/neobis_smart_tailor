@@ -3,6 +3,7 @@ package kg.neobis.smarttailor.entity;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToOne;
@@ -28,10 +29,19 @@ public class Equipment extends BaseEntity{
 
     String description;
 
+    Integer quantity;
+
     @Column(nullable = false)
     BigDecimal price;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    String contactInfo;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "equipment_images",
+            joinColumns = @JoinColumn(name = "equipment_id"),
+            inverseJoinColumns = @JoinColumn(name = "image_id")
+    )
     List<Image> images = new ArrayList<>();
 
     @ManyToOne

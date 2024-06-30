@@ -1,7 +1,10 @@
 package kg.neobis.smarttailor.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
@@ -11,6 +14,7 @@ import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -34,8 +38,14 @@ public class Service extends BaseEntity{
     @ManyToOne
     AppUser author;
 
-    @OneToMany(mappedBy = "service", orphanRemoval = true)
-    List<Image> images;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinTable(
+            name = "service_images",
+            joinColumns = @JoinColumn(name = "service_id"),
+            inverseJoinColumns = @JoinColumn(name = "image_id")
+    )
+    List<Image> images = new ArrayList<>();
+
 
     @Column
     BigInteger price;
