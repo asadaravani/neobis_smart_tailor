@@ -15,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,8 +26,8 @@ import java.util.Optional;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AppUserServiceImpl implements AppUserService {
 
-    AppUserRepository repository;
     AppUserMapper userMapper = AppUserMapper.INSTANCE;
+    AppUserRepository repository;
     PasswordEncoder passwordEncoder;
     SubscriptionService subscriptionService;
 
@@ -63,9 +64,23 @@ public class AppUserServiceImpl implements AppUserService {
         return repository.findByEmail(email);
     }
 
+    @Override
     public AppUser findUserByEmail(String email) {
         return repository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Error: User not found with email: " + email, HttpStatus.NOT_FOUND.value()));
+    }
+
+    @Override
+    public AppUser getUserFromAuthentication(Authentication authentication) {
+        if (authentication != null && authentication.isAuthenticated()) {
+            Object principal = authentication.getPrincipal();
+            if (principal instanceof AppUser appUser) {
+                return appUser;
+            } else {
+                throw new IllegalArgumentException("Principal is not an instance of AppUser");
+            }
+        }
+        return null;
     }
 
     @Override
