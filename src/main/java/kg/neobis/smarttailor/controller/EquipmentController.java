@@ -1,16 +1,15 @@
 package kg.neobis.smarttailor.controller;
 
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import kg.neobis.smarttailor.common.EndpointConstants;
 import kg.neobis.smarttailor.dtos.EquipmentDto;
 import kg.neobis.smarttailor.dtos.EquipmentListDto;
 import kg.neobis.smarttailor.service.EquipmentService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.apache.tomcat.util.http.fileupload.FileUploadException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,11 +25,12 @@ import java.util.List;
 @RestController
 @AllArgsConstructor
 @Tag(name = "Equipment")
-@RequestMapping("/equipment")
+@RequestMapping(EndpointConstants.EQUIPMENT_ENDPOINT)
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EquipmentController {
 
-    EquipmentService equipmentService;
+    EquipmentService service;
+
     @Operation(
             summary = "Get all equipments",
             description = "Using this endpoint it is possible to get all equipments",
@@ -40,8 +40,8 @@ public class EquipmentController {
             }
     )
     @GetMapping("/get-all-equipments")
-    public ResponseEntity<List<EquipmentListDto>> getAllEquipments(){
-        return ResponseEntity.ok(equipmentService.getAllEquipments());
+    public ResponseEntity<List<EquipmentListDto>> getAllEquipments() {
+        return ResponseEntity.ok(service.getAllEquipments());
     }
 
     @Operation(
@@ -55,7 +55,7 @@ public class EquipmentController {
     )
     @GetMapping("/get-by-id/{equipmentId}")
     public ResponseEntity<EquipmentDto> getEquipmentById(@PathVariable Long equipmentId) {
-        return ResponseEntity.ok(equipmentService.getEquipmentById(equipmentId));
+        return ResponseEntity.ok(service.getEquipmentById(equipmentId));
     }
 
 
@@ -69,13 +69,8 @@ public class EquipmentController {
     )
     @PostMapping("/add-equipment")
     public ResponseEntity<String> addEquipment(@RequestPart("equipmentDto") String equipmentDto,
-                                            @RequestPart("photos") List<MultipartFile> images,
-                                            Authentication authentication) throws FileUploadException {
-        return ResponseEntity.ok(equipmentService.addEquipment(equipmentDto, images, authentication));
+                                               @RequestPart("photos") List<MultipartFile> images,
+                                               Authentication authentication) {
+        return ResponseEntity.ok(service.addEquipment(equipmentDto, images, authentication));
     }
-
-
-
-
-
 }
