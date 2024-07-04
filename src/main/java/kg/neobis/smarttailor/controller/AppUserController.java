@@ -2,7 +2,7 @@ package kg.neobis.smarttailor.controller;
 
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import kg.neobis.smarttailor.common.EndpointConstants;
+import kg.neobis.smarttailor.constants.EndpointConstants;
 import kg.neobis.smarttailor.dtos.CreateAdmin;
 import kg.neobis.smarttailor.service.AppUserService;
 import lombok.AccessLevel;

@@ -1,4 +1,4 @@
-package kg.neobis.smarttailor.common;
+package kg.neobis.smarttailor.constants;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -11,6 +11,10 @@ public final class EndpointConstants {
     public static final String API_USER_ENDPOINT = API_PREFIX + "/api-user";
 
     public static final String AUTH_ENDPOINT = API_PREFIX + "/auth";
+
+    public static final String EQUIPMENT_ENDPOINT = API_PREFIX + "/equipment";
+
+    public static final String ORDER_ENDPOINT = API_PREFIX + "/order";
 
     public static final String PERSONAL_ACCOUNT_ENDPOINT = API_PREFIX + "/account";
 

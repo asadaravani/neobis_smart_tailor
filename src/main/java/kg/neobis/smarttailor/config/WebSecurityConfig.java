@@ -1,6 +1,6 @@
 package kg.neobis.smarttailor.config;
 
-import kg.neobis.smarttailor.common.EndpointConstants;
+import kg.neobis.smarttailor.constants.EndpointConstants;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
