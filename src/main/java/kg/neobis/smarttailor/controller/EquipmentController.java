@@ -3,7 +3,7 @@ package kg.neobis.smarttailor.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import kg.neobis.smarttailor.common.EndpointConstants;
+import kg.neobis.smarttailor.constants.EndpointConstants;
 import kg.neobis.smarttailor.dtos.EquipmentDto;
 import kg.neobis.smarttailor.dtos.EquipmentListDto;
 import kg.neobis.smarttailor.service.EquipmentService;

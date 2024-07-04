@@ -1,4 +1,4 @@
-package kg.neobis.smarttailor.common;
+package kg.neobis.smarttailor.constants;
 
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;

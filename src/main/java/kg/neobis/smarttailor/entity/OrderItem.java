@@ -1,24 +1,29 @@
 package kg.neobis.smarttailor.entity;
 
-import jakarta.persistence.Entity;
 import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import kg.neobis.smarttailor.enums.Size;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
 @Entity
-@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Size extends BaseEntity {
+public class OrderItem extends BaseEntity {
+
+    @Column()
+    @Enumerated(EnumType.STRING)
+    Size size;
 
     @Column(nullable = false)
-    String name;
+    Integer quantity;
 }
