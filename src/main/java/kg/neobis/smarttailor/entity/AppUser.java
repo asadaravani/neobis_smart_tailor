@@ -1,13 +1,13 @@
 package kg.neobis.smarttailor.entity;
 
-import kg.neobis.smarttailor.enums.Role;
-
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import kg.neobis.smarttailor.enums.Role;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.AllArgsConstructor;
@@ -31,8 +31,9 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AppUser extends BaseEntity implements UserDetails {
 
-    @Column
-    String imageUrl;
+    @OneToOne
+    @JoinColumn
+    Image image;
 
     @Column
     String name;
