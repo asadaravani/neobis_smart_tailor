@@ -2,11 +2,13 @@ package kg.neobis.smarttailor.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kg.neobis.smarttailor.dtos.OrderDetailsDto;
 import kg.neobis.smarttailor.dtos.OrderDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.entity.Order;
 import kg.neobis.smarttailor.exception.InvalidJsonException;
+import kg.neobis.smarttailor.exception.ResourceNotFoundException;
 import kg.neobis.smarttailor.mapper.OrderMapper;
 import kg.neobis.smarttailor.repository.OrderRepository;
 import kg.neobis.smarttailor.service.AppUserService;
@@ -48,6 +50,13 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderMapper.dtoToEntity(requestDto, orderImages, user);
         orderRepository.save(order);
         return "order has been created";
+    }
+
+    @Override
+    public OrderDetailsDto getOrderById(Long orderId) {
+        Order order = orderRepository.findById(orderId).
+                orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId, HttpStatus.NOT_FOUND.value()));
+        return orderMapper.entityToOrderDetailsDto(order);
     }
 
     private OrderDto parseAndValidateOrderDto(String orderDto) {

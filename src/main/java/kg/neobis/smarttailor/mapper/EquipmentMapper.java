@@ -18,7 +18,7 @@ public class EquipmentMapper {
                 equipment.getImages().get(1).getUrl(),
                 equipment.getName(),
                 equipment.getPrice(),
-                equipment.getAuthor().getImageUrl(),
+                equipment.getAuthor().getImage().getUrl(),
                 getFullName(equipment),
                 equipment.getDescription()
                 )).collect(Collectors.toList());
@@ -30,7 +30,7 @@ public class EquipmentMapper {
                 equipment.getName(),
                 equipment.getPrice(),
                 equipment.getImages().stream().map(Image::getUrl).collect(Collectors.toList()),
-                equipment.getAuthor().getImageUrl(),
+                equipment.getAuthor().getImage().getUrl(),
                 getFullName(equipment),
                 equipment.getDescription(),
                 equipment.getContactInfo(),
@@ -61,8 +61,3 @@ public class EquipmentMapper {
                 );
     }
 }
-
-
-
-
-
