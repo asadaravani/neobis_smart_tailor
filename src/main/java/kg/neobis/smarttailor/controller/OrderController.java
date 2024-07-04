@@ -53,9 +53,9 @@ public class OrderController {
             description = "The authorized user transmits the order id to receive detailed information about the order",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Order information was displayed"),
-                    @ApiResponse(responseCode = "404", description = "Equipment not found"),
-
-
+                    @ApiResponse(responseCode = "404", description = "Order not found"),
+                    @ApiResponse(responseCode = "403", description = "authentication required"),
+                    @ApiResponse(responseCode = "500", description = "internal server error")
             }
     )
     @GetMapping("/get-by-id/{orderId}")
