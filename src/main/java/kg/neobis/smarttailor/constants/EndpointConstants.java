@@ -14,6 +14,8 @@ public final class EndpointConstants {
 
     public static final String EQUIPMENT_ENDPOINT = API_PREFIX + "/equipment";
 
+    public static final String SERVICE_ENDPOINT = API_PREFIX + "/service";
+
     public static final String ORDER_ENDPOINT = API_PREFIX + "/order";
 
     public static final String PERSONAL_ACCOUNT_ENDPOINT = API_PREFIX + "/account";
