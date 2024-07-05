@@ -27,6 +27,7 @@ import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @AllArgsConstructor
@@ -51,6 +52,19 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderMapper.dtoToEntity(requestDto, orderImages, user);
         orderRepository.save(order);
         return "order has been created";
+    }
+
+    @Override
+    public String deleteOrder(Long orderId) {
+
+        Optional<Order> order = orderRepository.findById(orderId);
+
+        if (order.isPresent()) {
+            orderRepository.deleteById(orderId);
+            return "order has been deleted";
+        } else {
+            throw new ResourceNotFoundException("order not found with id: " + orderId, HttpStatus.NOT_FOUND.value());
+        }
     }
 
     @Override

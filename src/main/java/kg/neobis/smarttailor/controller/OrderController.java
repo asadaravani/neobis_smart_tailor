@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -47,6 +48,21 @@ public class OrderController {
                                           @RequestPart("images") List<MultipartFile> images,
                                           Authentication authentication) {
         return ResponseEntity.ok(service.addOrder(order, images, authentication));
+    }
+
+    @Operation(
+            summary = "delete order",
+            description = "user deletes the order using his order's id",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "order has been deleted"),
+                    @ApiResponse(responseCode = "403", description = "authentication required"),
+                    @ApiResponse(responseCode = "404", description = "order not found with specified id"),
+                    @ApiResponse(responseCode = "500", description = "internal server error")
+            }
+    )
+    @DeleteMapping("/delete-order/{orderId}")
+    public ResponseEntity<String> deleteOrder(@PathVariable Long orderId) {
+        return ResponseEntity.ok(service.deleteOrder(orderId));
     }
 
     @Operation(
