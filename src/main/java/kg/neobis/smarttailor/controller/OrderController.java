@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
 import kg.neobis.smarttailor.dtos.OrderDetailsDto;
+import kg.neobis.smarttailor.dtos.OrderListDto;
 import kg.neobis.smarttailor.service.OrderService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -42,19 +43,33 @@ public class OrderController {
             }
     )
     @PostMapping("/add-order")
-    public ResponseEntity<String> addOrder(@RequestPart("order") String equipmentDto,
+    public ResponseEntity<String> addOrder(@RequestPart("order") String order,
                                           @RequestPart("images") List<MultipartFile> images,
                                           Authentication authentication) {
-        return ResponseEntity.ok(service.addOrder(equipmentDto, images, authentication));
+        return ResponseEntity.ok(service.addOrder(order, images, authentication));
+    }
+
+    @Operation(
+            summary = "get all orders",
+            description = "getting a list of orders, with basic information about them",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Equipment list"),
+                    @ApiResponse(responseCode = "403", description = "authentication required"),
+                    @ApiResponse(responseCode = "500", description = "internal server error")
+            }
+    )
+    @GetMapping("/get-all-orders")
+    public ResponseEntity<List<OrderListDto>> getAllOrders() {
+        return ResponseEntity.ok(service.getAllOrders());
     }
 
     @Operation(
             summary = "get order's detailed information",
             description = "The authorized user transmits the order id to receive detailed information about the order",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Order information was displayed"),
-                    @ApiResponse(responseCode = "404", description = "Order not found"),
+                    @ApiResponse(responseCode = "200", description = "order information was displayed"),
                     @ApiResponse(responseCode = "403", description = "authentication required"),
+                    @ApiResponse(responseCode = "404", description = "order not found with specified id"),
                     @ApiResponse(responseCode = "500", description = "internal server error")
             }
     )

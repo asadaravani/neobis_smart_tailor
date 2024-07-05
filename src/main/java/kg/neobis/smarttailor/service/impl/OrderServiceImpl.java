@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kg.neobis.smarttailor.dtos.OrderDetailsDto;
 import kg.neobis.smarttailor.dtos.OrderDto;
+import kg.neobis.smarttailor.dtos.OrderListDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.entity.Order;
@@ -53,6 +54,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<OrderListDto> getAllOrders() {
+        List<Order> orders = orderRepository.findAll();
+        return orderMapper.entityListToDtoList(orders);
+    }
+
+    @Override
     public OrderDetailsDto getOrderById(Long orderId) {
         Order order = orderRepository.findById(orderId).
                 orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId, HttpStatus.NOT_FOUND.value()));
@@ -60,7 +67,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private OrderDto parseAndValidateOrderDto(String orderDto) {
-
         try {
             OrderDto requestDto = objectMapper.readValue(orderDto, OrderDto.class);
             BindingResult bindingResult = new BeanPropertyBindingResult(requestDto, "orderDto");
