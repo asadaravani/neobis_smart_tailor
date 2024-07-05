@@ -11,6 +11,8 @@ public interface OrderService {
 
     String addOrder(String orderDto, List<MultipartFile> images, Authentication authentication);
 
+    String deleteOrder(Long orderId);
+
     List<OrderListDto> getAllOrders();
 
     OrderDetailsDto getOrderById(Long orderId);
