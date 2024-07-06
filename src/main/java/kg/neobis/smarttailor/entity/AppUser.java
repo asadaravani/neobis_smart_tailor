@@ -18,7 +18,6 @@ import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-
 import java.util.Collection;
 import java.util.List;
 
@@ -31,7 +30,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AppUser extends BaseEntity implements UserDetails {
 
-    @OneToOne
+    @OneToOne(orphanRemoval = true)
     @JoinColumn
     Image image;
 

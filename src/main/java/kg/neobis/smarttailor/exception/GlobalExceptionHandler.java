@@ -50,4 +50,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<Object> handleConstraintViolation(ConstraintViolationException ex) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
+
+    @ExceptionHandler(ResourceProcessingErrorException.class)
+    public ResponseEntity<Object> handleResourceProcessing(ResourceProcessingErrorException ex) {
+        log.error("ResourceProcessingErrorException: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    }
 }
