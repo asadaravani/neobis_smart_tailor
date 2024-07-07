@@ -50,6 +50,8 @@ public class EquipmentController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Equipment"),
                     @ApiResponse(responseCode = "404", description = "Equipment not found"),
+                    @ApiResponse(responseCode = "406", description = "Equipment is out of stock"),
+
 
             }
     )
@@ -64,7 +66,8 @@ public class EquipmentController {
             description = "Whenever user wants to add a new equipment then he or she should to use this endpoint",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Equipment successfully added"),
-                    @ApiResponse(responseCode = "403", description = "Authentication required")
+                    @ApiResponse(responseCode = "403", description = "Authentication required"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
     @PostMapping("/add-equipment")
