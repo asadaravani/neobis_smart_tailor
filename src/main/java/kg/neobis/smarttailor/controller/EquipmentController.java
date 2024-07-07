@@ -73,4 +73,18 @@ public class EquipmentController {
                                                Authentication authentication) {
         return ResponseEntity.ok(service.addEquipment(equipmentDto, images, authentication));
     }
+
+    @Operation(
+            summary = "Buy an equipment",
+            description = "This endpoint is designed to buy an equipment",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Equipment has been bought successfully"),
+                    @ApiResponse(responseCode = "403", description = "Authentication required")
+            }
+    )
+    @GetMapping("/buy-equipment/{equipmentId}")
+    public ResponseEntity<String> buyEquipment(@PathVariable Long equipmentId,
+                                               Authentication authentication) {
+        return ResponseEntity.ok(service.buyEquipment(equipmentId, authentication));
+    }
 }

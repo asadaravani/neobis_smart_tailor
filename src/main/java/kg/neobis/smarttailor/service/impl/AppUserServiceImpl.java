@@ -4,6 +4,7 @@ import kg.neobis.smarttailor.dtos.CreateAdmin;
 import kg.neobis.smarttailor.dtos.UserProfileDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.enums.Role;
+import kg.neobis.smarttailor.exception.NotAuthorizedException;
 import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
 import kg.neobis.smarttailor.exception.ResourceNotFoundException;
 import kg.neobis.smarttailor.mapper.AppUserMapper;
@@ -80,7 +81,7 @@ public class AppUserServiceImpl implements AppUserService {
                 throw new IllegalArgumentException("Principal is not an instance of AppUser");
             }
         }
-        return null;
+        throw new NotAuthorizedException("Authentication required!", HttpStatus.FORBIDDEN.value());
     }
 
     @Override

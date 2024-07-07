@@ -15,7 +15,7 @@ import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@Tag(name = "Equipment")
+@Tag(name = "Service")
 @RequestMapping(EndpointConstants.SERVICE_ENDPOINT)
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ServiceController {

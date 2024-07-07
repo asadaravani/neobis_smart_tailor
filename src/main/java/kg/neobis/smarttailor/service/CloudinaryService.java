@@ -16,5 +16,4 @@ public interface CloudinaryService {
 
     String uploadImage(MultipartFile file) throws IOException;
 
-    void validateImages(List<MultipartFile> images);
 }
