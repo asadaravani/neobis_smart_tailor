@@ -2,6 +2,7 @@ package kg.neobis.smarttailor.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import kg.neobis.smarttailor.dtos.OrderDetailsDto;
 import kg.neobis.smarttailor.dtos.OrderDto;
 import kg.neobis.smarttailor.dtos.OrderListDto;
@@ -26,8 +27,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
-import java.util.Optional;
+
 
 @Service
 @AllArgsConstructor
@@ -55,16 +57,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public String deleteOrder(Long orderId) {
+    @Transactional
+    public String deleteOrder(Long orderId) throws IOException {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId, HttpStatus.NOT_FOUND.value()));
 
-        Optional<Order> order = orderRepository.findById(orderId);
-
-        if (order.isPresent()) {
-            orderRepository.deleteById(orderId);
-            return "order has been deleted";
-        } else {
-            throw new ResourceNotFoundException("order not found with id: " + orderId, HttpStatus.NOT_FOUND.value());
+        for (Image image : order.getImages()) {
+            cloudinaryService.deleteImage(image.getUrl());
         }
+
+        orderRepository.delete(order);
+        return "order has been deleted";
     }
 
     @Override

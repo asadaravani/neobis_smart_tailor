@@ -30,8 +30,8 @@ public class CloudinaryServiceImpl implements CloudinaryService {
     @Override
     public String extractPublicId(String imageUrl) {
         String withoutProtocol = imageUrl.replaceFirst("https?://[^/]+/", "");
-        String withoutPath = withoutProtocol.substring(0, withoutProtocol.lastIndexOf("/"));
-        return withoutPath.substring(withoutPath.lastIndexOf("/") + 1, withoutPath.lastIndexOf("."));
+        String withoutPath = withoutProtocol.substring(0, withoutProtocol.lastIndexOf("."));
+        return withoutPath.substring(withoutPath.lastIndexOf("/") + 1);
     }
 
     @Override

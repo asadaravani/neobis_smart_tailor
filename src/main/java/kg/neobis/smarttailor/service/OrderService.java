@@ -5,13 +5,14 @@ import kg.neobis.smarttailor.dtos.OrderListDto;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface OrderService {
 
     String addOrder(String orderDto, List<MultipartFile> images, Authentication authentication);
 
-    String deleteOrder(Long orderId);
+    String deleteOrder(Long orderId) throws IOException;
 
     List<OrderListDto> getAllOrders();
 
