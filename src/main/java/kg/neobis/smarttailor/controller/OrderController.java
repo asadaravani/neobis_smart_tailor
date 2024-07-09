@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Validated
@@ -52,7 +53,7 @@ public class OrderController {
 
     @Operation(
             summary = "delete order",
-            description = "user deletes the order using his order's id",
+            description = "The authorized user deletes the order and all related data",
             responses = {
                     @ApiResponse(responseCode = "200", description = "order has been deleted"),
                     @ApiResponse(responseCode = "403", description = "authentication required"),
@@ -61,8 +62,9 @@ public class OrderController {
             }
     )
     @DeleteMapping("/delete-order/{orderId}")
-    public ResponseEntity<String> deleteOrder(@PathVariable Long orderId) {
-        return ResponseEntity.ok(service.deleteOrder(orderId));
+    public ResponseEntity<String> deleteOrder(@PathVariable Long orderId) throws IOException {
+        service.deleteOrder(orderId);
+        return ResponseEntity.ok("order has been deleted");
     }
 
     @Operation(
