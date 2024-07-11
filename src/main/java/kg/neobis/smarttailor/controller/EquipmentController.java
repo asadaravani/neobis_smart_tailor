@@ -50,6 +50,8 @@ public class EquipmentController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Equipment"),
                     @ApiResponse(responseCode = "404", description = "Equipment not found"),
+                    @ApiResponse(responseCode = "406", description = "Equipment is out of stock"),
+
 
             }
     )
@@ -64,7 +66,8 @@ public class EquipmentController {
             description = "Whenever user wants to add a new equipment then he or she should to use this endpoint",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Equipment successfully added"),
-                    @ApiResponse(responseCode = "403", description = "Authentication required")
+                    @ApiResponse(responseCode = "403", description = "Authentication required"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
     @PostMapping("/add-equipment")
@@ -72,5 +75,19 @@ public class EquipmentController {
                                                @RequestPart("photos") List<MultipartFile> images,
                                                Authentication authentication) {
         return ResponseEntity.ok(service.addEquipment(equipmentDto, images, authentication));
+    }
+
+    @Operation(
+            summary = "Buy an equipment",
+            description = "This endpoint is designed to buy an equipment",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Equipment has been bought successfully"),
+                    @ApiResponse(responseCode = "403", description = "Authentication required")
+            }
+    )
+    @GetMapping("/buy-equipment/{equipmentId}")
+    public ResponseEntity<String> buyEquipment(@PathVariable Long equipmentId,
+                                               Authentication authentication) {
+        return ResponseEntity.ok(service.buyEquipment(equipmentId, authentication));
     }
 }

@@ -48,7 +48,6 @@ public class OrderServiceImpl implements OrderService {
 
         OrderDto requestDto = parseAndValidateOrderDto(orderDto);
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        cloudinaryService.validateImages(images);
         List<Image> orderImages = cloudinaryService.saveImages(images);
 
         Order order = orderMapper.dtoToEntity(requestDto, orderImages, user);

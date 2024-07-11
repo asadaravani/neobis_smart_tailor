@@ -13,7 +13,6 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
 @NoArgsConstructor
-@SuperBuilder
 public class Position extends BaseEntity{
 
     @Column(nullable = false)

@@ -1,5 +1,6 @@
 package kg.neobis.smarttailor.entity;
 
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
@@ -7,6 +8,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
+import jakarta.persistence.Transient;
 import kg.neobis.smarttailor.enums.Role;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -24,14 +26,13 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@SuperBuilder
 @NoArgsConstructor
+@SuperBuilder
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AppUser extends BaseEntity implements UserDetails {
 
-    @OneToOne(orphanRemoval = true)
-    @JoinColumn
+    @OneToOne(orphanRemoval = true, cascade = CascadeType.PERSIST)
     Image image;
 
     @Column

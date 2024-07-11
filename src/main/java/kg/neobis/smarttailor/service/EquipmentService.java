@@ -14,4 +14,6 @@ public interface EquipmentService {
     EquipmentDto getEquipmentById(Long equipmentId);
 
     String addEquipment(String equipmentDto, List<MultipartFile> images, Authentication authentication);
+
+    String buyEquipment(Long equipmentId, Authentication authentication);
 }

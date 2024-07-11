@@ -2,18 +2,29 @@ package kg.neobis.smarttailor.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.DocumentException;
+import jakarta.mail.MessagingException;
+import kg.neobis.smarttailor.entity.Image;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfPCell;
+import com.itextpdf.text.pdf.PdfPTable;
+import com.itextpdf.text.pdf.PdfWriter;
 import kg.neobis.smarttailor.dtos.EquipmentDto;
 import kg.neobis.smarttailor.dtos.EquipmentListDto;
 import kg.neobis.smarttailor.dtos.EquipmentRequestDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Equipment;
-import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.exception.InvalidJsonException;
+import kg.neobis.smarttailor.exception.OutOfStockException;
+import kg.neobis.smarttailor.exception.PdfGenerationException;
 import kg.neobis.smarttailor.exception.ResourceNotFoundException;
 import kg.neobis.smarttailor.mapper.EquipmentMapper;
 import kg.neobis.smarttailor.repository.EquipmentRepository;
 import kg.neobis.smarttailor.service.AppUserService;
 import kg.neobis.smarttailor.service.CloudinaryService;
+import kg.neobis.smarttailor.service.EmailService;
 import kg.neobis.smarttailor.service.EquipmentService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -26,6 +37,12 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -37,6 +54,7 @@ public class EquipmentServiceImpl implements EquipmentService {
     EquipmentRepository equipmentRepository;
     EquipmentMapper equipmentMapper;
     ObjectMapper objectMapper;
+    EmailService emailService;
     Validator validator;
     CloudinaryService cloudinaryService;
 
@@ -57,7 +75,6 @@ public class EquipmentServiceImpl implements EquipmentService {
 
         EquipmentRequestDto requestDto = parseAndValidateRecipeDto(equipmentRequestDto);
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        cloudinaryService.validateImages(images);
         List<Image> equipmentImages = cloudinaryService.saveImages(images);
 
         Equipment equipment = equipmentMapper.dtoToEntity(requestDto, equipmentImages, user);
@@ -79,4 +96,71 @@ public class EquipmentServiceImpl implements EquipmentService {
             throw new InvalidJsonException(e.getMessage(), HttpStatus.BAD_REQUEST.value());
         }
     }
+
+
+    @Override
+    public String buyEquipment(Long equipmentId, Authentication authentication) {
+        Equipment equipment = equipmentRepository.findById(equipmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found", HttpStatus.NOT_FOUND.value()));
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+
+        if (equipment.getQuantity() <= 0) {
+            throw new OutOfStockException("This equipment is out of stock", HttpStatus.FORBIDDEN.value());
+        }
+
+        byte[] pdfFile;
+        try {
+            pdfFile = generateReceiptPdf(equipment, user);
+            emailService.sendEmailWithReceiptPDF(user, pdfFile);
+        } catch (IOException | MessagingException exception) {
+            throw new IllegalStateException("Something went wrong! Please, try again!");
+        }
+
+        equipment.setQuantity(equipment.getQuantity() - 1);
+        equipmentRepository.save(equipment);
+        return "Receipt sent to the email successfully";
+    }
+
+
+    private byte[] generateReceiptPdf(Equipment equipment, AppUser user){
+        Document document = new Document();
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            PdfWriter.getInstance(document, out);
+            document.open();
+            document.add(new Paragraph("Receipt"));
+
+            PdfPTable table = new PdfPTable(2);
+            table.setWidthPercentage(100);
+            table.setSpacingBefore(10f);
+            table.setSpacingAfter(10f);
+
+            PdfPCell cell1 = new PdfPCell(new Paragraph("Field"));
+            PdfPCell cell2 = new PdfPCell(new Paragraph("Details"));
+            cell1.setBackgroundColor(BaseColor.LIGHT_GRAY);
+            cell2.setBackgroundColor(BaseColor.LIGHT_GRAY);
+            table.addCell(cell1);
+            table.addCell(cell2);
+
+            table.addCell("Date");
+            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+            Date date = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
+            String formattedDate = dateFormat.format(date);
+            table.addCell(formattedDate);
+            table.addCell("Buyer");
+            table.addCell(user.getName() + " " + user.getSurname());
+            table.addCell("Equipment");
+            table.addCell(equipment.getName());
+            table.addCell("Price");
+            table.addCell("$" + equipment.getPrice());
+            document.add(table);
+            document.close();
+        }catch (DocumentException exception){
+            throw new PdfGenerationException(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());
+        }
+        return out.toByteArray();
+    }
+
+
 }

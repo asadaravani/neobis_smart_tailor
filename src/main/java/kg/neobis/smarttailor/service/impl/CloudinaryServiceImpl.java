@@ -54,12 +54,5 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         return (String) uploadResult.get("secure_url");
     }
 
-    @Override
-    public void validateImages(List<MultipartFile> images) {
-        for (MultipartFile image : images) {
-            if (image == null || image.isEmpty() || image.getContentType() == null || !image.getContentType().startsWith("image/")) {
-                throw new IllegalArgumentException("The file is not an image!");
-            }
-        }
-    }
+
 }

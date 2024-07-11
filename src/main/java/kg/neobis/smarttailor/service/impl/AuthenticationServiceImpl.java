@@ -3,12 +3,14 @@ package kg.neobis.smarttailor.service.impl;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import kg.neobis.smarttailor.config.JwtUtil;
 import kg.neobis.smarttailor.dtos.LoginAdmin;
 import kg.neobis.smarttailor.dtos.LoginResponse;
 import kg.neobis.smarttailor.dtos.SignUpRequest;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.ConfirmationCode;
+import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.enums.Role;
 import kg.neobis.smarttailor.exception.InvalidRequestException;
 import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
@@ -44,6 +46,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     PasswordEncoder passwordEncoder;
 
     @Override
+    @Transactional
     public ResponseEntity<?> confirmEmail(String email, Integer code) {
 
         AppUser user = appUserService.findByEmail(email)
@@ -152,8 +155,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
+    @Transactional
     public ResponseEntity<?> signUp(SignUpRequest request) {
-
         AppUser user;
         if (!appUserService.existsUserByEmail(request.email())) {
             user = AppUser.builder()
@@ -163,6 +166,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .email(request.email())
                     .phoneNumber(request.phoneNumber())
                     .role(Role.USER)
+                    .image(new Image("https://t4.ftcdn.net/jpg/03/32/59/65/240_F_332596535_lAdLhf6KzbW6PWXBWeIFTovTii1drkbT.jpg"))
                     .enabled(false)
                     .build();
 
