@@ -1,9 +1,13 @@
 package kg.neobis.smarttailor.dtos;
 
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Getter
 @Setter
@@ -18,5 +22,5 @@ public class UserProfileDto {
     String patronymic;
     String email;
     String phoneNumber;
-    LocalDateTime expiryTime;
+    LocalDate subscriptionExpirationDate;
 }

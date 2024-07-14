@@ -1,7 +1,6 @@
 package kg.neobis.smarttailor.service;
 
 import kg.neobis.smarttailor.dtos.CreateAdmin;
-import kg.neobis.smarttailor.dtos.UserProfileDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -19,8 +18,6 @@ public interface AppUserService {
     AppUser findUserByEmail(String email);
 
     AppUser getUserFromAuthentication(Authentication authentication);
-
-    UserProfileDto getUserProfile(String email);
 
     AppUser save(AppUser appUser);
 }

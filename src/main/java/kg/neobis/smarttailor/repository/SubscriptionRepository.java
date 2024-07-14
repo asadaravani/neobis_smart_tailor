@@ -10,5 +10,7 @@ import java.util.Optional;
 @Repository
 public interface SubscriptionRepository extends JpaRepository<Subscription, Long> {
 
+    Boolean existsSubscriptionByUser(AppUser user);
+
     Optional<Subscription> findByUser(AppUser user);
 }

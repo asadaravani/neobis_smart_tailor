@@ -1,16 +1,13 @@
 package kg.neobis.smarttailor.service.impl;
 
 import kg.neobis.smarttailor.dtos.CreateAdmin;
-import kg.neobis.smarttailor.dtos.UserProfileDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.enums.Role;
 import kg.neobis.smarttailor.exception.NotAuthorizedException;
 import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
 import kg.neobis.smarttailor.exception.ResourceNotFoundException;
-import kg.neobis.smarttailor.mapper.AppUserMapper;
 import kg.neobis.smarttailor.repository.AppUserRepository;
 import kg.neobis.smarttailor.service.AppUserService;
-import kg.neobis.smarttailor.service.SubscriptionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -27,10 +24,8 @@ import java.util.Optional;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AppUserServiceImpl implements AppUserService {
 
-    AppUserMapper userMapper = AppUserMapper.INSTANCE;
     AppUserRepository repository;
     PasswordEncoder passwordEncoder;
-    SubscriptionService subscriptionService;
 
     @Override
     public ResponseEntity<?> createAdmin(CreateAdmin request) {
@@ -82,14 +77,6 @@ public class AppUserServiceImpl implements AppUserService {
             }
         }
         throw new NotAuthorizedException("Authentication required!", HttpStatus.FORBIDDEN.value());
-    }
-
-    @Override
-    public UserProfileDto getUserProfile(String email) {
-        AppUser user = findUserByEmail(email);
-        UserProfileDto userDto = userMapper.appUserToUserProfileDto(user);
-        userDto.setExpiryTime(subscriptionService.getSubscriptionExpiryTime(user));
-        return userDto;
     }
 
     @Override
