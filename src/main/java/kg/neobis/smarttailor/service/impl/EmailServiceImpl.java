@@ -5,6 +5,7 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.util.ByteArrayDataSource;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.ConfirmationCode;
+import kg.neobis.smarttailor.entity.SubscriptionToken;
 import kg.neobis.smarttailor.service.EmailService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +28,7 @@ public class EmailServiceImpl implements EmailService {
     JavaMailSender javaMailSender;
 
     @Override
-    public void sendEmail(MimeMessage email) {
-        javaMailSender.send(email);
-    }
-
-    @Override
-    public MimeMessage createMail(AppUser user, ConfirmationCode confirmationCode) throws MessagingException {
+    public MimeMessage createMailWithConfirmationCode(AppUser user, ConfirmationCode confirmationCode) throws MessagingException {
 
         Context context = new Context();
         context.setVariable("confirmCode", confirmationCode.getCode());
@@ -46,6 +42,32 @@ public class EmailServiceImpl implements EmailService {
         helper.setFrom("smart_tailor@gmail.com");
         return mimeMessage;
     }
+
+    @Override
+    public MimeMessage createSubscriptionRequestMail(AppUser user, SubscriptionToken token) throws MessagingException {
+
+        Context context = new Context();
+        context.setVariable("subscriptionToken", token.getToken());
+        context.setVariable("fullName", user.getSurname() + " " + user.getName() + " " + user.getPatronymic());
+        context.setVariable("email", user.getEmail());
+        context.setVariable("phoneNumber", user.getPhoneNumber());
+
+        String emailBody = engine.process("subscription_request", context);
+
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
+        helper.setText(emailBody, true); // Set to true to indicate that the email content is HTML
+        helper.setTo("u11se03r@gmail.com");
+        helper.setSubject("Запрос на подписку");
+        helper.setFrom("smart_tailor@gmail.com");
+        return mimeMessage;
+    }
+
+    @Override
+    public void sendEmail(MimeMessage email) {
+        javaMailSender.send(email);
+    }
+
 
     @Override
     public void sendEmailWithReceiptPDF(AppUser user, byte[] pdfFile) throws MessagingException, IOException {

@@ -84,7 +84,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         confirmationCode = confirmationCodeService.generateConfirmationCode(user);
         MimeMessage simpleMailMessage;
         try {
-            simpleMailMessage = emailService.createMail(user, confirmationCode);
+            simpleMailMessage = emailService.createMailWithConfirmationCode(user, confirmationCode);
         } catch (MessagingException e) {
             throw new IllegalStateException("Failed to send email");
         }
@@ -147,7 +147,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         MimeMessage simpleMailMessage;
         try {
-            simpleMailMessage = emailService.createMail(user, confirmationCode);
+            simpleMailMessage = emailService.createMailWithConfirmationCode(user, confirmationCode);
         } catch (MessagingException e) {
             throw new IllegalStateException("Failed to send email");
         }
@@ -186,7 +186,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         ConfirmationCode confirmationCode = confirmationCodeService.generateConfirmationCode(user);
         MimeMessage simpleMailMessage;
         try {
-            simpleMailMessage = emailService.createMail(user, confirmationCode);
+            simpleMailMessage = emailService.createMailWithConfirmationCode(user, confirmationCode);
         } catch (MessagingException e) {
             throw new IllegalStateException("Failed to send email");
         }

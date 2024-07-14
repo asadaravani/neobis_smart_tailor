@@ -4,7 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
 import kg.neobis.smarttailor.dtos.UserProfileDto;
-import kg.neobis.smarttailor.service.AppUserService;
+import kg.neobis.smarttailor.service.PersonalAccountService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -21,10 +21,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(EndpointConstants.PERSONAL_ACCOUNT_ENDPOINT)
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PersonalAccountController {
-    AppUserService userService;
+
+    PersonalAccountService service;
+
     @Operation(summary = "User Profile", description = "May change to token or Id")
     @GetMapping("/profile")
-    public UserProfileDto getUserProfile(Authentication authentication){
-        return userService.getUserProfile(authentication.getName());
+    public UserProfileDto getUserProfile(Authentication authentication) {
+        return service.getUserProfile(authentication.getName());
     }
 }
