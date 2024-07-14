@@ -15,7 +15,7 @@
         <p>Почта: <span th:text="${email}"></span></p>
         <p>Номер телефона: <span th:text="${phoneNumber}"></span></p>
         <br/>
-        <a th:href="@{'https://smarttailor.xyz/api/subscription/confirm-subscription-request?token=' + ${subscriptionToken}}"
+        <a th:href="@{'https://smarttailor.xyz/api/app-user/confirm-subscription-request?token=' + ${subscriptionToken}}"
            style="display: inline-block; background-color: #292929; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 25px; transition: background-color 0.3s ease;">
             Подтвердите запрос на подписку
         </a>

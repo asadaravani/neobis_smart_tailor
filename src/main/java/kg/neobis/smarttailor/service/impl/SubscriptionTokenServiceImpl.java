@@ -19,14 +19,13 @@ public class SubscriptionTokenServiceImpl implements SubscriptionTokenService {
     SubscriptionTokenRepository subscriptionTokenRepository;
 
     @Override
-    public SubscriptionToken findByToken(String token) {
-        return subscriptionTokenRepository.findByToken(token);
+    public void delete(SubscriptionToken subscriptionToken) {
+        subscriptionTokenRepository.delete(subscriptionToken);
     }
 
     @Override
-    public void deleteByUser(AppUser user) {
-        SubscriptionToken subscriptionToken = subscriptionTokenRepository.findByUser(user);
-        subscriptionTokenRepository.delete(subscriptionToken);
+    public SubscriptionToken findByToken(String token) {
+        return subscriptionTokenRepository.findByToken(token);
     }
 
     @Override
