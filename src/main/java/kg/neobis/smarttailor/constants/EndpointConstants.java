@@ -14,11 +14,13 @@ public final class EndpointConstants {
 
     public static final String EQUIPMENT_ENDPOINT = API_PREFIX + "/equipment";
 
-    public static final String SERVICE_ENDPOINT = API_PREFIX + "/service";
-
     public static final String ORDER_ENDPOINT = API_PREFIX + "/order";
 
     public static final String PERSONAL_ACCOUNT_ENDPOINT = API_PREFIX + "/account";
+
+    public static final String SERVICE_ENDPOINT = API_PREFIX + "/service";
+
+    public static final String SUBSCRIPTION_ENDPOINT = API_PREFIX + "/subscription";
 
     public static final String[] WHITE_LIST_URL = {
             API_USER_ENDPOINT.concat("/**"),
@@ -28,6 +30,7 @@ public final class EndpointConstants {
             AUTH_ENDPOINT.concat("/login-admin"),
             AUTH_ENDPOINT.concat("/resend-confirmation-code"),
             AUTH_ENDPOINT.concat("/sign-up"),
+            SUBSCRIPTION_ENDPOINT.concat("/confirm-subscription-request**"),
             "/v3/api-docs",
             "/v3/api-docs/**",
             "/swagger-ui/**",
