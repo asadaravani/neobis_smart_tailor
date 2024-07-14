@@ -7,8 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
-import java.time.LocalDate;
-
 @Getter
 @Setter
 @AllArgsConstructor
@@ -22,5 +20,6 @@ public class UserProfileDto {
     String patronymic;
     String email;
     String phoneNumber;
-    LocalDate subscriptionExpirationDate;
+    Boolean hasSubscription;
+    Boolean inOrganization;
 }

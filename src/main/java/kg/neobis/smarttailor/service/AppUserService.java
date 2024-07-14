@@ -1,5 +1,6 @@
 package kg.neobis.smarttailor.service;
 
+import jakarta.mail.MessagingException;
 import kg.neobis.smarttailor.dtos.CreateAdmin;
 import kg.neobis.smarttailor.entity.AppUser;
 import org.springframework.http.ResponseEntity;
@@ -8,6 +9,8 @@ import org.springframework.security.core.Authentication;
 import java.util.Optional;
 
 public interface AppUserService {
+
+    ResponseEntity<?> confirmSubscriptionRequest(String subscriptionConfirmationToken);
 
     ResponseEntity<?> createAdmin(CreateAdmin request);
 
@@ -20,4 +23,6 @@ public interface AppUserService {
     AppUser getUserFromAuthentication(Authentication authentication);
 
     AppUser save(AppUser appUser);
+
+    ResponseEntity<?> sendSubscriptionRequest(Authentication authentication) throws MessagingException;
 }

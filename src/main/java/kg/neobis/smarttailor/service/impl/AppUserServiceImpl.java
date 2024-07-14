@@ -1,13 +1,18 @@
 package kg.neobis.smarttailor.service.impl;
 
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import kg.neobis.smarttailor.dtos.CreateAdmin;
 import kg.neobis.smarttailor.entity.AppUser;
+import kg.neobis.smarttailor.entity.SubscriptionToken;
 import kg.neobis.smarttailor.enums.Role;
 import kg.neobis.smarttailor.exception.NotAuthorizedException;
 import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
 import kg.neobis.smarttailor.exception.ResourceNotFoundException;
 import kg.neobis.smarttailor.repository.AppUserRepository;
 import kg.neobis.smarttailor.service.AppUserService;
+import kg.neobis.smarttailor.service.EmailService;
+import kg.neobis.smarttailor.service.SubscriptionTokenService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -17,6 +22,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 
 @Service
@@ -25,7 +31,25 @@ import java.util.Optional;
 public class AppUserServiceImpl implements AppUserService {
 
     AppUserRepository repository;
+    EmailService emailService;
     PasswordEncoder passwordEncoder;
+    SubscriptionTokenService subscriptionTokenService;
+
+    @Override
+    public ResponseEntity<?> confirmSubscriptionRequest(String subscriptionConfirmationToken) {
+
+        SubscriptionToken token = subscriptionTokenService.findByToken(subscriptionConfirmationToken);
+
+        if (LocalDateTime.now().isBefore(token.getExpirationTime())) {
+            AppUser user = findUserByEmail(token.getUser().getEmail());
+            user.setHasSubscription(true);
+            repository.save(user);
+            subscriptionTokenService.delete(token);
+
+            return ResponseEntity.ok("subscription for the user \"".concat(user.getEmail()).concat("\" issued"));
+        }
+        return ResponseEntity.badRequest().body("token has expired. try to resend the request.");
+    }
 
     @Override
     public ResponseEntity<?> createAdmin(CreateAdmin request) {
@@ -82,5 +106,20 @@ public class AppUserServiceImpl implements AppUserService {
     @Override
     public AppUser save(AppUser appUser) {
         return repository.save(appUser);
+    }
+
+    @Override
+    public ResponseEntity<?> sendSubscriptionRequest(Authentication authentication) throws MessagingException {
+
+        AppUser user = getUserFromAuthentication(authentication);
+
+        if (user.getHasSubscription())
+            throw new ResourceAlreadyExistsException("user already has a subscription", HttpStatus.CONFLICT.value());
+
+        SubscriptionToken subscriptionToken = subscriptionTokenService.generateSubscriptionRequestToken(user);
+        MimeMessage message = emailService.createSubscriptionRequestMail(user, subscriptionToken);
+        emailService.sendEmail(message);
+
+        return ResponseEntity.ok("Hooray! A subscription is on the way. Our administrator will contact you");
     }
 }

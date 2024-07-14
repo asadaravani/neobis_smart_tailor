@@ -8,7 +8,6 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
-import jakarta.persistence.Transient;
 import kg.neobis.smarttailor.enums.Role;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -20,15 +19,16 @@ import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
+
 import java.util.Collection;
 import java.util.List;
 
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
 @SuperBuilder
 @AllArgsConstructor
+@NoArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AppUser extends BaseEntity implements UserDetails {
 
@@ -67,6 +67,9 @@ public class AppUser extends BaseEntity implements UserDetails {
 
     @Column
     Boolean enabled;
+
+    @Column(nullable = false)
+    Boolean hasSubscription;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

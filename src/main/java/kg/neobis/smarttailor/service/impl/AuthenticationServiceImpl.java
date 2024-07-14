@@ -168,6 +168,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .role(Role.USER)
                     .image(new Image("https://t4.ftcdn.net/jpg/03/32/59/65/240_F_332596535_lAdLhf6KzbW6PWXBWeIFTovTii1drkbT.jpg"))
                     .enabled(false)
+                    .hasSubscription(false)
                     .build();
 
             user = appUserService.save(user);

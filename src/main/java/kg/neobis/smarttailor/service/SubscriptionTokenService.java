@@ -5,7 +5,7 @@ import kg.neobis.smarttailor.entity.SubscriptionToken;
 
 public interface SubscriptionTokenService {
 
-    void deleteByUser(AppUser user);
+    void delete(SubscriptionToken subscriptionToken);
 
     SubscriptionToken findByToken(String token);
 

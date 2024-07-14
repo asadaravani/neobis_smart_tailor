@@ -2,11 +2,9 @@ package kg.neobis.smarttailor.service.impl;
 
 import kg.neobis.smarttailor.dtos.UserProfileDto;
 import kg.neobis.smarttailor.entity.AppUser;
-import kg.neobis.smarttailor.entity.Subscription;
 import kg.neobis.smarttailor.mapper.AppUserMapper;
 import kg.neobis.smarttailor.service.AppUserService;
 import kg.neobis.smarttailor.service.PersonalAccountService;
-import kg.neobis.smarttailor.service.SubscriptionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -18,15 +16,11 @@ import org.springframework.stereotype.Service;
 public class PersonalAccountServiceImpl implements PersonalAccountService {
 
     AppUserService appUserService;
-    SubscriptionService subscriptionService;
     AppUserMapper userMapper = AppUserMapper.INSTANCE;
 
     @Override
     public UserProfileDto getUserProfile(String email) {
         AppUser user = appUserService.findUserByEmail(email);
-        UserProfileDto userDto = userMapper.appUserToUserProfileDto(user);
-        Subscription subscription = subscriptionService.findSubscriptionByAppUser(user);
-        userDto.setSubscriptionExpirationDate(subscription.getExpirationDate());
-        return userDto;
+        return userMapper.appUserToUserProfileDto(user);
     }
 }
