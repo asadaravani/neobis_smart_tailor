@@ -1,7 +1,9 @@
 package kg.neobis.smarttailor.exception;
 
-public class NotAuthorizedException extends BaseException{
-    public NotAuthorizedException(String message, Integer status) {
+import org.springframework.http.HttpStatus;
+
+public class NotAuthorizedException extends BaseException {
+    public NotAuthorizedException(String message, HttpStatus status) {
         super(message, status);
     }
 }

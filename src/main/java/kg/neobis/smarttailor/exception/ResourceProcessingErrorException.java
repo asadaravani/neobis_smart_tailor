@@ -1,7 +1,9 @@
 package kg.neobis.smarttailor.exception;
 
-public class ResourceProcessingErrorException extends BaseException{
-    public ResourceProcessingErrorException(String message, Integer status) {
+import org.springframework.http.HttpStatus;
+
+public class ResourceProcessingErrorException extends BaseException {
+    public ResourceProcessingErrorException(String message, HttpStatus status) {
         super(message, status);
     }
 }

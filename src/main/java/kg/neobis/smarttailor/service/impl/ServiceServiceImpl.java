@@ -46,33 +46,34 @@ public class ServiceServiceImpl implements ServicesService {
     ObjectMapper objectMapper;
 
     @Override
-    public Services findServiceById(Long id){
+    public Services findServiceById(Long id) {
         return serviceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Error: Service not found with id: "+ id, HttpStatus.NOT_FOUND.value()));
+                .orElseThrow(() -> new ResourceNotFoundException("Error: Service not found with id: " + id, HttpStatus.NOT_FOUND));
     }
 
     @Override
-    public ServiceDetailedResponse getServiceDetailed(Long id){
+    public ServiceDetailedResponse getServiceDetailed(Long id) {
         Services service = findServiceById(id);
         return ServiceMapper.INSTANCE.toDetailedResponse(service);
     }
 
     @Override
-    public String addService(String requestDto, List<MultipartFile> files, String email){
-       try{
-           ServiceAddRequest request = parseAndValidateServiceDto(requestDto);
-           AppUser author = userService.findUserByEmail(email);
-           Services newService = ServiceMapper.INSTANCE.toEntity(request, author);
-           List<Image> uploadedImages = cloudinaryService.saveImages(files);
-           newService.setImages(uploadedImages);
-           serviceRepository.save(newService);
-           return "Service successfully added";
-       }catch (Exception e){
-           throw new ResourceProcessingErrorException("Error while adding a new Service", HttpStatus.INTERNAL_SERVER_ERROR.value());
-       }
+    public String addService(String requestDto, List<MultipartFile> files, String email) {
+        try {
+            ServiceAddRequest request = parseAndValidateServiceDto(requestDto);
+            AppUser author = userService.findUserByEmail(email);
+            Services newService = ServiceMapper.INSTANCE.toEntity(request, author);
+            List<Image> uploadedImages = cloudinaryService.saveImages(files);
+            newService.setImages(uploadedImages);
+            serviceRepository.save(newService);
+            return "Service successfully added";
+        } catch (Exception e) {
+            throw new ResourceProcessingErrorException("Error while adding a new Service", HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
+
     @Override
-    public List<ServicesPreviewResponse> getServices(int pageNo, int pageSize){
+    public List<ServicesPreviewResponse> getServices(int pageNo, int pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
         Page<Services> services = serviceRepository.findAll(pageable);
         List<Services> servicesList = services.getContent();
@@ -92,7 +93,7 @@ public class ServiceServiceImpl implements ServicesService {
                 cloudinaryService.deleteImage(image.getUrl());
             } catch (IOException e) {
                 System.err.println("Error deleting image: " + image.getUrl() + " due to " + e.getMessage());
-                throw new ResourceProcessingErrorException("Error with deleting images in Cloudinary", HttpStatus.INTERNAL_SERVER_ERROR.value());
+                throw new ResourceProcessingErrorException("Error with deleting images in Cloudinary", HttpStatus.INTERNAL_SERVER_ERROR);
             }
         });
         serviceRepository.delete(service);
@@ -111,8 +112,7 @@ public class ServiceServiceImpl implements ServicesService {
             }
             return requestDto;
         } catch (JsonProcessingException e) {
-            throw new InvalidJsonException(e.getMessage(), HttpStatus.BAD_REQUEST.value());
+            throw new InvalidJsonException(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
-
 }

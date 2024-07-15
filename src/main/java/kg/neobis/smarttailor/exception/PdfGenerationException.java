@@ -1,8 +1,9 @@
 package kg.neobis.smarttailor.exception;
 
-public class PdfGenerationException extends BaseException {
+import org.springframework.http.HttpStatus;
 
-    public PdfGenerationException(String message, Integer status) {
+public class PdfGenerationException extends BaseException {
+    public PdfGenerationException(String message, HttpStatus status) {
         super(message, status);
     }
 }

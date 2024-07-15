@@ -11,9 +11,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.time.LocalDateTime;
-import java.util.UUID;
-
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
@@ -23,7 +20,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ResponseBody
     public ErrorResponse handleProductException(InvalidRequestException ex) {
         log.error("InvalidRequestException: ({})", ex.getMessage());
-        return new ErrorResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        return new ErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
     }
 
     @ExceptionHandler(ResourceAlreadyExistsException.class)
@@ -31,7 +28,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ResponseBody
     public ErrorResponse handleProductException(ResourceAlreadyExistsException ex) {
         log.error("ResourceAlreadyExistsException: ({})", ex.getMessage());
-        return new ErrorResponse(HttpStatus.CONFLICT.value(), ex.getMessage());
+        return new ErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
@@ -39,13 +36,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     @ResponseBody
     public ErrorResponse handleProductException(ResourceNotFoundException ex) {
         log.error("ResourceNotFoundException: ({})", ex.getMessage());
-        return new ErrorResponse(HttpStatus.NOT_FOUND.value(), ex.getMessage());
+        return new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleAllExceptions(Exception ex) {
         log.error("Internal Server Error: {}", ex.getMessage());
-        return new ResponseEntity<>(new BaseException("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR.value()),
+        return new ResponseEntity<>(new BaseException("Internal Server Error", HttpStatus.INTERNAL_SERVER_ERROR),
                 HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -75,16 +72,12 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
 
-
-
     @ExceptionHandler(OutOfStockException.class)
     public ResponseEntity<Object> handleOutOfStockException(
             OutOfStockException ex) {
         log.error("Exception UUID: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(ex.getMessage());
     }
-
-
 
     @ExceptionHandler(PdfGenerationException.class)
     public ResponseEntity<Object> handlePdfGenerationException(

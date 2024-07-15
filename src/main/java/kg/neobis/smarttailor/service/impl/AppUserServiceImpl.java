@@ -55,7 +55,7 @@ public class AppUserServiceImpl implements AppUserService {
     public ResponseEntity<?> createAdmin(CreateAdmin request) {
 
         if (repository.existsUserByEmail(request.email())) {
-            throw new ResourceAlreadyExistsException("email is occupied", HttpStatus.CONFLICT.value());
+            throw new ResourceAlreadyExistsException("email is occupied", HttpStatus.CONFLICT);
         }
 
         AppUser user = AppUser.builder()
@@ -87,7 +87,7 @@ public class AppUserServiceImpl implements AppUserService {
     @Override
     public AppUser findUserByEmail(String email) {
         return repository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Error: User not found with email: " + email, HttpStatus.NOT_FOUND.value()));
+                .orElseThrow(() -> new ResourceNotFoundException("Error: User not found with email: " + email, HttpStatus.NOT_FOUND));
     }
 
     @Override
@@ -100,7 +100,7 @@ public class AppUserServiceImpl implements AppUserService {
                 throw new IllegalArgumentException("Principal is not an instance of AppUser");
             }
         }
-        throw new NotAuthorizedException("Authentication required!", HttpStatus.FORBIDDEN.value());
+        throw new NotAuthorizedException("Authentication required!", HttpStatus.FORBIDDEN);
     }
 
     @Override
@@ -114,7 +114,7 @@ public class AppUserServiceImpl implements AppUserService {
         AppUser user = getUserFromAuthentication(authentication);
 
         if (user.getHasSubscription())
-            throw new ResourceAlreadyExistsException("user already has a subscription", HttpStatus.CONFLICT.value());
+            throw new ResourceAlreadyExistsException("user already has a subscription", HttpStatus.CONFLICT);
 
         SubscriptionToken subscriptionToken = subscriptionTokenService.generateSubscriptionRequestToken(user);
         MimeMessage message = emailService.createSubscriptionRequestMail(user, subscriptionToken);

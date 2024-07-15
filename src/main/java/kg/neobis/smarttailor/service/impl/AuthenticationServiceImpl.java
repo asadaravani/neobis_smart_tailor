@@ -50,10 +50,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public ResponseEntity<?> confirmEmail(String email, Integer code) {
 
         AppUser user = appUserService.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: ".concat(email), HttpStatus.NOT_FOUND.value()));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: ".concat(email), HttpStatus.NOT_FOUND));
 
         ConfirmationCode confirmationCode = confirmationCodeService.findByUserAndCode(user, code)
-                .orElseThrow(() -> new ResourceNotFoundException("Confirmation code for user with email '".concat(email).concat("' wasn't found"), HttpStatus.NOT_FOUND.value()));
+                .orElseThrow(() -> new ResourceNotFoundException("Confirmation code for user with email '".concat(email).concat("' wasn't found"), HttpStatus.NOT_FOUND));
 
         if (confirmationCode.isExpired()) {
             return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Confirmation code has expired");
@@ -74,7 +74,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public ResponseEntity<?> login(String email) {
 
         var user = appUserService.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Invalid email", HttpStatus.NOT_FOUND.value()));
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid email", HttpStatus.NOT_FOUND));
 
         ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
         if (confirmationCode != null) {
@@ -97,14 +97,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public LoginResponse loginAdmin(LoginAdmin request) {
 
         if (request.email() == null || request.password() == null || request.email().isEmpty() || request.password().isEmpty()) {
-            throw new InvalidRequestException("email and password are required", HttpStatus.BAD_REQUEST.value());
+            throw new InvalidRequestException("email and password are required", HttpStatus.BAD_REQUEST);
         }
 
         AppUser user = appUserService.findByEmail(request.email())
-                .orElseThrow(() -> new ResourceNotFoundException("invalid email or password", HttpStatus.NOT_FOUND.value()));
+                .orElseThrow(() -> new ResourceNotFoundException("invalid email or password", HttpStatus.NOT_FOUND));
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new ResourceNotFoundException("invalid email or password", HttpStatus.NOT_FOUND.value());
+            throw new ResourceNotFoundException("invalid email or password", HttpStatus.NOT_FOUND);
         }
 
         authenticationManager.authenticate(
@@ -135,7 +135,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public void resendConfirmationCode(String email) {
 
         AppUser user = appUserService.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Error: User not found with email: " + email, HttpStatus.NOT_FOUND.value()));
+                .orElseThrow(() -> new ResourceNotFoundException("Error: User not found with email: " + email, HttpStatus.NOT_FOUND));
 
         ConfirmationCode confirmationCode = confirmationCodeService.findByUser(user)
                 .orElse(null);
@@ -175,7 +175,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         } else {
             user = appUserService.findUserByEmail(request.email());
             if (user.isEnabled()) {
-                throw new ResourceAlreadyExistsException("Error: Email is already in use!", HttpStatus.CONFLICT.value());
+                throw new ResourceAlreadyExistsException("Error: Email is already in use!", HttpStatus.CONFLICT);
             } else {
                 ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
                 if (confirmationCode != null) {

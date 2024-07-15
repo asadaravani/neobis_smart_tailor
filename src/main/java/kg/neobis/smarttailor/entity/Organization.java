@@ -3,22 +3,25 @@ package kg.neobis.smarttailor.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-import java.util.List;
 
 @Entity
 @Getter
 @Setter
-@FieldDefaults(level = AccessLevel.PRIVATE)
-@AllArgsConstructor
-@NoArgsConstructor
 @SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Organization extends BaseEntity{
 
-    @Column
-    String imagePath;
+    @OneToOne(orphanRemoval = true, cascade = CascadeType.PERSIST)
+    Image image;
 
     @Column(nullable = false)
     @Size(min = 5, max = 255, message = "Name must be between 5 and 1000 characters")
@@ -29,10 +32,7 @@ public class Organization extends BaseEntity{
     @Size(min = 5, max = 1000, message = "Description must be between 5 and 1000 characters")
     String description;
 
-    @OneToMany
-    @JoinTable(
-            name = "organization_employees",
-            joinColumns = @JoinColumn(name = "app_user_id"),
-            inverseJoinColumns = @JoinColumn(name = "position_id"))
-    List<AppUser> organizationEmployees;
+    @OneToOne
+    @JoinColumn
+    AppUser director;
 }

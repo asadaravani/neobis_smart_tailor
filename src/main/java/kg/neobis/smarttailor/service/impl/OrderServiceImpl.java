@@ -59,7 +59,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public String deleteOrder(Long orderId) throws IOException {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId, HttpStatus.NOT_FOUND.value()));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId, HttpStatus.NOT_FOUND));
 
         for (Image image : order.getImages()) {
             cloudinaryService.deleteImage(image.getUrl());
@@ -78,7 +78,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderDetailsDto getOrderById(Long orderId) {
         Order order = orderRepository.findById(orderId).
-                orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId, HttpStatus.NOT_FOUND.value()));
+                orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId, HttpStatus.NOT_FOUND));
         return orderMapper.entityToOrderDetailsDto(order);
     }
 
@@ -92,7 +92,7 @@ public class OrderServiceImpl implements OrderService {
             }
             return requestDto;
         } catch (JsonProcessingException e) {
-            throw new InvalidJsonException(e.getMessage(), HttpStatus.BAD_REQUEST.value());
+            throw new InvalidJsonException(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 }

@@ -66,7 +66,7 @@ public class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     public EquipmentDto getEquipmentById(Long equipmentId) {
-        Equipment equipment = equipmentRepository.findById(equipmentId).orElseThrow(() -> new ResourceNotFoundException("Equipment not found", HttpStatus.NOT_FOUND.value()));
+        Equipment equipment = equipmentRepository.findById(equipmentId).orElseThrow(() -> new ResourceNotFoundException("Equipment not found", HttpStatus.NOT_FOUND));
         return equipmentMapper.entityToDto(equipment);
     }
 
@@ -93,7 +93,7 @@ public class EquipmentServiceImpl implements EquipmentService {
             }
             return requestDto;
         } catch (JsonProcessingException e) {
-            throw new InvalidJsonException(e.getMessage(), HttpStatus.BAD_REQUEST.value());
+            throw new InvalidJsonException(e.getMessage(), HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -101,12 +101,12 @@ public class EquipmentServiceImpl implements EquipmentService {
     @Override
     public String buyEquipment(Long equipmentId, Authentication authentication) {
         Equipment equipment = equipmentRepository.findById(equipmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found", HttpStatus.NOT_FOUND.value()));
+                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found", HttpStatus.NOT_FOUND));
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
         if (equipment.getQuantity() <= 0) {
-            throw new OutOfStockException("This equipment is out of stock", HttpStatus.FORBIDDEN.value());
+            throw new OutOfStockException("This equipment is out of stock", HttpStatus.FORBIDDEN);
         }
 
         byte[] pdfFile;
@@ -123,7 +123,7 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
 
 
-    private byte[] generateReceiptPdf(Equipment equipment, AppUser user){
+    private byte[] generateReceiptPdf(Equipment equipment, AppUser user) {
         Document document = new Document();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
@@ -156,11 +156,9 @@ public class EquipmentServiceImpl implements EquipmentService {
             table.addCell("$" + equipment.getPrice());
             document.add(table);
             document.close();
-        }catch (DocumentException exception){
-            throw new PdfGenerationException(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value());
+        } catch (DocumentException exception) {
+            throw new PdfGenerationException(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return out.toByteArray();
     }
-
-
 }

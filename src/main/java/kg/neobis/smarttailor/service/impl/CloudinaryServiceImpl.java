@@ -35,6 +35,11 @@ public class CloudinaryServiceImpl implements CloudinaryService {
     }
 
     @Override
+    public Image saveImage(MultipartFile image) {
+        return new Image(uploadImage(image));
+    }
+
+    @Override
     public List<Image> saveImages(List<MultipartFile> images) {
         List<Image> imageList = new ArrayList<>();
         for (MultipartFile file : images) {
@@ -53,6 +58,4 @@ public class CloudinaryServiceImpl implements CloudinaryService {
         }
         return (String) uploadResult.get("secure_url");
     }
-
-
 }
