@@ -48,4 +48,10 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
         user.getImage().setUrl(imageUrl);
         userService.save(user);
     }
+
+    @Override
+    public void editProfile(UserProfileEditRequest request, String email){
+        AppUser updatedUser = AppUserMapper.INSTANCE.updateProfile(request, userService.findUserByEmail(email));
+        userService.save(updatedUser);
+    }
 }
