@@ -7,12 +7,12 @@ import kg.neobis.smarttailor.dtos.UserProfileDto;
 import kg.neobis.smarttailor.service.PersonalAccountService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 @Validated
 @RestController
@@ -28,5 +28,11 @@ public class PersonalAccountController {
     @GetMapping("/profile")
     public UserProfileDto getUserProfile(Authentication authentication) {
         return service.getUserProfile(authentication.getName());
+    }
+
+    @SneakyThrows
+    @PostMapping("/profile/uploadImage")
+    public void uploadProfileImage(@RequestParam("file") MultipartFile file, Authentication authentication){
+        service.uploadProfileImage(file, authentication.getName());
     }
 }
