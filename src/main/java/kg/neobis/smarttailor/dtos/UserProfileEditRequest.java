@@ -5,4 +5,8 @@ import java.io.Serializable;
 
 @Builder
 public record UserProfileEditRequest(
+        String name,
+        String surname,
+        String patronymic,
+        String phoneNumber
 ) implements Serializable { }
