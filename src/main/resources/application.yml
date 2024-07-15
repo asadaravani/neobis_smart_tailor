@@ -6,7 +6,7 @@ spring:
   application:
     name: SmartTailor
   profiles:
-    active: prod
+    active: dev
   jpa:
     hibernate:
       ddl-auto: update

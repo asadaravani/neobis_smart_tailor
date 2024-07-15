@@ -3,14 +3,17 @@ package kg.neobis.smarttailor.service.impl;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import kg.neobis.smarttailor.dtos.CreateAdmin;
+import kg.neobis.smarttailor.dtos.UserProfileEditRequest;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.SubscriptionToken;
 import kg.neobis.smarttailor.enums.Role;
 import kg.neobis.smarttailor.exception.NotAuthorizedException;
 import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
 import kg.neobis.smarttailor.exception.ResourceNotFoundException;
+import kg.neobis.smarttailor.mapper.AppUserMapper;
 import kg.neobis.smarttailor.repository.AppUserRepository;
 import kg.neobis.smarttailor.service.AppUserService;
+import kg.neobis.smarttailor.service.CloudinaryService;
 import kg.neobis.smarttailor.service.EmailService;
 import kg.neobis.smarttailor.service.SubscriptionTokenService;
 import lombok.AccessLevel;
@@ -21,7 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -122,4 +124,5 @@ public class AppUserServiceImpl implements AppUserService {
 
         return ResponseEntity.ok("Hooray! A subscription is on the way. Our administrator will contact you");
     }
+
 }
