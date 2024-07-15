@@ -12,6 +12,8 @@ public interface CloudinaryService {
 
     String extractPublicId(String imageUrl);
 
+    Image saveImage(MultipartFile image);
+
     List<Image> saveImages(List<MultipartFile> images);
 
     String uploadImage(MultipartFile file) throws IOException;
