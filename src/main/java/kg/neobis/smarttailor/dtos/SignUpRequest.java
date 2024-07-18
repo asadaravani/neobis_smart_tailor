@@ -21,16 +21,14 @@ public record SignUpRequest(
 
         @NotBlank(message = "Patronymic is required")
         @Pattern(regexp = "^[a-zA-Z]+$", message = "Patronymic should contain only letters")
-        @Size(min = 3, max = 30)
+        @Size(min = 2, max = 50)
         String patronymic,
 
         @NotBlank(message = "Email is required")
         @Email(message = "Invalid email format")
-        @Pattern(regexp = "^[a-zA-Z][a-zA-Z0-9]+@[a-zA-Z]+\\.[a-zA-Z]{2,}$", message = "Email should contain only letters and digits before @")
         String email,
 
         @NotBlank(message = "Phone number is required")
-        @Pattern(regexp = "^[+][0-9]+$", message = "Phone number should contain only country's code and abonent's numbers. Don't use spaces")
-        @Size(min = 10, max = 16)
+        @Size(min = 10, max = 20)
         String phoneNumber
 ) {}
