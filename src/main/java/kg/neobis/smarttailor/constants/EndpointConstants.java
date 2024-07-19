@@ -26,7 +26,6 @@ public final class EndpointConstants {
             AUTH_ENDPOINT.concat("/confirm-email"),
             AUTH_ENDPOINT.concat("/login"),
             AUTH_ENDPOINT.concat("/login-admin"),
-            AUTH_ENDPOINT.concat("/login-admin"),
             AUTH_ENDPOINT.concat("/resend-confirmation-code"),
             AUTH_ENDPOINT.concat("/sign-up"),
             APP_USER_ENDPOINT.concat("/confirm-subscription-request**"),

@@ -6,5 +6,8 @@ import lombok.Builder;
 @Builder
 public record LoginResponse (
         @JsonProperty
-        String token
+        String accessToken,
+
+        @JsonProperty
+        String refreshToken
 ) {}

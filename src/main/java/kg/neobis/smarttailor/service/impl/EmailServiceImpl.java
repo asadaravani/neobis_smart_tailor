@@ -6,6 +6,7 @@ import jakarta.mail.util.ByteArrayDataSource;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.ConfirmationCode;
 import kg.neobis.smarttailor.entity.SubscriptionToken;
+import kg.neobis.smarttailor.service.ConfirmationCodeService;
 import kg.neobis.smarttailor.service.EmailService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import java.io.IOException;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EmailServiceImpl implements EmailService {
 
+    ConfirmationCodeService confirmationCodeService;
     SpringTemplateEngine engine;
     JavaMailSender javaMailSender;
 
@@ -68,6 +70,22 @@ public class EmailServiceImpl implements EmailService {
         javaMailSender.send(email);
     }
 
+    @Override
+    public void sendEmailWithConfirmationCode(ConfirmationCode confirmationCode, AppUser user) {
+
+        if (confirmationCode != null) {
+            confirmationCodeService.delete(confirmationCode);
+        }
+
+        confirmationCode = confirmationCodeService.generateConfirmationCode(user);
+        MimeMessage simpleMailMessage;
+        try {
+            simpleMailMessage = createMailWithConfirmationCode(user, confirmationCode);
+        } catch (MessagingException e) {
+            throw new IllegalStateException("Failed to send email");
+        }
+        sendEmail(simpleMailMessage);
+    }
 
     @Override
     public void sendEmailWithReceiptPDF(AppUser user, byte[] pdfFile) throws MessagingException, IOException {

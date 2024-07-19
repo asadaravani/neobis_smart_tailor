@@ -28,6 +28,9 @@ public class JwtUtil {
     @Value("${jwt.expiration}")
     int jwtExpirationMs;
 
+    @Value("${jwt.refresh.expiration}")
+    int refreshExpirationMs;
+
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
@@ -65,6 +68,19 @@ public class JwtUtil {
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(SignatureAlgorithm.HS256, jwtSecret)
                 .compact();
+    }
+
+    public String generateRefreshToken(UserDetails userDetails) {
+        return Jwts.builder()
+                .setSubject(userDetails.getUsername())
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + refreshExpirationMs))
+                .signWith(getSigningKey(), SignatureAlgorithm.HS256)
+                .compact();
+    }
+
+    public boolean isRefreshTokenExpired(String token) {
+        return isTokenExpired(token);
     }
 
     public boolean isTokenValid(String token, UserDetails userDetails) {

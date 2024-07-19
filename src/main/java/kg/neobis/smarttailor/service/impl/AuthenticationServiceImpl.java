@@ -11,26 +11,24 @@ import kg.neobis.smarttailor.dtos.SignUpRequest;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.ConfirmationCode;
 import kg.neobis.smarttailor.entity.Image;
+import kg.neobis.smarttailor.entity.RefreshToken;
 import kg.neobis.smarttailor.enums.Role;
-import kg.neobis.smarttailor.exception.InvalidRequestException;
-import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
-import kg.neobis.smarttailor.exception.ResourceNotFoundException;
-import kg.neobis.smarttailor.service.AppUserService;
-import kg.neobis.smarttailor.service.AuthenticationService;
-import kg.neobis.smarttailor.service.BlackListTokenService;
-import kg.neobis.smarttailor.service.ConfirmationCodeService;
-import kg.neobis.smarttailor.service.EmailService;
+import kg.neobis.smarttailor.exception.*;
+import kg.neobis.smarttailor.service.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -44,10 +42,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     EmailService emailService;
     JwtUtil jwtUtil;
     PasswordEncoder passwordEncoder;
+    RefreshTokenService refreshTokenService;
+    UserDetailsService userDetailsService;
 
     @Override
     @Transactional
-    public ResponseEntity<?> confirmEmail(String email, Integer code) {
+    public LoginResponse confirmEmail(String email, Integer code) {
 
         AppUser user = appUserService.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: ".concat(email), HttpStatus.NOT_FOUND));
@@ -55,56 +55,57 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         ConfirmationCode confirmationCode = confirmationCodeService.findByUserAndCode(user, code)
                 .orElseThrow(() -> new ResourceNotFoundException("Confirmation code for user with email '".concat(email).concat("' wasn't found"), HttpStatus.NOT_FOUND));
 
-        if (confirmationCode.isExpired()) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("Confirmation code has expired");
-        }
+        if (confirmationCode.isExpired())
+            throw new OutOfDateException("Confirmation code has expired", HttpStatus.BAD_REQUEST);
+
         if (confirmationCode.getCode().equals(code)) {
             user.setEnabled(true);
             appUserService.save(user);
             confirmationCode.setConfirmedAt(LocalDateTime.now());
             confirmationCodeService.save(confirmationCode);
-            var jwtToken = jwtUtil.generateToken(user);
 
-            return ResponseEntity.status(HttpStatus.OK).body(jwtToken);
+            var jwtToken = jwtUtil.generateToken(user);
+            var refreshToken = jwtUtil.generateRefreshToken(user);
+
+            RefreshToken refreshTokenToSave = RefreshToken.builder()
+                    .token(refreshToken)
+                    .build();
+
+            refreshTokenService.save(refreshTokenToSave);
+
+            return LoginResponse.builder()
+                    .accessToken(jwtToken)
+                    .refreshToken(refreshToken)
+                    .build();
+        } else {
+            throw new ResourceNotFoundException("Invalid confirmation code", HttpStatus.NOT_FOUND);
         }
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Invalid confirmation code");
     }
 
     @Override
-    public ResponseEntity<?> login(String email) {
+    public String login(String email) {
 
         var user = appUserService.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Invalid email", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: ".concat(email), HttpStatus.NOT_FOUND));
 
         ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
-        if (confirmationCode != null) {
-            confirmationCodeService.delete(confirmationCode);
-        }
+        emailService.sendEmailWithConfirmationCode(confirmationCode, user);
 
-        confirmationCode = confirmationCodeService.generateConfirmationCode(user);
-        MimeMessage simpleMailMessage;
-        try {
-            simpleMailMessage = emailService.createMailWithConfirmationCode(user, confirmationCode);
-        } catch (MessagingException e) {
-            throw new IllegalStateException("Failed to send email");
-        }
-        emailService.sendEmail(simpleMailMessage);
-
-        return ResponseEntity.ok("confirmation code has been sent to the ".concat(email));
+        return "Confirmation code has been sent to the ".concat(email);
     }
 
     @Override
     public LoginResponse loginAdmin(LoginAdmin request) {
 
         if (request.email() == null || request.password() == null || request.email().isEmpty() || request.password().isEmpty()) {
-            throw new InvalidRequestException("email and password are required", HttpStatus.BAD_REQUEST);
+            throw new InvalidRequestException("Email and password are required", HttpStatus.BAD_REQUEST);
         }
 
         AppUser user = appUserService.findByEmail(request.email())
-                .orElseThrow(() -> new ResourceNotFoundException("invalid email or password", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid email or password", HttpStatus.NOT_FOUND));
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new ResourceNotFoundException("invalid email or password", HttpStatus.NOT_FOUND);
+            throw new ResourceNotFoundException("Invalid email or password", HttpStatus.NOT_FOUND);
         }
 
         authenticationManager.authenticate(
@@ -115,48 +116,68 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         );
 
         var jwtToken = jwtUtil.generateToken(user);
+        var refreshToken = jwtUtil.generateRefreshToken(user);
+        RefreshToken refreshTokenToSave = RefreshToken.builder()
+                .token(refreshToken)
+                .expirationTime(LocalDateTime.now().plusDays(7))
+                .build();
+        refreshTokenService.save(refreshTokenToSave);
+
         return LoginResponse.builder()
-                .token(jwtToken)
+                .accessToken(jwtToken)
+                .refreshToken(refreshToken)
                 .build();
     }
 
     @Override
-    public ResponseEntity<?> logOut(HttpServletRequest request) {
+    public String logOut(HttpServletRequest request) {
         String authHeader = request.getHeader("Authorization");
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String jwtToken = authHeader.substring(7);
             blackListTokenService.addTokenToBlacklist(jwtToken);
-            return ResponseEntity.ok("successful log out!");
+            return "Log out completed";
         }
-        return ResponseEntity.badRequest().body("invalid authorization header");
+        return "Invalid authorization header";
+    }
+
+    public Map<String, String> refreshToken(String refreshToken) {
+
+        if (!refreshTokenService.existsByToken(refreshToken))
+            throw new ResourceNotFoundException("Refresh token not found", HttpStatus.NOT_FOUND);
+
+        if (jwtUtil.isRefreshTokenExpired(refreshToken)) {
+            refreshTokenService.deleteExpiredTokens();
+            throw new OutOfDateException("Refresh token has expired", HttpStatus.BAD_REQUEST);
+        }
+
+        String username = jwtUtil.extractUsername(refreshToken);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(username);
+        String newAccessToken = jwtUtil.generateToken(userDetails);
+
+        Map<String, String> tokens = new HashMap<>();
+        tokens.put("accessToken", newAccessToken);
+        tokens.put("refreshToken", refreshToken);
+
+        return tokens;
     }
 
     @Override
-    public void resendConfirmationCode(String email) {
+    public String resendConfirmationCode(String email) {
 
         AppUser user = appUserService.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Error: User not found with email: " + email, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email, HttpStatus.NOT_FOUND));
 
         ConfirmationCode confirmationCode = confirmationCodeService.findByUser(user)
                 .orElse(null);
 
-        if (confirmationCode != null) {
-            confirmationCodeService.delete(confirmationCode);
-        }
-        confirmationCode = confirmationCodeService.generateConfirmationCode(user);
+        emailService.sendEmailWithConfirmationCode(confirmationCode, user);
 
-        MimeMessage simpleMailMessage;
-        try {
-            simpleMailMessage = emailService.createMailWithConfirmationCode(user, confirmationCode);
-        } catch (MessagingException e) {
-            throw new IllegalStateException("Failed to send email");
-        }
-        emailService.sendEmail(simpleMailMessage);
+        return "Confirmation code has been resent to the email".concat(email);
     }
 
     @Override
     @Transactional
-    public ResponseEntity<?> signUp(SignUpRequest request) {
+    public String signUp(SignUpRequest request) {
         AppUser user;
         if (!appUserService.existsUserByEmail(request.email())) {
             user = AppUser.builder()
@@ -170,12 +191,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .enabled(false)
                     .hasSubscription(false)
                     .build();
-
             user = appUserService.save(user);
         } else {
             user = appUserService.findUserByEmail(request.email());
+
             if (user.isEnabled()) {
-                throw new ResourceAlreadyExistsException("Error: Email is already in use!", HttpStatus.CONFLICT);
+                throw new ResourceAlreadyExistsException("Email is already in use", HttpStatus.CONFLICT);
             } else {
                 ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
                 if (confirmationCode != null) {
@@ -193,6 +214,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
         emailService.sendEmail(simpleMailMessage);
 
-        return ResponseEntity.ok("confirmation code has been sent to the ".concat(request.email()));
+        return "Confirmation code has been sent to the ".concat(request.email());
     }
 }
