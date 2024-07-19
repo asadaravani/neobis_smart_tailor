@@ -3,9 +3,11 @@ package kg.neobis.smarttailor.mapper;
 import kg.neobis.smarttailor.dtos.EquipmentDto;
 import kg.neobis.smarttailor.dtos.EquipmentListDto;
 import kg.neobis.smarttailor.dtos.EquipmentRequestDto;
+import kg.neobis.smarttailor.dtos.MyAdvertisement;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Equipment;
 import kg.neobis.smarttailor.entity.Image;
+import kg.neobis.smarttailor.enums.AdvertType;
 import org.springframework.stereotype.Component;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,5 +61,16 @@ public class EquipmentMapper {
                 equipmentImages,
                 user
                 );
+    }
+
+    public MyAdvertisement toMyAdvertisement(Equipment equipment){
+        return MyAdvertisement.builder()
+                .id(equipment.getId())
+                .imagePath(equipment.getImages().get(0).getUrl())
+                .type(AdvertType.EQUIPMENT)
+                .name(equipment.getName())
+                .description(equipment.getDescription())
+                .createdAt(equipment.getCreatedAt())
+                .build();
     }
 }

@@ -1,5 +1,6 @@
 package kg.neobis.smarttailor.mapper;
 
+import kg.neobis.smarttailor.dtos.MyAdvertisement;
 import kg.neobis.smarttailor.dtos.ServiceAddRequest;
 import kg.neobis.smarttailor.dtos.ServiceDetailedResponse;
 import kg.neobis.smarttailor.dtos.ServicesPreviewResponse;
@@ -10,7 +11,6 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.Named;
 import org.mapstruct.factory.Mappers;
-
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -52,6 +52,11 @@ public interface ServiceMapper {
     @Mapping(target = "author", source = "author")
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "contactInfo", source = "request.contactInfo")
+    @Mapping(target = "images", ignore = true)
     Services toEntity(ServiceAddRequest request, AppUser author);
+
+    @Mapping(source = "images", target = "imagePath", qualifiedByName = "getFirstImagePath")
+    @Mapping(target = "type", expression = "java(kg.neobis.smarttailor.enums.AdvertType.SERVICE)")
+    MyAdvertisement toMyAdvertisement(Services service);
 
 }

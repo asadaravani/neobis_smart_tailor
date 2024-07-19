@@ -122,7 +122,10 @@ public class EquipmentServiceImpl implements EquipmentService {
         return "Receipt sent to the email successfully";
     }
 
-
+    @Override
+    public List<Equipment> findAllByUser(AppUser user){
+        return equipmentRepository.findAllByAuthor(user);
+    }
     private byte[] generateReceiptPdf(Equipment equipment, AppUser user) {
         Document document = new Document();
         ByteArrayOutputStream out = new ByteArrayOutputStream();

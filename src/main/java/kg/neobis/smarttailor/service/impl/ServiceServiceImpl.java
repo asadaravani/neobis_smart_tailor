@@ -101,6 +101,11 @@ public class ServiceServiceImpl implements ServicesService {
         return "Service deleted";
     }
 
+    @Override
+    public List<Services> findAllByUser(AppUser user){
+        return serviceRepository.findAllByAuthor(user);
+    }
+
     private ServiceAddRequest parseAndValidateServiceDto(String dto) {
         try {
             ServiceAddRequest requestDto = objectMapper.readValue(dto, ServiceAddRequest.class);
