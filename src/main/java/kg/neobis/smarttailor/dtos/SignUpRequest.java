@@ -15,12 +15,10 @@ public record SignUpRequest(
         String surname,
 
         @NotBlank(message = "Name is required")
-        @Pattern(regexp = "^[a-zA-Z]+$", message = "Name should contain only letters")
         @Size(min = 2, max = 50)
         String name,
 
         @NotBlank(message = "Patronymic is required")
-        @Pattern(regexp = "^[a-zA-Z]+$", message = "Patronymic should contain only letters")
         @Size(min = 2, max = 50)
         String patronymic,
 

@@ -5,19 +5,22 @@ import jakarta.servlet.http.HttpServletRequest;
 import kg.neobis.smarttailor.dtos.LoginAdmin;
 import kg.neobis.smarttailor.dtos.LoginResponse;
 import kg.neobis.smarttailor.dtos.SignUpRequest;
-import org.springframework.http.ResponseEntity;
+
+import java.util.Map;
 
 public interface AuthenticationService {
 
-    ResponseEntity<?> login(String email);
+    LoginResponse confirmEmail(String email, Integer code);
+
+    String login(String email);
 
     LoginResponse loginAdmin(LoginAdmin request);
 
-    ResponseEntity<?> logOut(HttpServletRequest request);
+    String logOut(HttpServletRequest request);
 
-    ResponseEntity<?> confirmEmail(String email, Integer code);
+    Map<String, String> refreshToken(String refreshToken);
 
-    void resendConfirmationCode(String email) throws MessagingException;
+    String resendConfirmationCode(String email) throws MessagingException;
 
-    ResponseEntity<?> signUp(SignUpRequest request) throws MessagingException;
+    String signUp(SignUpRequest request) throws MessagingException;
 }

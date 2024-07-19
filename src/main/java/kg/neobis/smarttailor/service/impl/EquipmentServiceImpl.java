@@ -106,7 +106,7 @@ public class EquipmentServiceImpl implements EquipmentService {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
         if (equipment.getQuantity() <= 0) {
-            throw new OutOfStockException("This equipment is out of stock", HttpStatus.FORBIDDEN);
+            throw new OutOfStockException("This equipment is out of stock", HttpStatus.NOT_FOUND);
         }
 
         byte[] pdfFile;

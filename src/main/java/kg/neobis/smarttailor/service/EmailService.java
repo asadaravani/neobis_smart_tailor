@@ -10,11 +10,13 @@ import java.io.IOException;
 
 public interface EmailService {
 
-    void sendEmail(MimeMessage email);
-
     MimeMessage createSubscriptionRequestMail(AppUser user, SubscriptionToken token) throws MessagingException;
 
     MimeMessage createMailWithConfirmationCode(AppUser user, ConfirmationCode confirmationCode) throws MessagingException;
+
+    void sendEmail(MimeMessage email);
+
+    void sendEmailWithConfirmationCode(ConfirmationCode confirmationCode, AppUser user);
 
     void sendEmailWithReceiptPDF(AppUser user, byte[] pdfFile) throws MessagingException, IOException;
 }
