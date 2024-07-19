@@ -3,6 +3,7 @@ package kg.neobis.smarttailor.mapper;
 import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.*;
 
+import kg.neobis.smarttailor.enums.AdvertType;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -64,5 +65,16 @@ public class OrderMapper {
                         .concat(" ").concat(order.getAuthor().getPatronymic()),
                 order.getContactInfo()
         );
+    }
+
+    public MyAdvertisement toMyAdvertisement(Order order){
+        return MyAdvertisement.builder()
+                .id(order.getId())
+                .type(AdvertType.ORDER)
+                .imagePath(order.getImages().get(0).getUrl())
+                .name(order.getName())
+                .description(order.getDescription())
+                .createdAt(order.getCreatedAt())
+                .build();
     }
 }

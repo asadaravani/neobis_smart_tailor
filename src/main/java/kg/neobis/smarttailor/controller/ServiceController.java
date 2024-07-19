@@ -60,7 +60,7 @@ public class ServiceController {
                     @ApiResponse(responseCode = "500", description = "Integral server error")
             }
     )
-    @PostMapping("/addService")
+    @PostMapping("/add")
     public String addService(@RequestPart("dto") String dto,
                              @RequestPart("photos") List<MultipartFile> photos,
                              Authentication authentication){

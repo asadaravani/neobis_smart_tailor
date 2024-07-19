@@ -82,6 +82,11 @@ public class OrderServiceImpl implements OrderService {
         return orderMapper.entityToOrderDetailsDto(order);
     }
 
+    @Override
+    public List<Order> findAllByUser(AppUser user){
+        return orderRepository.findAllByAuthor(user);
+    }
+
     private OrderDto parseAndValidateOrderDto(String orderDto) {
         try {
             OrderDto requestDto = objectMapper.readValue(orderDto, OrderDto.class);

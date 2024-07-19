@@ -2,6 +2,7 @@ package kg.neobis.smarttailor.service;
 
 import kg.neobis.smarttailor.dtos.ServiceDetailedResponse;
 import kg.neobis.smarttailor.dtos.ServicesPreviewResponse;
+import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Services;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,4 +18,6 @@ public interface ServicesService {
     List<ServicesPreviewResponse> getServices(int pageNo, int pageSize);
 
     String deleteServiceById(Long id);
+
+    List<Services> findAllByUser(AppUser user);
 }
