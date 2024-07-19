@@ -50,7 +50,7 @@ public class AuthenticationController {
             }
     )
     @PostMapping("/confirm-email")
-    public LoginResponse confirmEmail(@RequestParam String email, @RequestParam Integer code) {
+    public LoginResponse confirmEmail(@RequestParam("email") String email, @RequestParam Integer code) {
         return service.confirmEmail(email, code);
     }
 
@@ -110,10 +110,9 @@ public class AuthenticationController {
             }
     )
     @PostMapping("/refresh-token")
-    public ResponseEntity<?> refreshToken(@RequestBody Map<String, String> request) {
+    public ResponseEntity<?> refreshToken(@RequestParam("refreshToken") String request) {
         try {
-            String refreshToken = request.get("refreshToken");
-            Map<String, String> tokens = service.refreshToken(refreshToken);
+            Map<String, String> tokens = service.refreshToken(request);
             return ResponseEntity.ok(tokens);
         } catch (UnauthorizedException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
