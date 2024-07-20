@@ -7,4 +7,6 @@ import java.util.List;
 
 public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
     List<Equipment> findAllByAuthor(AppUser user);
+
+    List<Equipment> findEquipmentByNameContainingIgnoreCase(String name);
 }

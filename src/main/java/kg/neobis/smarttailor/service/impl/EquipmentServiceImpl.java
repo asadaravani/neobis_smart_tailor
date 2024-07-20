@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.BaseColor;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
+import com.itextpdf.text.Element;
+import com.itextpdf.text.Font;
+import com.itextpdf.text.Phrase;
 import jakarta.mail.MessagingException;
 import kg.neobis.smarttailor.entity.Image;
 import com.itextpdf.text.Paragraph;
@@ -126,42 +129,75 @@ public class EquipmentServiceImpl implements EquipmentService {
     public List<Equipment> findAllByUser(AppUser user){
         return equipmentRepository.findAllByAuthor(user);
     }
+
+    @Override
+    public List<EquipmentListDto> searchEquipments(String name, Authentication authentication) {
+        appUserService.getUserFromAuthentication(authentication);
+        List<Equipment> equipmentList = equipmentRepository.findEquipmentByNameContainingIgnoreCase(name);
+        return equipmentMapper.entityListToDtoList(equipmentList);
+    }
+
     private byte[] generateReceiptPdf(Equipment equipment, AppUser user) {
         Document document = new Document();
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         try {
             PdfWriter.getInstance(document, out);
             document.open();
-            document.add(new Paragraph("Receipt"));
+            Font titleFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD, BaseColor.DARK_GRAY);
+            Paragraph title = new Paragraph("Receipt", titleFont);
+            title.setAlignment(Element.ALIGN_CENTER);
+            title.setSpacingAfter(20f);
+            document.add(title);
 
             PdfPTable table = new PdfPTable(2);
             table.setWidthPercentage(100);
             table.setSpacingBefore(10f);
             table.setSpacingAfter(10f);
+            table.setWidths(new float[]{1, 2});
 
-            PdfPCell cell1 = new PdfPCell(new Paragraph("Field"));
-            PdfPCell cell2 = new PdfPCell(new Paragraph("Details"));
-            cell1.setBackgroundColor(BaseColor.LIGHT_GRAY);
-            cell2.setBackgroundColor(BaseColor.LIGHT_GRAY);
+            Font headerFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
+            Font cellFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL, BaseColor.DARK_GRAY);
+            BaseColor headerColor = new BaseColor(79, 129, 189);
+            BaseColor borderColor = BaseColor.LIGHT_GRAY;
+
+            PdfPCell cell1 = new PdfPCell(new Phrase("Field", headerFont));
+            PdfPCell cell2 = new PdfPCell(new Phrase("Details", headerFont));
+            cell1.setBackgroundColor(headerColor);
+            cell2.setBackgroundColor(headerColor);
+            cell1.setBorderColor(borderColor);
+            cell2.setBorderColor(borderColor);
+            cell1.setPadding(10f);
+            cell2.setPadding(10f);
             table.addCell(cell1);
             table.addCell(cell2);
 
-            table.addCell("Date");
+            addTableCell(table, "Date", cellFont, borderColor);
             SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
             Date date = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
             String formattedDate = dateFormat.format(date);
-            table.addCell(formattedDate);
-            table.addCell("Buyer");
-            table.addCell(user.getName() + " " + user.getSurname());
-            table.addCell("Equipment");
-            table.addCell(equipment.getName());
-            table.addCell("Price");
-            table.addCell("$" + equipment.getPrice());
+            addTableCell(table, formattedDate, cellFont, borderColor);
+
+            addTableCell(table, "Buyer", cellFont, borderColor);
+            addTableCell(table, user.getName() + " " + user.getSurname(), cellFont, borderColor);
+
+            addTableCell(table, "Equipment", cellFont, borderColor);
+            addTableCell(table, equipment.getName(), cellFont, borderColor);
+
+            addTableCell(table, "Price", cellFont, borderColor);
+            addTableCell(table, "$" + equipment.getPrice(), cellFont, borderColor);
+
             document.add(table);
             document.close();
         } catch (DocumentException exception) {
             throw new PdfGenerationException(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return out.toByteArray();
+    }
+
+    private void addTableCell(PdfPTable table, String text, Font font, BaseColor borderColor) {
+        PdfPCell cell = new PdfPCell(new Phrase(text, font));
+        cell.setBorderColor(borderColor);
+        cell.setPadding(10f);
+        table.addCell(cell);
     }
 }
