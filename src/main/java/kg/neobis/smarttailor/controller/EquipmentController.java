@@ -1,6 +1,7 @@
 package kg.neobis.smarttailor.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -90,4 +92,21 @@ public class EquipmentController {
                                                Authentication authentication) {
         return ResponseEntity.ok(service.buyEquipment(equipmentId, authentication));
     }
+
+
+
+    @Operation(
+            summary = "Search equipments",
+            description = "This endpoint is designed to search equipments",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Returns list of equipments"),
+                    @ApiResponse(responseCode = "404", description = "Equipment not found"),
+                    @ApiResponse(responseCode = "403", description = "Authentication required")
+            }
+    )
+    @GetMapping("/search-equipment")
+    public ResponseEntity<List<EquipmentListDto>> searchEquipments(@RequestParam(name = "query")String query, Authentication authentication) {
+        return ResponseEntity.ok().body(service.searchEquipments(query, authentication));
+    }
+
 }
