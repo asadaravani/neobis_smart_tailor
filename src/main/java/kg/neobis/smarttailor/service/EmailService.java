@@ -2,17 +2,17 @@ package kg.neobis.smarttailor.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import kg.neobis.smarttailor.entity.AppUser;
-import kg.neobis.smarttailor.entity.ConfirmationCode;
-import kg.neobis.smarttailor.entity.SubscriptionToken;
+import kg.neobis.smarttailor.entity.*;
 
 import java.io.IOException;
 
 public interface EmailService {
 
-    MimeMessage createSubscriptionRequestMail(AppUser user, SubscriptionToken token) throws MessagingException;
+    MimeMessage createInvitationEmployeeMail(AppUser user, InvitationToken token, Organization organization, Position position) throws MessagingException;
 
     MimeMessage createMailWithConfirmationCode(AppUser user, ConfirmationCode confirmationCode) throws MessagingException;
+
+    MimeMessage createSubscriptionRequestMail(AppUser user, SubscriptionToken token) throws MessagingException;
 
     void sendEmail(MimeMessage email);
 

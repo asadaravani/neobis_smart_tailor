@@ -5,6 +5,9 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.mail.util.ByteArrayDataSource;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.ConfirmationCode;
+import kg.neobis.smarttailor.entity.InvitationToken;
+import kg.neobis.smarttailor.entity.Organization;
+import kg.neobis.smarttailor.entity.Position;
 import kg.neobis.smarttailor.entity.SubscriptionToken;
 import kg.neobis.smarttailor.service.ConfirmationCodeService;
 import kg.neobis.smarttailor.service.EmailService;
@@ -28,6 +31,28 @@ public class EmailServiceImpl implements EmailService {
     ConfirmationCodeService confirmationCodeService;
     SpringTemplateEngine engine;
     JavaMailSender javaMailSender;
+
+    @Override
+    public MimeMessage createInvitationEmployeeMail(AppUser user, InvitationToken token, Organization organization, Position position) throws MessagingException {
+
+        Context context = new Context();
+        context.setVariable("invitationToken", token.getToken());
+        context.setVariable("fullName", user.getSurname() + " " + user.getName() + " " + user.getPatronymic());
+        context.setVariable("organization", organization.getName());
+        context.setVariable("email", user.getEmail());
+        context.setVariable("phoneNumber", user.getPhoneNumber());
+        context.setVariable("position", position.getName());
+
+        String emailBody = engine.process("invitation_employee", context);
+
+        MimeMessage mimeMessage = javaMailSender.createMimeMessage();
+        MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
+        helper.setText(emailBody, true);
+        helper.setTo(user.getEmail());
+        helper.setSubject("Приглашение в организацию");
+        helper.setFrom("smart_tailor@gmail.com");
+        return mimeMessage;
+    }
 
     @Override
     public MimeMessage createMailWithConfirmationCode(AppUser user, ConfirmationCode confirmationCode) throws MessagingException {
@@ -58,7 +83,7 @@ public class EmailServiceImpl implements EmailService {
 
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
-        helper.setText(emailBody, true); // Set to true to indicate that the email content is HTML
+        helper.setText(emailBody, true);
         helper.setTo("u11se03r@gmail.com");
         helper.setSubject("Запрос на подписку");
         helper.setFrom("smart_tailor@gmail.com");
