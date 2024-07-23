@@ -72,6 +72,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
     }
 
+    @ExceptionHandler(NoPermissionException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public ResponseEntity<Object> handleNoPermissionException(NoPermissionException ex) {
+        log.error("NoPermissionException: {}", ex.getMessage(), ex);
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    }
+
     @ExceptionHandler(OutOfStockException.class)
     public ResponseEntity<Object> handleOutOfStockException(
             OutOfStockException ex) {

@@ -5,8 +5,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Enumerated;
 import jakarta.persistence.EnumType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import kg.neobis.smarttailor.enums.Role;
 import lombok.AccessLevel;
@@ -26,8 +24,8 @@ import java.util.List;
 @Getter
 @Setter
 @SuperBuilder
-@AllArgsConstructor
 @NoArgsConstructor
+@AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AppUser extends BaseEntity implements UserDetails {
 
@@ -55,14 +53,6 @@ public class AppUser extends BaseEntity implements UserDetails {
     @Column
     @Enumerated(EnumType.STRING)
     Role role;
-
-    @ManyToOne
-    @JoinColumn
-    Position employeePosition;
-
-    @ManyToOne
-    @JoinColumn
-    Organization organization;
 
     @Column
     Boolean enabled;

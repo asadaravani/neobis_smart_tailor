@@ -1,19 +1,29 @@
 package kg.neobis.smarttailor.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CollectionTable;
+import jakarta.persistence.Column;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.JoinColumn;
 import kg.neobis.smarttailor.enums.AccessRight;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.SuperBuilder;
+
 import java.util.List;
 
-@Entity
 @Getter
 @Setter
-@FieldDefaults(level = AccessLevel.PRIVATE)
-@AllArgsConstructor
+@Entity
 @NoArgsConstructor
-public class Position extends BaseEntity{
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class Position extends BaseEntity {
 
     @Column(nullable = false)
     String name;
