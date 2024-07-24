@@ -11,7 +11,7 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity
+@Entity(name = "service")
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -35,7 +35,7 @@ public class Services extends BaseEntity{
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinTable(
             name = "service_images",
-            joinColumns = @JoinColumn(name = "services_id"),
+            joinColumns = @JoinColumn(name = "service_id"),
             inverseJoinColumns = @JoinColumn(name = "image_id")
     )
     List<Image> images = new ArrayList<>();

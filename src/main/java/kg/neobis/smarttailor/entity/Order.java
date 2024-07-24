@@ -21,7 +21,7 @@ import java.util.List;
 
 @Getter
 @Setter
-@Entity(name = "orders")
+@Entity(name = "order")
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
