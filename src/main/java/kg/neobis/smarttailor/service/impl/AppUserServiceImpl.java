@@ -6,6 +6,7 @@ import kg.neobis.smarttailor.dtos.CreateAdmin;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.SubscriptionToken;
 import kg.neobis.smarttailor.enums.Role;
+import kg.neobis.smarttailor.exception.OutOfDateException;
 import kg.neobis.smarttailor.exception.UnauthorizedException;
 import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
 import kg.neobis.smarttailor.exception.ResourceNotFoundException;
@@ -16,7 +17,6 @@ import kg.neobis.smarttailor.service.SubscriptionTokenService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -34,7 +34,7 @@ public class AppUserServiceImpl implements AppUserService {
     SubscriptionTokenService subscriptionTokenService;
 
     @Override
-    public ResponseEntity<?> confirmSubscriptionRequest(String subscriptionConfirmationToken) {
+    public String confirmSubscriptionRequest(String subscriptionConfirmationToken) {
 
         SubscriptionToken token = subscriptionTokenService.findByToken(subscriptionConfirmationToken);
 
@@ -44,13 +44,14 @@ public class AppUserServiceImpl implements AppUserService {
             repository.save(user);
             subscriptionTokenService.delete(token);
 
-            return ResponseEntity.ok("subscription for the user \"".concat(user.getEmail()).concat("\" issued"));
+            return "subscription for the user \"".concat(user.getEmail()).concat("\" activated");
+        } else {
+            throw new OutOfDateException("token has been expired");
         }
-        return ResponseEntity.badRequest().body("token has expired. try to resend the request.");
     }
 
     @Override
-    public ResponseEntity<?> createAdmin(CreateAdmin request) {
+    public String createAdmin(CreateAdmin request) {
 
         if (repository.existsUserByEmail(request.email())) {
             throw new ResourceAlreadyExistsException("User with email \"".concat(request.email()).concat("\" is already exists"));
@@ -70,7 +71,7 @@ public class AppUserServiceImpl implements AppUserService {
 
         repository.save(user);
 
-        return ResponseEntity.ok("Admin has been created");
+        return "Admin has been created";
     }
 
     @Override
@@ -108,7 +109,7 @@ public class AppUserServiceImpl implements AppUserService {
     }
 
     @Override
-    public ResponseEntity<?> sendSubscriptionRequest(Authentication authentication) throws MessagingException {
+    public String sendSubscriptionRequest(Authentication authentication) throws MessagingException {
 
         AppUser user = getUserFromAuthentication(authentication);
 
@@ -119,6 +120,6 @@ public class AppUserServiceImpl implements AppUserService {
         MimeMessage message = emailService.createSubscriptionRequestMail(user, subscriptionToken);
         emailService.sendEmail(message);
 
-        return ResponseEntity.ok("Subscription has been sent");
+        return "Subscription request has been sent";
     }
 }
