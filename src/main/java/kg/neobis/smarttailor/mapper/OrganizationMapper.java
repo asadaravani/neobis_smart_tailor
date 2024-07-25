@@ -1,5 +1,6 @@
 package kg.neobis.smarttailor.mapper;
 
+import kg.neobis.smarttailor.dtos.OrganizationDetailed;
 import kg.neobis.smarttailor.dtos.OrganizationDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Image;
@@ -17,5 +18,14 @@ public class OrganizationMapper {
                 dto.description(),
                 user
         );
+    }
+    public OrganizationDetailed toOrganizationDetailed(Organization organization){
+        return OrganizationDetailed.builder()
+                .id(organization.getId())
+                .imagePath(organization.getImage().getUrl())
+                .name(organization.getName())
+                .description(organization.getDescription())
+                .createdAt(organization.getCreatedAt())
+                .build();
     }
 }

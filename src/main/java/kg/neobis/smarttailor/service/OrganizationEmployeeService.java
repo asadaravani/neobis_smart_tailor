@@ -9,4 +9,6 @@ public interface OrganizationEmployeeService {
     Boolean existsByPositionNameAndEmployeeEmail(String positionName, String employeeEmail);
 
     void save(OrganizationEmployee organizationEmployee);
+
+    OrganizationEmployee findOrganizationByEmployeeEmail(String email);
 }

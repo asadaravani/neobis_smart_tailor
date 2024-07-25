@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import kg.neobis.smarttailor.dtos.EmployeeInvitationRequest;
+import kg.neobis.smarttailor.dtos.OrganizationDetailed;
 import kg.neobis.smarttailor.dtos.OrganizationDto;
 import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.enums.AccessRight;
@@ -170,5 +171,15 @@ public class OrganizationServiceImpl implements OrganizationService {
         } catch (JsonProcessingException e) {
             throw new InvalidJsonException(e.getMessage());
         }
+    }
+
+    @Override
+    public OrganizationDetailed getOrganization(String email){
+        Organization organization = organizationRepository.findByDirectorEmail(email)
+                .orElseThrow(null);
+        if(organization == null){
+            organization = organizationEmployeeService.findOrganizationByEmployeeEmail(email).getOrganization();
+        }
+        return organizationMapper.toOrganizationDetailed(organization);
     }
 }
