@@ -19,7 +19,6 @@ import kg.neobis.smarttailor.service.OrderService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -59,7 +58,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public String deleteOrder(Long orderId) throws IOException {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: ".concat(String.valueOf(orderId))));
 
         for (Image image : order.getImages()) {
             cloudinaryService.deleteImage(image.getUrl());
@@ -78,7 +77,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderDetailsDto getOrderById(Long orderId) {
         Order order = orderRepository.findById(orderId).
-                orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId, HttpStatus.NOT_FOUND));
+                orElseThrow(() -> new ResourceNotFoundException("Order not found with id: ".concat(String.valueOf(orderId))));
         return orderMapper.entityToOrderDetailsDto(order);
     }
 
@@ -97,7 +96,7 @@ public class OrderServiceImpl implements OrderService {
             }
             return requestDto;
         } catch (JsonProcessingException e) {
-            throw new InvalidJsonException(e.getMessage(), HttpStatus.BAD_REQUEST);
+            throw new InvalidJsonException(e.getMessage());
         }
     }
 }

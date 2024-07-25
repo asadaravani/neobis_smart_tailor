@@ -16,9 +16,9 @@ import kg.neobis.smarttailor.service.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,7 +44,7 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
     }
 
     @Override
-    public void uploadProfileImage(MultipartFile file, String email){
+    public void uploadProfileImage(MultipartFile file, String email) {
         AppUser user = userService.findUserByEmail(email);
         String imageUrl;
         try {
@@ -52,7 +52,7 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        if(!user.getImage().getUrl().isEmpty()){
+        if (!user.getImage().getUrl().isEmpty()) {
             try {
                 cloudinaryService.deleteImage(user.getImage().getUrl());
             } catch (IOException e) {
@@ -64,13 +64,13 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
     }
 
     @Override
-    public void editProfile(UserProfileEditRequest request, String email){
+    public void editProfile(UserProfileEditRequest request, String email) {
         AppUser updatedUser = AppUserMapper.INSTANCE.updateProfile(request, userService.findUserByEmail(email));
         userService.save(updatedUser);
     }
 
     @Override
-    public List<MyAdvertisement> getUserAds(int pageNo, int pageSize, String email){
+    public List<MyAdvertisement> getUserAds(int pageNo, int pageSize, String email) {
         try {
             List<MyAdvertisement> dto = new ArrayList<>();
             AppUser user = userService.findUserByEmail(email);
@@ -85,9 +85,8 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
                     .skip((long) pageNo * pageSize)
                     .limit(pageSize)
                     .collect(Collectors.toList());
-        }catch (Exception e){
-            throw new ResourceProcessingErrorException("Error while returning resources", HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            throw new ResourceProcessingErrorException("Error while returning resources");
         }
     }
-
 }

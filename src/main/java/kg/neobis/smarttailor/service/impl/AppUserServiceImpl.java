@@ -16,7 +16,6 @@ import kg.neobis.smarttailor.service.SubscriptionTokenService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -54,7 +53,7 @@ public class AppUserServiceImpl implements AppUserService {
     public ResponseEntity<?> createAdmin(CreateAdmin request) {
 
         if (repository.existsUserByEmail(request.email())) {
-            throw new ResourceAlreadyExistsException("email is occupied", HttpStatus.CONFLICT);
+            throw new ResourceAlreadyExistsException("User with email \"".concat(request.email()).concat("\" is already exists"));
         }
 
         AppUser user = AppUser.builder()
@@ -71,7 +70,7 @@ public class AppUserServiceImpl implements AppUserService {
 
         repository.save(user);
 
-        return ResponseEntity.ok("successful registration!");
+        return ResponseEntity.ok("Admin has been created");
     }
 
     @Override
@@ -87,7 +86,7 @@ public class AppUserServiceImpl implements AppUserService {
     @Override
     public AppUser findUserByEmail(String email) {
         return repository.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("Error: User not found with email: " + email, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: ".concat(email)));
     }
 
     @Override
@@ -100,7 +99,7 @@ public class AppUserServiceImpl implements AppUserService {
                 throw new IllegalArgumentException("Principal is not an instance of AppUser");
             }
         }
-        throw new UnauthorizedException("Authentication required!", HttpStatus.FORBIDDEN);
+        throw new UnauthorizedException("Authentication required!");
     }
 
     @Override
@@ -114,12 +113,12 @@ public class AppUserServiceImpl implements AppUserService {
         AppUser user = getUserFromAuthentication(authentication);
 
         if (user.getHasSubscription())
-            throw new ResourceAlreadyExistsException("user already has a subscription", HttpStatus.CONFLICT);
+            throw new ResourceAlreadyExistsException("User already has a subscription");
 
         SubscriptionToken subscriptionToken = subscriptionTokenService.generateSubscriptionRequestToken(user);
         MimeMessage message = emailService.createSubscriptionRequestMail(user, subscriptionToken);
         emailService.sendEmail(message);
 
-        return ResponseEntity.ok("Hooray! A subscription is on the way. Our administrator will contact you");
+        return ResponseEntity.ok("Subscription has been sent");
     }
 }
