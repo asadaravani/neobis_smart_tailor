@@ -33,7 +33,7 @@ public class AppUserController {
 
     @RequestMapping(value="/confirm-subscription-request", method= {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<?> confirmSubscriptionRequest(@RequestParam("token")String subscriptionConfirmationToken) {
-        return service.confirmSubscriptionRequest(subscriptionConfirmationToken);
+        return ResponseEntity.status(HttpStatus.OK).body(service.confirmSubscriptionRequest(subscriptionConfirmationToken));
     }
 
     @PostMapping("/create-admin")

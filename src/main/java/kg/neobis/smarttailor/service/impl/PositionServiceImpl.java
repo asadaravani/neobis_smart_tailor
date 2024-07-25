@@ -7,6 +7,7 @@ import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Position;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.exception.InvalidJsonException;
+import kg.neobis.smarttailor.exception.NoPermissionException;
 import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
 import kg.neobis.smarttailor.mapper.PositionMapper;
 import kg.neobis.smarttailor.repository.PositionRepository;
@@ -47,6 +48,8 @@ public class PositionServiceImpl implements PositionService {
             }
             Position position = positionMapper.dtoToEntity(requestDto);
             positionRepository.save(position);
+        } else {
+            throw new NoPermissionException("User has no permission to create position");
         }
         return "position has been created";
     }
