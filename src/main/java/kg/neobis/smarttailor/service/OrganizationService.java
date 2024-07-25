@@ -1,6 +1,7 @@
 package kg.neobis.smarttailor.service;
 
 import jakarta.mail.MessagingException;
+import kg.neobis.smarttailor.dtos.OrganizationDetailed;
 import kg.neobis.smarttailor.entity.Organization;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,4 +16,6 @@ public interface OrganizationService {
     String sendInvitation(String request, Authentication authentication) throws MessagingException;
 
     Organization getOrganizationByDirectorEmail(String email);
+
+    OrganizationDetailed getOrganization(String email);
 }

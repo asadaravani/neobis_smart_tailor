@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import kg.neobis.smarttailor.constants.EndpointConstants;
+import kg.neobis.smarttailor.dtos.OrganizationDetailed;
 import kg.neobis.smarttailor.service.OrganizationService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -73,5 +74,18 @@ public class OrganizationController {
     )@PostMapping("/send-invitation")
     public ResponseEntity<?> sendInvitation(@RequestPart("employee") String request, Authentication authentication) throws MessagingException {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.sendInvitation(request, authentication));
+    }
+
+    @Operation(
+            summary = "GET ORGANIZATION",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "SUCCESS"),
+                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "User has no subscription "),
+            }
+    )
+    @GetMapping
+    public OrganizationDetailed getOrganization(Authentication authentication){
+        return service.getOrganization(authentication.getName());
     }
 }
