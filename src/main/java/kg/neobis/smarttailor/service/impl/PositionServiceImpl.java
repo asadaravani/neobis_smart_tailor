@@ -16,7 +16,6 @@ import kg.neobis.smarttailor.service.PositionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -44,7 +43,7 @@ public class PositionServiceImpl implements PositionService {
 
         if (user.getHasSubscription() || hasRights) {
             if (positionRepository.existsPositionByName(requestDto.positionName())) {
-                throw new ResourceAlreadyExistsException("Position with name ".concat(requestDto.positionName()).concat(" already exists"), HttpStatus.CONFLICT);
+                throw new ResourceAlreadyExistsException("Position with name \"".concat(requestDto.positionName()).concat("\" already exists"));
             }
             Position position = positionMapper.dtoToEntity(requestDto);
             positionRepository.save(position);
@@ -67,7 +66,7 @@ public class PositionServiceImpl implements PositionService {
             }
             return requestDto;
         } catch (JsonProcessingException e) {
-            throw new InvalidJsonException(e.getMessage(), HttpStatus.BAD_REQUEST);
+            throw new InvalidJsonException(e.getMessage());
         }
     }
 }

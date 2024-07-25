@@ -23,7 +23,6 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -39,16 +38,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ServiceServiceImpl implements ServicesService {
-    ServicesRepository serviceRepository;
+
     AppUserService userService;
     CloudinaryService cloudinaryService;
-    Validator validator;
     ObjectMapper objectMapper;
+    ServicesRepository serviceRepository;
+    Validator validator;
 
     @Override
     public Services findServiceById(Long id) {
         return serviceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Error: Service not found with id: " + id, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException("Service not found with id: ".concat(String.valueOf(id))));
     }
 
     @Override
@@ -68,7 +68,7 @@ public class ServiceServiceImpl implements ServicesService {
             serviceRepository.save(newService);
             return "Service successfully added";
         } catch (Exception e) {
-            throw new ResourceProcessingErrorException("Error while adding a new Service", HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new ResourceProcessingErrorException("Error while adding a new Service");
         }
     }
 
@@ -93,7 +93,7 @@ public class ServiceServiceImpl implements ServicesService {
                 cloudinaryService.deleteImage(image.getUrl());
             } catch (IOException e) {
                 System.err.println("Error deleting image: " + image.getUrl() + " due to " + e.getMessage());
-                throw new ResourceProcessingErrorException("Error with deleting images in Cloudinary", HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new ResourceProcessingErrorException("Error with deleting images in Cloudinary");
             }
         });
         serviceRepository.delete(service);
@@ -102,7 +102,7 @@ public class ServiceServiceImpl implements ServicesService {
     }
 
     @Override
-    public List<Services> findAllByUser(AppUser user){
+    public List<Services> findAllByUser(AppUser user) {
         return serviceRepository.findAllByAuthor(user);
     }
 
@@ -117,7 +117,7 @@ public class ServiceServiceImpl implements ServicesService {
             }
             return requestDto;
         } catch (JsonProcessingException e) {
-            throw new InvalidJsonException(e.getMessage(), HttpStatus.BAD_REQUEST);
+            throw new InvalidJsonException(e.getMessage());
         }
     }
 }

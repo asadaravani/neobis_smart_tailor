@@ -18,7 +18,6 @@ import kg.neobis.smarttailor.service.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -50,13 +49,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public LoginResponse confirmEmail(String email, Integer code) {
 
         AppUser user = appUserService.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: ".concat(email), HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: ".concat(email)));
 
         ConfirmationCode confirmationCode = confirmationCodeService.findByUserAndCode(user, code)
-                .orElseThrow(() -> new ResourceNotFoundException("Confirmation code for user with email '".concat(email).concat("' wasn't found"), HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException("Confirmation code for user with email \"".concat(email).concat("\" not found")));
 
         if (confirmationCode.isExpired())
-            throw new OutOfDateException("Confirmation code has expired", HttpStatus.BAD_REQUEST);
+            throw new OutOfDateException("Confirmation code has expired");
 
         if (confirmationCode.getCode().equals(code)) {
             user.setEnabled(true);
@@ -78,7 +77,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .refreshToken(refreshToken)
                     .build();
         } else {
-            throw new ResourceNotFoundException("Invalid confirmation code", HttpStatus.NOT_FOUND);
+            throw new ResourceNotFoundException("Invalid confirmation code");
         }
     }
 
@@ -86,7 +85,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public String login(String email) {
 
         var user = appUserService.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: ".concat(email), HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: ".concat(email)));
 
         ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
         emailService.sendEmailWithConfirmationCode(confirmationCode, user);
@@ -98,14 +97,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public LoginResponse loginAdmin(LoginAdmin request) {
 
         if (request.email() == null || request.password() == null || request.email().isEmpty() || request.password().isEmpty()) {
-            throw new InvalidRequestException("Email and password are required", HttpStatus.BAD_REQUEST);
+            throw new InvalidRequestException("Email and password are required");
         }
 
         AppUser user = appUserService.findByEmail(request.email())
-                .orElseThrow(() -> new ResourceNotFoundException("Invalid email or password", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException("Invalid email or password"));
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new ResourceNotFoundException("Invalid email or password", HttpStatus.NOT_FOUND);
+            throw new ResourceNotFoundException("Invalid email or password");
         }
 
         authenticationManager.authenticate(
@@ -143,11 +142,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public Map<String, String> refreshToken(String refreshToken) {
 
         if (!refreshTokenService.existsByToken(refreshToken))
-            throw new ResourceNotFoundException("Refresh token not found", HttpStatus.NOT_FOUND);
+            throw new ResourceNotFoundException("Refresh token not found");
 
         if (jwtUtil.isRefreshTokenExpired(refreshToken)) {
             refreshTokenService.deleteExpiredTokens();
-            throw new OutOfDateException("Refresh token has expired", HttpStatus.BAD_REQUEST);
+            throw new OutOfDateException("Refresh token has expired");
         }
 
         String username = jwtUtil.extractUsername(refreshToken);
@@ -165,7 +164,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public String resendConfirmationCode(String email) {
 
         AppUser user = appUserService.findByEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: " + email, HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email: ".concat(email)));
 
         ConfirmationCode confirmationCode = confirmationCodeService.findByUser(user)
                 .orElse(null);
@@ -196,7 +195,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             user = appUserService.findUserByEmail(request.email());
 
             if (user.isEnabled()) {
-                throw new ResourceAlreadyExistsException("Email is already in use", HttpStatus.CONFLICT);
+                throw new ResourceAlreadyExistsException("User with email \"".concat(request.email()).concat("\" is already exists"));
             } else {
                 ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
                 if (confirmationCode != null) {

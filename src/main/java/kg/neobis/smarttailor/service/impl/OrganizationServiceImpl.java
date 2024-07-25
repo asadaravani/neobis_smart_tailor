@@ -19,7 +19,6 @@ import kg.neobis.smarttailor.service.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -74,14 +73,14 @@ public class OrganizationServiceImpl implements OrganizationService {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
         if (!user.getHasSubscription())
-            throw new ResourceNotFoundException("user has no subscription", HttpStatus.NOT_FOUND);
+            throw new ResourceNotFoundException("User has no subscription");
 
         if (organizationRepository.existsOrganizationByDirector(user))
-            throw new ResourceAlreadyExistsException("user already has an organization", HttpStatus.CONFLICT);
+            throw new ResourceAlreadyExistsException("User already has an organization");
 
         OrganizationDto requestDto = parseAndValidateOrganizationDto(organizationDto);
         if (organizationRepository.existsOrganizationByName(requestDto.name()))
-            throw new ResourceAlreadyExistsException("organization with name \"".concat(requestDto.name().concat("\" already exists")), HttpStatus.CONFLICT);
+            throw new ResourceAlreadyExistsException("Organization with name \"".concat(requestDto.name().concat("\" already exists")));
 
         Image image = cloudinaryService.saveImage(organizationImage);
 
@@ -107,18 +106,18 @@ public class OrganizationServiceImpl implements OrganizationService {
         if (user.getHasSubscription() || hasRights) {
             if (isUserExists) {
                 if (organizationRepository.existsOrganizationByDirectorEmail(employeeInvitationRequest.email()))
-                    throw new ResourceAlreadyExistsException("user has his own organization", HttpStatus.CONFLICT);
+                    throw new ResourceAlreadyExistsException("User has his own organization");
 
                 if (organizationEmployeeService.existsByEmployeeEmail(employeeInvitationRequest.email()))
-                    throw new ResourceAlreadyExistsException("user is already a member of another organization", HttpStatus.CONFLICT);
+                    throw new ResourceAlreadyExistsException("User is already a member of another organization");
             }
             var organization = getOrganizationByDirectorEmail(user.getEmail());
             if (organization == null)
-                throw new ResourceNotFoundException("user has no organization", HttpStatus.NOT_FOUND);
+                throw new ResourceNotFoundException("User has no organization");
 
             Position position = positionService.getPositionByName(employeeInvitationRequest.position());
             if (position == null)
-                throw new ResourceNotFoundException("specified position not found", HttpStatus.NOT_FOUND);
+                throw new ResourceNotFoundException("Specified position not found");
 
             if (!isUserExists) {
                 employee = AppUser.builder()
@@ -142,7 +141,7 @@ public class OrganizationServiceImpl implements OrganizationService {
 
             return "invitation has been sent";
         }
-        throw new NoPermissionException("user has no permission to invite employee", HttpStatus.FORBIDDEN);
+        throw new NoPermissionException("User has no permission to invite employee");
     }
 
     private EmployeeInvitationRequest parseAndValidateEmployeeInvitationRequest(String invitation) {
@@ -155,7 +154,7 @@ public class OrganizationServiceImpl implements OrganizationService {
             }
             return requestDto;
         } catch (JsonProcessingException e) {
-            throw new InvalidJsonException(e.getMessage(), HttpStatus.BAD_REQUEST);
+            throw new InvalidJsonException(e.getMessage());
         }
     }
 
@@ -169,7 +168,7 @@ public class OrganizationServiceImpl implements OrganizationService {
             }
             return requestDto;
         } catch (JsonProcessingException e) {
-            throw new InvalidJsonException(e.getMessage(), HttpStatus.BAD_REQUEST);
+            throw new InvalidJsonException(e.getMessage());
         }
     }
 }

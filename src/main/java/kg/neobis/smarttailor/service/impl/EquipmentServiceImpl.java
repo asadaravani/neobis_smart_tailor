@@ -32,7 +32,6 @@ import kg.neobis.smarttailor.service.EquipmentService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -69,7 +68,7 @@ public class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     public EquipmentDto getEquipmentById(Long equipmentId) {
-        Equipment equipment = equipmentRepository.findById(equipmentId).orElseThrow(() -> new ResourceNotFoundException("Equipment not found", HttpStatus.NOT_FOUND));
+        Equipment equipment = equipmentRepository.findById(equipmentId).orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
         return equipmentMapper.entityToDto(equipment);
     }
 
@@ -96,7 +95,7 @@ public class EquipmentServiceImpl implements EquipmentService {
             }
             return requestDto;
         } catch (JsonProcessingException e) {
-            throw new InvalidJsonException(e.getMessage(), HttpStatus.BAD_REQUEST);
+            throw new InvalidJsonException(e.getMessage());
         }
     }
 
@@ -104,12 +103,12 @@ public class EquipmentServiceImpl implements EquipmentService {
     @Override
     public String buyEquipment(Long equipmentId, Authentication authentication) {
         Equipment equipment = equipmentRepository.findById(equipmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found", HttpStatus.NOT_FOUND));
+                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
         if (equipment.getQuantity() <= 0) {
-            throw new OutOfStockException("This equipment is out of stock", HttpStatus.NOT_FOUND);
+            throw new OutOfStockException("This equipment is out of stock");
         }
 
         byte[] pdfFile;
@@ -126,7 +125,7 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
-    public List<Equipment> findAllByUser(AppUser user){
+    public List<Equipment> findAllByUser(AppUser user) {
         return equipmentRepository.findAllByAuthor(user);
     }
 
@@ -189,7 +188,7 @@ public class EquipmentServiceImpl implements EquipmentService {
             document.add(table);
             document.close();
         } catch (DocumentException exception) {
-            throw new PdfGenerationException(exception.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR);
+            throw new PdfGenerationException(exception.getMessage());
         }
         return out.toByteArray();
     }

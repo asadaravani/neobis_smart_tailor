@@ -19,6 +19,7 @@ public class OrganizationEmployeeServiceImpl implements OrganizationEmployeeServ
     public Boolean existsByEmployeeEmail(String email) {
         return organizationEmployeeRepository.existsByEmployeeEmail(email);
     }
+
     @Override
     public Boolean existsByPositionNameAndEmployeeEmail(String positionName, String employeeEmail) {
         return organizationEmployeeRepository.existsByPositionNameAndEmployeeEmail(positionName, employeeEmail);
