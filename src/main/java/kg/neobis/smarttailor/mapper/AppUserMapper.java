@@ -13,7 +13,7 @@ public interface AppUserMapper {
 
     AppUserMapper INSTANCE = Mappers.getMapper(AppUserMapper.class);
 
-    @Mapping(source = "user.image.url", target = "imagePath")
+    @Mapping(source = "image.url", target = "imagePath")
     UserProfileDto toUserProfileDto(AppUser user);
 
     AppUser updateProfile(UserProfileEditRequest request, @MappingTarget AppUser user);

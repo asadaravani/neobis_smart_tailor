@@ -8,6 +8,7 @@ import kg.neobis.smarttailor.entity.Organization;
 
 import org.springframework.stereotype.Component;
 
+
 @Component
 public class OrganizationMapper {
 
@@ -19,13 +20,18 @@ public class OrganizationMapper {
                 user
         );
     }
-    public OrganizationDetailed toOrganizationDetailed(Organization organization){
+
+    public OrganizationDetailed toOrganizationDetailed(Organization organization) {
         return OrganizationDetailed.builder()
                 .id(organization.getId())
-                .imagePath(organization.getImage().getUrl())
+                .imagePath(getImageUrl(organization.getImage()))
                 .name(organization.getName())
                 .description(organization.getDescription())
                 .createdAt(organization.getCreatedAt())
                 .build();
+    }
+
+    private static String getImageUrl(Image image) {
+        return (image != null) ? image.getUrl() : "";
     }
 }
