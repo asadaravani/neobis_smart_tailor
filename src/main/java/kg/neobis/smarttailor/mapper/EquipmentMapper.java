@@ -14,16 +14,17 @@ import java.util.stream.Collectors;
 
 @Component
 public class EquipmentMapper {
+
     public List<EquipmentListDto> entityListToDtoList(List<Equipment> equipments) {
         return equipments.stream().map(equipment -> new EquipmentListDto(
                 equipment.getId(),
-                equipment.getImages().get(1).getUrl(),
+                getImageUrl(equipment.getImages(), 1),
                 equipment.getName(),
                 equipment.getPrice(),
-                equipment.getAuthor().getImage().getUrl(),
+                getAuthorImageUrl(equipment),
                 getFullName(equipment),
                 equipment.getDescription()
-                )).collect(Collectors.toList());
+        )).collect(Collectors.toList());
     }
 
     public EquipmentDto entityToDto(Equipment equipment) {
@@ -32,7 +33,7 @@ public class EquipmentMapper {
                 equipment.getName(),
                 equipment.getPrice(),
                 equipment.getImages().stream().map(Image::getUrl).collect(Collectors.toList()),
-                equipment.getAuthor().getImage().getUrl(),
+                getAuthorImageUrl(equipment),
                 getFullName(equipment),
                 equipment.getDescription(),
                 equipment.getContactInfo(),
@@ -60,17 +61,26 @@ public class EquipmentMapper {
                 requestDto.contactInfo(),
                 equipmentImages,
                 user
-                );
+        );
     }
 
     public MyAdvertisement toMyAdvertisement(Equipment equipment){
         return MyAdvertisement.builder()
                 .id(equipment.getId())
-                .imagePath(equipment.getImages().get(0).getUrl())
+                .imagePath(getImageUrl(equipment.getImages(), 0))
                 .type(AdvertType.EQUIPMENT)
                 .name(equipment.getName())
                 .description(equipment.getDescription())
                 .createdAt(equipment.getCreatedAt())
                 .build();
+    }
+
+    private static String getImageUrl(List<Image> images, int index) {
+        return (images != null && images.size() > index) ? images.get(index).getUrl() : "";
+    }
+
+    private static String getAuthorImageUrl(Equipment equipment) {
+        return (equipment.getAuthor() != null && equipment.getAuthor().getImage() != null) ?
+                equipment.getAuthor().getImage().getUrl() : "";
     }
 }

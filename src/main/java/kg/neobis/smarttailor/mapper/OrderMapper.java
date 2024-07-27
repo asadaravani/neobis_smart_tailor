@@ -13,10 +13,9 @@ import java.util.stream.Collectors;
 public class OrderMapper {
 
     public Order dtoToEntity(OrderDto dto, List<Image> orderImages, AppUser user) {
-
         List<OrderItem> items = dto.items().stream()
                 .map(orderItemDto -> new OrderItem(orderItemDto.size(), orderItemDto.quantity()))
-                .toList();
+                .collect(Collectors.toList());
 
         return new Order(
                 dto.name(),
@@ -33,7 +32,7 @@ public class OrderMapper {
     public List<OrderListDto> entityListToDtoList(List<Order> orders) {
         return orders.stream().map(order -> new OrderListDto(
                 order.getId(),
-                order.getImages().get(1).getUrl(),
+                getImageUrl(order.getImages(), 1),
                 order.getName(),
                 order.getDescription(),
                 order.getPrice(),
@@ -42,14 +41,11 @@ public class OrderMapper {
     }
 
     public OrderDetailsDto entityToOrderDetailsDto(Order order) {
-
         List<OrderItemDto> items = order.getItems().stream()
                 .map(orderItem -> new OrderItemDto(orderItem.getSize(), orderItem.getQuantity()))
-                .toList();
+                .collect(Collectors.toList());
 
-        String imageUrl = null;
-        if (order.getAuthor().getImage() != null)
-            imageUrl = order.getAuthor().getImage().getUrl();
+        String authorImageUrl = getAuthorImageUrl(order);
 
         return new OrderDetailsDto(
                 order.getImages().stream().map(Image::getUrl).collect(Collectors.toList()),
@@ -59,22 +55,39 @@ public class OrderMapper {
                 order.getDescription(),
                 order.getPrice(),
                 items,
-                imageUrl,
-                order.getAuthor().getSurname()
-                        .concat(" ").concat(order.getAuthor().getName())
-                        .concat(" ").concat(order.getAuthor().getPatronymic()),
+                authorImageUrl,
+                formatAuthorFullName(order.getAuthor()),
                 order.getContactInfo()
         );
     }
 
-    public MyAdvertisement toMyAdvertisement(Order order){
+    public MyAdvertisement toMyAdvertisement(Order order) {
         return MyAdvertisement.builder()
                 .id(order.getId())
                 .type(AdvertType.ORDER)
-                .imagePath(order.getImages().get(0).getUrl())
+                .imagePath(getImageUrl(order.getImages(), 0))
                 .name(order.getName())
                 .description(order.getDescription())
                 .createdAt(order.getCreatedAt())
                 .build();
+    }
+
+    private static String getImageUrl(List<Image> images, int index) {
+        return (images != null && images.size() > index) ? images.get(index).getUrl() : "";
+    }
+
+    private static String getAuthorImageUrl(Order order) {
+        return (order.getAuthor() != null && order.getAuthor().getImage() != null) ?
+                order.getAuthor().getImage().getUrl() : "";
+    }
+
+    private static String formatAuthorFullName(AppUser author) {
+        if (author == null) {
+            return "";
+        }
+        String name = author.getName() != null ? author.getName() : "";
+        String surname = author.getSurname() != null ? author.getSurname() : "";
+        String patronymic = author.getPatronymic() != null ? author.getPatronymic() : "";
+        return (surname + " " + name + " " + patronymic).trim();
     }
 }
