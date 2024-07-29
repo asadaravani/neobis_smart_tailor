@@ -5,9 +5,13 @@ import kg.neobis.smarttailor.dtos.ads.MyAdvertisement;
 import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
 import kg.neobis.smarttailor.dtos.ads.list.OrderListDto;
 import kg.neobis.smarttailor.dtos.ads.request.OrderRequestDto;
-import kg.neobis.smarttailor.entity.*;
+import kg.neobis.smarttailor.entity.AppUser;
+import kg.neobis.smarttailor.entity.Image;
+import kg.neobis.smarttailor.entity.Order;
+import kg.neobis.smarttailor.entity.OrderItem;
 
 import kg.neobis.smarttailor.enums.AdvertType;
+import kg.neobis.smarttailor.enums.OrderStatus;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -28,8 +32,13 @@ public class OrderMapper {
                 requestDto.price(),
                 requestDto.contactInfo(),
                 requestDto.dateOfExecution(),
+                null,
+                null,
+                OrderStatus.WAITING,
+                null,
                 orderImages,
                 items,
+                null,
                 user
         );
     }

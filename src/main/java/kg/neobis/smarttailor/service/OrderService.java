@@ -21,4 +21,6 @@ public interface OrderService {
     List<OrderListDto> getAllOrders(int pageNumber, int pageSize);
 
     OrderDetailed getOrderById(Long orderId);
+
+    String sendRequestToExecuteOrder(Long orderId, Authentication authentication);
 }

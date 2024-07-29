@@ -1,14 +1,8 @@
 package kg.neobis.smarttailor.entity;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
+import kg.neobis.smarttailor.enums.OrderStatus;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -46,6 +40,20 @@ public class Order extends BaseEntity {
     @Column(nullable = false)
     LocalDate dateOfExecution;
 
+    @Column
+    LocalDate dateOfCompletion;
+
+    @Column
+    LocalDate dateOfStart;
+
+    @Column
+    @Enumerated(EnumType.STRING)
+    OrderStatus status;
+
+    @ManyToOne
+    @JoinColumn
+    AppUser executor;
+
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinTable(
             name = "order_images",
@@ -62,6 +70,14 @@ public class Order extends BaseEntity {
             inverseJoinColumns = @JoinColumn(name = "order_item_id")
     )
     List<OrderItem> items = new ArrayList<>();
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "order_order_candidate",
+            joinColumns = @JoinColumn(name = "order_id"),
+            inverseJoinColumns = @JoinColumn(name = "order_candidate_id")
+    )
+    List<AppUser> candidates = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn

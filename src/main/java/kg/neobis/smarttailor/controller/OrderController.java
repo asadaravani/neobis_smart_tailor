@@ -100,4 +100,21 @@ public class OrderController {
     public ResponseEntity<OrderDetailed> getOrderDetailed(@PathVariable Long orderId) {
         return ResponseEntity.ok(orderService.getOrderById(orderId));
     }
+
+    @Operation(
+            summary = "SEND REQUEST TO EXECUTE ORDER",
+            description = "The method accepts order id and user's information from jwt to leave a request to execute order",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "User has left a request to execute the order"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
+                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "Order not found | User has no permission to send request to execute order | User is not a member of any organization"),
+                    @ApiResponse(responseCode = "409", description = "User can't respond to his/her own order | Order is already taken by another user"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
+    @PostMapping("/send-request-to-execute-order/{orderId}")
+    public ResponseEntity<String> sendRequestToExecuteOrder(@PathVariable Long orderId, Authentication authentication) {
+        return ResponseEntity.status(HttpStatus.OK).body(orderService.sendRequestToExecuteOrder(orderId, authentication));
+    }
 }
