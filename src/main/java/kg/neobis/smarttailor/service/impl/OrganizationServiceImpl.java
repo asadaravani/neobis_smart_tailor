@@ -29,6 +29,8 @@ import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
+import java.util.EnumSet;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -63,31 +65,57 @@ public class OrganizationServiceImpl implements OrganizationService {
                     .employee(user)
                     .build();
             organizationEmployeeService.save(organizationEmployee);
-            return ResponseEntity.ok("you accepted invitation");
+            return ResponseEntity.ok("You accepted invitation");
         }
-        return ResponseEntity.badRequest().body("token has been expired");
+        return ResponseEntity.badRequest().body("Token has been expired");
     }
 
     @Override
-    public String createOrganization(String organizationDto, MultipartFile organizationImage, Authentication authentication) {
+    public String createOrganization(String organizationRequestDto, MultipartFile organizationImage, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
-        if (!user.getHasSubscription())
+        if (!user.getHasSubscription()) {
             throw new ResourceNotFoundException("User has no subscription");
-
-        if (organizationRepository.existsOrganizationByDirector(user))
+        }
+        if (organizationRepository.existsOrganizationByDirector(user)) {
             throw new ResourceAlreadyExistsException("User already has an organization");
-
-        OrganizationDto requestDto = parseAndValidateOrganizationDto(organizationDto);
-        if (organizationRepository.existsOrganizationByName(requestDto.name()))
+        }
+        OrganizationDto requestDto = parseAndValidateOrganizationDto(organizationRequestDto);
+        if (organizationRepository.existsOrganizationByName(requestDto.name())) {
             throw new ResourceAlreadyExistsException("Organization with name \"".concat(requestDto.name().concat("\" already exists")));
-
+        }
         Image image = cloudinaryService.saveImage(organizationImage);
-
         Organization organization = organizationMapper.dtoToEntity(requestDto, image, user);
         organizationRepository.save(organization);
-        return "organization has been created";
+        Set<AccessRight> accessRights = EnumSet.allOf(AccessRight.class);
+
+        Position position = Position.builder()
+                .name("Директор")
+                .accessRights(accessRights)
+                .organization(organization)
+                .build();
+        positionService.save(position);
+
+        OrganizationEmployee organizationEmployee = OrganizationEmployee.builder()
+                .organization(organization)
+                .position(position)
+                .employee(user)
+                .build();
+        organizationEmployeeService.save(organizationEmployee);
+
+        return "Organization has been created";
+    }
+
+    @Override
+    public OrganizationDetailed getOrganization(String email) {
+
+        Organization organization = organizationRepository.findByDirectorEmail(email)
+                .orElseThrow(null);
+        if (organization == null) {
+            organization = organizationEmployeeService.findByEmployeeEmail(email).getOrganization();
+        }
+        return organizationMapper.toOrganizationDetailed(organization);
     }
 
     @Override
@@ -99,22 +127,24 @@ public class OrganizationServiceImpl implements OrganizationService {
     public String sendInvitation(String request, Authentication authentication) throws MessagingException {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        Boolean hasRights = organizationEmployeeService.existsByPositionNameAndEmployeeEmail(AccessRight.ADD_EMPLOYEE.name(), user.getEmail());
-        EmployeeInvitationRequest employeeInvitationRequest = parseAndValidateEmployeeInvitationRequest(request);
-        Boolean isUserExists = appUserService.existsUserByEmail(employeeInvitationRequest.email());
-        AppUser employee;
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
 
-        if (user.getHasSubscription() || hasRights) {
+        EmployeeInvitationRequest employeeInvitationRequest = parseAndValidateEmployeeInvitationRequest(request);
+        Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.ADD_EMPLOYEE, user.getEmail());
+        Boolean isUserExists = appUserService.existsUserByEmail(employeeInvitationRequest.email());
+
+        AppUser employee;
+        if (hasRights) {
             if (isUserExists) {
                 if (organizationRepository.existsOrganizationByDirectorEmail(employeeInvitationRequest.email()))
                     throw new ResourceAlreadyExistsException("User has his own organization");
 
+                if (organizationEmployeeService.existsByOrganizationAndEmployeeEmail(organizationEmployee.getOrganization(), employeeInvitationRequest.email()))
+                    throw new ResourceAlreadyExistsException("User is already a member of your organization");
+
                 if (organizationEmployeeService.existsByEmployeeEmail(employeeInvitationRequest.email()))
                     throw new ResourceAlreadyExistsException("User is already a member of another organization");
             }
-            var organization = getOrganizationByDirectorEmail(user.getEmail());
-            if (organization == null)
-                throw new ResourceNotFoundException("User has no organization");
 
             Position position = positionService.getPositionByName(employeeInvitationRequest.position());
             if (position == null)
@@ -136,11 +166,15 @@ public class OrganizationServiceImpl implements OrganizationService {
             } else
                 employee = appUserService.findUserByEmail(employeeInvitationRequest.email());
 
-            InvitationToken invitationToken = invitationTokenService.generateInvitationToken(employee, organization, position);
-            MimeMessage message = emailService.createInvitationEmployeeMail(employee, invitationToken, organization, position);
+            InvitationToken invitationToken = invitationTokenService.findByUser(employee);
+            if (invitationToken != null)
+                invitationTokenService.delete(invitationToken);
+
+            invitationToken = invitationTokenService.generateInvitationToken(employee, organizationEmployee.getOrganization(), position);
+            MimeMessage message = emailService.createInvitationEmployeeMail(user, employee.getEmail(), invitationToken, organizationEmployee.getOrganization(), position);
             emailService.sendEmail(message);
 
-            return "invitation has been sent";
+            return "Invitation has been sent";
         }
         throw new NoPermissionException("User has no permission to invite employee");
     }
@@ -171,15 +205,5 @@ public class OrganizationServiceImpl implements OrganizationService {
         } catch (JsonProcessingException e) {
             throw new InvalidJsonException(e.getMessage());
         }
-    }
-
-    @Override
-    public OrganizationDetailed getOrganization(String email){
-        Organization organization = organizationRepository.findByDirectorEmail(email)
-                .orElseThrow(null);
-        if(organization == null){
-            organization = organizationEmployeeService.findOrganizationByEmployeeEmail(email).getOrganization();
-        }
-        return organizationMapper.toOrganizationDetailed(organization);
     }
 }

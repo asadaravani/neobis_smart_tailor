@@ -31,6 +31,11 @@ public class InvitationTokenServiceImpl implements InvitationTokenService {
     }
 
     @Override
+    public InvitationToken findByUser(AppUser user) {
+        return invitationTokenRepository.findByUser(user);
+    }
+
+    @Override
     public InvitationToken generateInvitationToken(AppUser user, Organization organization, Position position) {
 
         InvitationToken invitationToken = new InvitationToken();

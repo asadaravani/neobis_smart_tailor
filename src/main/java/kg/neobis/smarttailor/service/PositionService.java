@@ -8,4 +8,6 @@ public interface PositionService {
     String addPosition(String positionDto, Authentication authentication);
 
     Position getPositionByName(String name);
+
+    Position save(Position position);
 }

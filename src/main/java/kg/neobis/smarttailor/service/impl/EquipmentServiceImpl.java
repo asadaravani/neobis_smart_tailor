@@ -9,16 +9,16 @@ import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Phrase;
 import jakarta.mail.MessagingException;
+import kg.neobis.smarttailor.entity.AppUser;
+import kg.neobis.smarttailor.entity.Equipment;
 import kg.neobis.smarttailor.entity.Image;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
-import kg.neobis.smarttailor.dtos.EquipmentDto;
-import kg.neobis.smarttailor.dtos.EquipmentListDto;
-import kg.neobis.smarttailor.dtos.EquipmentRequestDto;
-import kg.neobis.smarttailor.entity.AppUser;
-import kg.neobis.smarttailor.entity.Equipment;
+import kg.neobis.smarttailor.dtos.ads.detailed.EquipmentDetailed;
+import kg.neobis.smarttailor.dtos.ads.list.EquipmentListDto;
+import kg.neobis.smarttailor.dtos.ads.request.EquipmentRequestDto;
 import kg.neobis.smarttailor.exception.InvalidJsonException;
 import kg.neobis.smarttailor.exception.OutOfStockException;
 import kg.neobis.smarttailor.exception.PdfGenerationException;
@@ -32,8 +32,12 @@ import kg.neobis.smarttailor.service.EquipmentService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
@@ -61,18 +65,6 @@ public class EquipmentServiceImpl implements EquipmentService {
     CloudinaryService cloudinaryService;
 
     @Override
-    public List<EquipmentListDto> getAllEquipments() {
-        List<Equipment> equipmentList = equipmentRepository.findAll();
-        return equipmentMapper.entityListToDtoList(equipmentList);
-    }
-
-    @Override
-    public EquipmentDto getEquipmentById(Long equipmentId) {
-        Equipment equipment = equipmentRepository.findById(equipmentId).orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
-        return equipmentMapper.entityToDto(equipment);
-    }
-
-    @Override
     public String addEquipment(String equipmentRequestDto, List<MultipartFile> images, Authentication authentication) {
 
         EquipmentRequestDto requestDto = parseAndValidateRecipeDto(equipmentRequestDto);
@@ -81,8 +73,39 @@ public class EquipmentServiceImpl implements EquipmentService {
 
         Equipment equipment = equipmentMapper.dtoToEntity(requestDto, equipmentImages, user);
         equipmentRepository.save(equipment);
-        return "The equipment has been added successfully!";
+        return "Equipment has been created";
     }
+
+    @Override
+    @Transactional
+    public String deleteEquipment(Long equipmentId) throws IOException {
+
+        Equipment equipment = equipmentRepository.findById(equipmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
+
+        for (Image image : equipment.getImages()) {
+            cloudinaryService.deleteImage(image.getUrl());
+        }
+
+        equipmentRepository.delete(equipment);
+        return "Equipment has been deleted";
+    }
+
+    @Override
+    public List<EquipmentListDto> getAllEquipments(int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Page<Equipment> equipments = equipmentRepository.findAll(pageable);
+        List<Equipment> equipmentList = equipments.getContent();
+        return equipmentMapper.entityListToDtoList(equipmentList);
+    }
+
+    @Override
+    public EquipmentDetailed getEquipmentById(Long equipmentId) {
+        Equipment equipment = equipmentRepository.findById(equipmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
+        return equipmentMapper.entityToDto(equipment);
+    }
+
 
     private EquipmentRequestDto parseAndValidateRecipeDto(String equipmentDto) {
         try {
@@ -98,7 +121,6 @@ public class EquipmentServiceImpl implements EquipmentService {
             throw new InvalidJsonException(e.getMessage());
         }
     }
-
 
     @Override
     public String buyEquipment(Long equipmentId, Authentication authentication) {
@@ -134,6 +156,13 @@ public class EquipmentServiceImpl implements EquipmentService {
         appUserService.getUserFromAuthentication(authentication);
         List<Equipment> equipmentList = equipmentRepository.findEquipmentByNameContainingIgnoreCase(name);
         return equipmentMapper.entityListToDtoList(equipmentList);
+    }
+
+    private void addTableCell(PdfPTable table, String text, Font font, BaseColor borderColor) {
+        PdfPCell cell = new PdfPCell(new Phrase(text, font));
+        cell.setBorderColor(borderColor);
+        cell.setPadding(10f);
+        table.addCell(cell);
     }
 
     private byte[] generateReceiptPdf(Equipment equipment, AppUser user) {
@@ -191,12 +220,5 @@ public class EquipmentServiceImpl implements EquipmentService {
             throw new PdfGenerationException(exception.getMessage());
         }
         return out.toByteArray();
-    }
-
-    private void addTableCell(PdfPTable table, String text, Font font, BaseColor borderColor) {
-        PdfPCell cell = new PdfPCell(new Phrase(text, font));
-        cell.setBorderColor(borderColor);
-        cell.setPadding(10f);
-        table.addCell(cell);
     }
 }

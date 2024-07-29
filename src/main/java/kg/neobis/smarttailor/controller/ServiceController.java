@@ -4,15 +4,19 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
-import kg.neobis.smarttailor.dtos.ServiceDetailedResponse;
-import kg.neobis.smarttailor.dtos.ServicesPreviewResponse;
+import kg.neobis.smarttailor.dtos.ads.detailed.ServiceDetailed;
+import kg.neobis.smarttailor.dtos.ads.list.ServiceListDto;
 import kg.neobis.smarttailor.service.ServicesService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -25,60 +29,65 @@ public class ServiceController {
     ServicesService servicesService;
 
     @Operation(
-            summary = "Get Service by id",
-            description = "Get detailed info of the Service",
+            summary = "ADD SERVICE",
+            description = "The method accepts service data and images to create the service",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Success"),
-                    @ApiResponse(responseCode = "404", description = "Empty list"),
+                    @ApiResponse(responseCode = "201", description = "Service has been created"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
+                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
-    @GetMapping("/{id}")
-    public ServiceDetailedResponse getServiceDetailed(@PathVariable Long id){
-        return servicesService.getServiceDetailed(id);
+    @PostMapping("/add-service")
+    public ResponseEntity<String> addService(@RequestPart("service") String serviceDto,
+                                             @RequestPart("images") List<MultipartFile> images,
+                                             Authentication authentication) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(servicesService.addService(serviceDto, images, authentication));
     }
 
     @Operation(
-            summary = "Get all services",
-            description = "Requires parameters for the Pagination. Does NOT return 404, but empty list",
+            summary = "DELETE SERVICE",
+            description = "To delete service, the method accepts its id",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Services' list"),
-                    @ApiResponse(responseCode = "500", description = "Integral server error")
+                    @ApiResponse(responseCode = "200", description = "Service has been deleted"),
+                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "Service not found with specified id"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
-    @GetMapping
-    public List<ServicesPreviewResponse> getAllServices(@RequestParam int pageNo,
-                                                        @RequestParam int pageSize){
-        return servicesService.getServices(pageNo, pageSize);
+    @DeleteMapping("/delete-service/{serviceId}")
+    public ResponseEntity<String> deleteService(@PathVariable Long serviceId) throws IOException {
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(servicesService.deleteService(serviceId));
     }
 
     @Operation(
-            summary = "Add service",
-            description = "Gets and sets the Author of an added Service from the token",
+            summary = "GET ALL SERVICES",
+            description = "The method returns list of services",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Success"),
-                    @ApiResponse(responseCode = "403", description = "Authentication Required"),
-                    @ApiResponse(responseCode = "500", description = "Integral server error")
+                    @ApiResponse(responseCode = "200", description = "Service list received"),
+                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "Services not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
-    @PostMapping("/add")
-    public String addService(@RequestPart("dto") String dto,
-                             @RequestPart("photos") List<MultipartFile> photos,
-                             Authentication authentication){
-        return servicesService.addService(dto, photos, authentication.getName());
+    @GetMapping("/get-all-services")
+    public ResponseEntity<List<ServiceListDto>> getAllServices(@RequestParam int pageNumber,
+                                                               @RequestParam int pageSize) {
+        return ResponseEntity.ok(servicesService.getAllServices(pageNumber, pageSize));
     }
 
     @Operation(
-            summary = "It is not Available right now",
-            description = "Fixing...",
+            summary = "GET SERVICE DETAILED",
+            description = "The method accepts service's id, and then sends service's detailed information",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Success"),
-                    @ApiResponse(responseCode = "403", description = "Authentication Required"),
-                    @ApiResponse(responseCode = "500", description = "Integral server error")
+                    @ApiResponse(responseCode = "200", description = "Service information received"),
+                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "Service not found with specified id"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
-    @DeleteMapping("/delete/{id}")
-    public String deleteById(@PathVariable Long id){
-        return servicesService.deleteServiceById(id);
+    @GetMapping("/get-service-detailed/{serviceId}")
+    public ServiceDetailed getServiceDetailed(@PathVariable Long serviceId) {
+        return servicesService.getServiceById(serviceId);
     }
-
 }

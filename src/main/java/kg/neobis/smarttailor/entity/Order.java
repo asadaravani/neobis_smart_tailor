@@ -15,6 +15,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,25 +38,13 @@ public class Order extends BaseEntity {
     String description;
 
     @Column(nullable = false)
-    LocalDate dateOfExecution;
+    BigDecimal price;
 
     @Column(nullable = false)
     String contactInfo;
 
     @Column(nullable = false)
-    Integer price;
-
-    @ManyToOne
-    @JoinColumn
-    AppUser author;
-
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
-    @JoinTable(
-            name = "order_order_item",
-            joinColumns = @JoinColumn(name = "order_id"),
-            inverseJoinColumns = @JoinColumn(name = "order_item_id")
-    )
-    List<OrderItem> items = new ArrayList<>();
+    LocalDate dateOfExecution;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinTable(
@@ -64,4 +54,16 @@ public class Order extends BaseEntity {
     )
     @Size(max = 5, message = "Maximum number of images: 5")
     List<Image> images = new ArrayList<>();
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "order_order_item",
+            joinColumns = @JoinColumn(name = "order_id"),
+            inverseJoinColumns = @JoinColumn(name = "order_item_id")
+    )
+    List<OrderItem> items = new ArrayList<>();
+
+    @ManyToOne
+    @JoinColumn
+    AppUser author;
 }

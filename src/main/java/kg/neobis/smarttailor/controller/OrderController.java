@@ -4,12 +4,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
-import kg.neobis.smarttailor.dtos.OrderDetailsDto;
-import kg.neobis.smarttailor.dtos.OrderListDto;
+import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
+import kg.neobis.smarttailor.dtos.ads.list.OrderListDto;
 import kg.neobis.smarttailor.service.OrderService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
@@ -17,9 +18,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -33,66 +36,68 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class OrderController {
 
-    OrderService service;
+    OrderService orderService;
 
     @Operation(
-            summary = "creating order",
-            description = "The authorized user transmits order's information and photos to create the order",
+            summary = "ADD ORDER",
+            description = "The method accepts order data and images to create the order",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "order has been created"),
-                    @ApiResponse(responseCode = "403", description = "authentication required"),
-                    @ApiResponse(responseCode = "500", description = "internal server error")
+                    @ApiResponse(responseCode = "201", description = "Order has been created"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
+                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
     @PostMapping("/add-order")
-    public ResponseEntity<String> addOrder(@RequestPart("order") String order,
-                                          @RequestPart("images") List<MultipartFile> images,
-                                          Authentication authentication) {
-        return ResponseEntity.ok(service.addOrder(order, images, authentication));
+    public ResponseEntity<String> addOrder(@RequestPart("order") String orderDto,
+                                           @RequestPart("images") List<MultipartFile> images,
+                                           Authentication authentication) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.addOrder(orderDto, images, authentication));
     }
 
     @Operation(
-            summary = "delete order",
-            description = "The authorized user deletes the order and all related data",
+            summary = "DELETE ORDER",
+            description = "To delete order, the method accepts its id",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "order has been deleted"),
-                    @ApiResponse(responseCode = "403", description = "authentication required"),
-                    @ApiResponse(responseCode = "404", description = "order not found with specified id"),
-                    @ApiResponse(responseCode = "500", description = "internal server error")
+                    @ApiResponse(responseCode = "200", description = "Order has been deleted"),
+                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "Order not found with specified id"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
     @DeleteMapping("/delete-order/{orderId}")
     public ResponseEntity<String> deleteOrder(@PathVariable Long orderId) throws IOException {
-        service.deleteOrder(orderId);
-        return ResponseEntity.ok("order has been deleted");
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(orderService.deleteOrder(orderId));
     }
 
     @Operation(
-            summary = "get all orders",
-            description = "getting a list of orders, with basic information about them",
+            summary = "GET ALL ORDERS",
+            description = "The method returns list of orders",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Equipment list"),
-                    @ApiResponse(responseCode = "403", description = "authentication required"),
-                    @ApiResponse(responseCode = "500", description = "internal server error")
+                    @ApiResponse(responseCode = "200", description = "Order list received"),
+                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "Orders not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
     @GetMapping("/get-all-orders")
-    public ResponseEntity<List<OrderListDto>> getAllOrders() {
-        return ResponseEntity.ok(service.getAllOrders());
+    public ResponseEntity<List<OrderListDto>> getAllOrders(@RequestParam int pageNumber,
+                                                           @RequestParam int pageSize) {
+        return ResponseEntity.ok(orderService.getAllOrders(pageNumber, pageSize));
     }
 
     @Operation(
-            summary = "get order's detailed information",
-            description = "The authorized user transmits the order id to receive detailed information about the order",
+            summary = "GET ORDER DETAILED",
+            description = "The method accepts order's id, and then sends order's detailed information",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "order information was displayed"),
-                    @ApiResponse(responseCode = "403", description = "authentication required"),
-                    @ApiResponse(responseCode = "404", description = "order not found with specified id"),
-                    @ApiResponse(responseCode = "500", description = "internal server error")
+                    @ApiResponse(responseCode = "200", description = "Order information received"),
+                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "Order not found with specified id"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
-    @GetMapping("/get-by-id/{orderId}")
-    public ResponseEntity<OrderDetailsDto> getOrderById(@PathVariable Long orderId) {
-        return ResponseEntity.ok(service.getOrderById(orderId));
+    @GetMapping("/get-order-detailed/{orderId}")
+    public ResponseEntity<OrderDetailed> getOrderDetailed(@PathVariable Long orderId) {
+        return ResponseEntity.ok(orderService.getOrderById(orderId));
     }
 }

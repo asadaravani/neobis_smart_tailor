@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kg.neobis.smarttailor.dtos.PositionDto;
 import kg.neobis.smarttailor.entity.AppUser;
+import kg.neobis.smarttailor.entity.OrganizationEmployee;
 import kg.neobis.smarttailor.entity.Position;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.exception.InvalidJsonException;
@@ -38,25 +39,31 @@ public class PositionServiceImpl implements PositionService {
     @Override
     public String addPosition(String positionDto, Authentication authentication) {
 
-        PositionDto requestDto = parseAndValidatePositionDto(positionDto);
+        PositionDto positionRequestDto = parseAndValidatePositionDto(positionDto);
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        Boolean hasRights = organizationEmployeeService.existsByPositionNameAndEmployeeEmail(AccessRight.CREATE_POSITION.name(), user.getEmail());
+        Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.CREATE_POSITION, user.getEmail());
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
 
-        if (user.getHasSubscription() || hasRights) {
-            if (positionRepository.existsPositionByName(requestDto.positionName())) {
-                throw new ResourceAlreadyExistsException("Position with name \"".concat(requestDto.positionName()).concat("\" already exists"));
+        if (hasRights) {
+            if (positionRepository.existsPositionByNameAndOrganization(positionRequestDto.positionName(), organizationEmployee.getOrganization())) {
+                throw new ResourceAlreadyExistsException("Position with name \"".concat(positionRequestDto.positionName()).concat("\" already exists"));
             }
-            Position position = positionMapper.dtoToEntity(requestDto);
+            Position position = positionMapper.dtoToEntity(positionRequestDto, organizationEmployee.getOrganization());
             positionRepository.save(position);
         } else {
             throw new NoPermissionException("User has no permission to create position");
         }
-        return "position has been created";
+        return "Position has been created";
     }
 
     @Override
     public Position getPositionByName(String name) {
         return positionRepository.getByName(name);
+    }
+
+    @Override
+    public Position save(Position position) {
+        return positionRepository.save(position);
     }
 
     private PositionDto parseAndValidatePositionDto(String positionDto) {

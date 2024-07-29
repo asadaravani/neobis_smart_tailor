@@ -11,9 +11,10 @@
 <div style="display: flex; align-items: center; justify-content: center; height: 100vh;">
     <div style="background-color: #ffffff; text-align: center;">
         <h1 style="padding-top: 50px; margin-bottom: 20px; color: #292929;">Приглашение в организацию</h1>
-        <p>Пользователь "<span th:text="${fullName}"></span>" пригласил Вас в организацию "<span th:text="${organization}"></span>" на должность <span th:text="${position}"></span></p>
-        <p>Почта "<span th:text="${fullName}"></span>": <span th:text="${email}"></span></p>
-        <p>Номер телефона "<span th:text="${fullName}"></span>: <span th:text="${phoneNumber}"></span></p>
+        <p>Приглашаем Вас в организацию "<span th:text="${organization}"></span>" на должность <span th:text="${position}"></span></p>
+        <h2 style="padding-top: 50px; margin-bottom: 20px; color: #292929;">Контактные данные</h2>
+        <p>Почта: <span th:text="${email}"></span></p>
+        <p>Номер телефона: <span th:text="${phoneNumber}"></span></p>
         <br/>
         <a th:href="@{'https://smarttailor.xyz/api/organization/accept-invitation?token=' + ${invitationToken}}"
            style="display: inline-block; background-color: #292929; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 25px; transition: background-color 0.3s ease;">

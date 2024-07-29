@@ -4,36 +4,35 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.SuperBuilder;
 import java.time.LocalDateTime;
 
 @Entity
 @Getter
 @Setter
-@FieldDefaults(level = AccessLevel.PRIVATE)
 @AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class ConfirmationCode extends BaseEntity {
 
-    @Column(nullable = false)
+    @Column
     Integer code;
 
     @Column
-    LocalDateTime confirmedAt;
-
-    @Column(nullable = false)
-    LocalDateTime expiryTime;
+    LocalDateTime expirationTime;
 
     @ManyToOne
     @JoinColumn
     AppUser user;
 
     public ConfirmationCode() {
-        this.expiryTime = LocalDateTime.now().plusMinutes(5);
+        this.expirationTime = LocalDateTime.now().plusMinutes(10);
     }
 
     public boolean isExpired() {
-        return LocalDateTime.now().isAfter(this.expiryTime);
+        return LocalDateTime.now().isAfter(this.expirationTime);
     }
 }

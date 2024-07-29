@@ -2,7 +2,9 @@ package kg.neobis.smarttailor.entity;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.persistence.UniqueConstraint;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.AllArgsConstructor;
@@ -18,17 +20,20 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
+@Table(name = "organization_employee",
+        uniqueConstraints = @UniqueConstraint(columnNames = {"organization_id", "employee_id", "position_id"}))
+
 public class OrganizationEmployee extends BaseEntity {
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn
     AppUser employee;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn
     Position position;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn
     Organization organization;
 }

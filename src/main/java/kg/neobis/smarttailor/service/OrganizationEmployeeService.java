@@ -1,14 +1,18 @@
 package kg.neobis.smarttailor.service;
 
+import kg.neobis.smarttailor.entity.Organization;
 import kg.neobis.smarttailor.entity.OrganizationEmployee;
+import kg.neobis.smarttailor.enums.AccessRight;
 
 public interface OrganizationEmployeeService {
 
-    Boolean existsByEmployeeEmail(String email);
+    Boolean existsByAccessRightAndEmployeeEmail(AccessRight accessRight, String employeeEmail);
 
-    Boolean existsByPositionNameAndEmployeeEmail(String positionName, String employeeEmail);
+    Boolean existsByEmployeeEmail(String email);
 
     void save(OrganizationEmployee organizationEmployee);
 
-    OrganizationEmployee findOrganizationByEmployeeEmail(String email);
+    OrganizationEmployee findByEmployeeEmail(String email);
+
+    Boolean existsByOrganizationAndEmployeeEmail(Organization organization, String employeeEmail);
 }

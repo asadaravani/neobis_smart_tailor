@@ -13,6 +13,7 @@ import kg.neobis.smarttailor.exception.ResourceNotFoundException;
 import kg.neobis.smarttailor.repository.AppUserRepository;
 import kg.neobis.smarttailor.service.AppUserService;
 import kg.neobis.smarttailor.service.EmailService;
+import kg.neobis.smarttailor.service.OrganizationEmployeeService;
 import kg.neobis.smarttailor.service.SubscriptionTokenService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -28,8 +29,9 @@ import java.util.Optional;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AppUserServiceImpl implements AppUserService {
 
-    AppUserRepository repository;
+    AppUserRepository appUserRepository;
     EmailService emailService;
+    OrganizationEmployeeService organizationEmployeeService;
     PasswordEncoder passwordEncoder;
     SubscriptionTokenService subscriptionTokenService;
 
@@ -37,23 +39,22 @@ public class AppUserServiceImpl implements AppUserService {
     public String confirmSubscriptionRequest(String subscriptionConfirmationToken) {
 
         SubscriptionToken token = subscriptionTokenService.findByToken(subscriptionConfirmationToken);
-
         if (LocalDateTime.now().isBefore(token.getExpirationTime())) {
             AppUser user = findUserByEmail(token.getUser().getEmail());
             user.setHasSubscription(true);
-            repository.save(user);
+            appUserRepository.save(user);
             subscriptionTokenService.delete(token);
 
-            return "subscription for the user \"".concat(user.getEmail()).concat("\" activated");
+            return "Subscription for the user \"".concat(user.getEmail()).concat("\" has been activated");
         } else {
-            throw new OutOfDateException("token has been expired");
+            throw new OutOfDateException("Token has been expired");
         }
     }
 
     @Override
     public String createAdmin(CreateAdmin request) {
 
-        if (repository.existsUserByEmail(request.email())) {
+        if (appUserRepository.existsUserByEmail(request.email())) {
             throw new ResourceAlreadyExistsException("User with email \"".concat(request.email()).concat("\" is already exists"));
         }
 
@@ -69,24 +70,24 @@ public class AppUserServiceImpl implements AppUserService {
                 .enabled(true)
                 .build();
 
-        repository.save(user);
+        appUserRepository.save(user);
 
         return "Admin has been created";
     }
 
     @Override
     public Boolean existsUserByEmail(String email) {
-        return repository.existsUserByEmail(email);
+        return appUserRepository.existsUserByEmail(email);
     }
 
     @Override
     public Optional<AppUser> findByEmail(String email) {
-        return repository.findByEmail(email);
+        return appUserRepository.findByEmail(email);
     }
 
     @Override
     public AppUser findUserByEmail(String email) {
-        return repository.findByEmail(email)
+        return appUserRepository.findByEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email: ".concat(email)));
     }
 
@@ -105,17 +106,19 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     public AppUser save(AppUser appUser) {
-        return repository.save(appUser);
+        return appUserRepository.save(appUser);
     }
 
     @Override
     public String sendSubscriptionRequest(Authentication authentication) throws MessagingException {
 
         AppUser user = getUserFromAuthentication(authentication);
-
-        if (user.getHasSubscription())
+        if (organizationEmployeeService.existsByEmployeeEmail(user.getEmail())) {
+            throw new ResourceAlreadyExistsException("User is a member of another organization");
+        }
+        if (user.getHasSubscription()) {
             throw new ResourceAlreadyExistsException("User already has a subscription");
-
+        }
         SubscriptionToken subscriptionToken = subscriptionTokenService.generateSubscriptionRequestToken(user);
         MimeMessage message = emailService.createSubscriptionRequestMail(user, subscriptionToken);
         emailService.sendEmail(message);

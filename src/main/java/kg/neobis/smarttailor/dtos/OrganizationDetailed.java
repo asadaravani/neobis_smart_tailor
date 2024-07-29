@@ -12,5 +12,4 @@ public record OrganizationDetailed(
         String name,
         String description,
         LocalDateTime createdAt
-) implements Serializable {
-}
+) implements Serializable {}

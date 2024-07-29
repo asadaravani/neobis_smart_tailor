@@ -1,23 +1,35 @@
 package kg.neobis.smarttailor.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
-import java.math.BigInteger;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
-@Entity(name = "service")
 @Getter
 @Setter
-@FieldDefaults(level = AccessLevel.PRIVATE)
-@AllArgsConstructor
-@NoArgsConstructor
 @SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity(name = "service")
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class Services extends BaseEntity{
 
     @Column(nullable = false)
@@ -29,8 +41,11 @@ public class Services extends BaseEntity{
     @Size(min = 5, max = 1000, message = "Description must be between 5 and 1000 characters")
     String description;
 
-    @ManyToOne
-    AppUser author;
+    @Column
+    BigDecimal price;
+
+    @Column
+    String contactInfo;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinTable(
@@ -40,9 +55,7 @@ public class Services extends BaseEntity{
     )
     List<Image> images = new ArrayList<>();
 
-    @Column
-    BigInteger price;
-
-    @Column
-    String contactInfo;
+    @ManyToOne
+    @JoinColumn
+    AppUser author;
 }
