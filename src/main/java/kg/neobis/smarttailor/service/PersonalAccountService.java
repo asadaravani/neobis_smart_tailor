@@ -1,8 +1,8 @@
 package kg.neobis.smarttailor.service;
 
-import kg.neobis.smarttailor.dtos.MyAdvertisement;
 import kg.neobis.smarttailor.dtos.UserProfileDto;
 import kg.neobis.smarttailor.dtos.UserProfileEditRequest;
+import kg.neobis.smarttailor.dtos.ads.MyAdvertisement;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -16,5 +16,5 @@ public interface PersonalAccountService {
 
     void editProfile(UserProfileEditRequest request, String email);
 
-    List<MyAdvertisement> getUserAds(int pageNo, int pageSize, String email);
+    List<MyAdvertisement> getUserAds(int pageNumber, int pageSize, String email);
 }

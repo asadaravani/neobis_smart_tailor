@@ -1,7 +1,6 @@
 package kg.neobis.smarttailor.exception;
 
 import jakarta.validation.ConstraintViolationException;
-import kg.neobis.smarttailor.dtos.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -20,15 +19,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(InvalidRequestException.class)
-    public ErrorResponse handleProductException(InvalidRequestException ex) {
+    public ResponseEntity<Object> handleProductException(InvalidRequestException ex) {
         log.error("InvalidRequestException: ({})", ex.getMessage());
-        return new ErrorResponse(HttpStatus.BAD_REQUEST, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
     }
 
     @ExceptionHandler(NoPermissionException.class)
     public ResponseEntity<Object> handleNoPermissionException(NoPermissionException ex) {
         log.error("NoPermissionException: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
     @ExceptionHandler(OutOfDateException.class)
@@ -39,26 +38,26 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(OutOfStockException.class)
     public ResponseEntity<Object> handleOutOfStockException(OutOfStockException ex) {
-        log.error("Exception UUID: {}", ex.getMessage(), ex);
+        log.error("OutOfStockException: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(ex.getMessage());
     }
 
     @ExceptionHandler(PdfGenerationException.class)
     public ResponseEntity<Object> handlePdfGenerationException(PdfGenerationException ex) {
-        log.error("Exception UUID: {}", ex.getMessage(), ex);
+        log.error("PdfGenerationException: {}", ex.getMessage(), ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
     }
 
     @ExceptionHandler(ResourceAlreadyExistsException.class)
-    public ErrorResponse handleProductException(ResourceAlreadyExistsException ex) {
+    public ResponseEntity<Object> handleProductException(ResourceAlreadyExistsException ex) {
         log.error("ResourceAlreadyExistsException: ({})", ex.getMessage());
-        return new ErrorResponse(HttpStatus.CONFLICT, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ErrorResponse handleProductException(ResourceNotFoundException ex) {
+    public ResponseEntity<Object> handleProductException(ResourceNotFoundException ex) {
         log.error("ResourceNotFoundException: ({})", ex.getMessage());
-        return new ErrorResponse(HttpStatus.NOT_FOUND, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
     }
 
     @ExceptionHandler(ResourceProcessingErrorException.class)

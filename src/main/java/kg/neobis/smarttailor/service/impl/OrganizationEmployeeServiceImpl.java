@@ -1,13 +1,14 @@
 package kg.neobis.smarttailor.service.impl;
 
+import kg.neobis.smarttailor.entity.Organization;
 import kg.neobis.smarttailor.entity.OrganizationEmployee;
+import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.exception.ResourceNotFoundException;
 import kg.neobis.smarttailor.repository.OrganizationEmployeeRepository;
 import kg.neobis.smarttailor.service.OrganizationEmployeeService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.apache.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -18,23 +19,28 @@ public class OrganizationEmployeeServiceImpl implements OrganizationEmployeeServ
     OrganizationEmployeeRepository organizationEmployeeRepository;
 
     @Override
+    public Boolean existsByAccessRightAndEmployeeEmail(AccessRight accessRight, String employeeEmail) {
+        return organizationEmployeeRepository.existsByPosition_AccessRightsIsContainingAndEmployeeEmail(accessRight, employeeEmail);
+    }
+
+    @Override
     public Boolean existsByEmployeeEmail(String email) {
         return organizationEmployeeRepository.existsByEmployeeEmail(email);
     }
 
     @Override
-    public Boolean existsByPositionNameAndEmployeeEmail(String positionName, String employeeEmail) {
-        return organizationEmployeeRepository.existsByPositionNameAndEmployeeEmail(positionName, employeeEmail);
+    public Boolean existsByOrganizationAndEmployeeEmail(Organization organization, String employeeEmail) {
+        return organizationEmployeeRepository.existsByOrganizationAndEmployeeEmail(organization, employeeEmail);
+    }
+
+    @Override
+    public OrganizationEmployee findByEmployeeEmail(String email){
+        return organizationEmployeeRepository.findByEmployeeEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("OrganizationEmployee Not Found"));
     }
 
     @Override
     public void save(OrganizationEmployee organizationEmployee) {
         organizationEmployeeRepository.save(organizationEmployee);
-    }
-
-    @Override
-    public OrganizationEmployee findOrganizationByEmployeeEmail(String email){
-        return organizationEmployeeRepository.findByEmployeeEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("OrganizationEmployee Not Found"));
     }
 }

@@ -1,6 +1,10 @@
 package kg.neobis.smarttailor.mapper;
 
-import kg.neobis.smarttailor.dtos.*;
+import kg.neobis.smarttailor.dtos.OrderItemDto;
+import kg.neobis.smarttailor.dtos.ads.MyAdvertisement;
+import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
+import kg.neobis.smarttailor.dtos.ads.list.OrderListDto;
+import kg.neobis.smarttailor.dtos.ads.request.OrderRequestDto;
 import kg.neobis.smarttailor.entity.*;
 
 import kg.neobis.smarttailor.enums.AdvertType;
@@ -12,52 +16,53 @@ import java.util.stream.Collectors;
 @Component
 public class OrderMapper {
 
-    public Order dtoToEntity(OrderDto dto, List<Image> orderImages, AppUser user) {
-        List<OrderItem> items = dto.items().stream()
+    public Order dtoToEntity(OrderRequestDto requestDto, List<Image> orderImages, AppUser user) {
+
+        List<OrderItem> items = requestDto.items().stream()
                 .map(orderItemDto -> new OrderItem(orderItemDto.size(), orderItemDto.quantity()))
-                .collect(Collectors.toList());
+                .toList();
 
         return new Order(
-                dto.name(),
-                dto.description(),
-                dto.dateOfExecution(),
-                dto.contactInfo(),
-                dto.price(),
-                user,
+                requestDto.name(),
+                requestDto.description(),
+                requestDto.price(),
+                requestDto.contactInfo(),
+                requestDto.dateOfExecution(),
+                orderImages,
                 items,
-                orderImages
+                user
         );
     }
 
     public List<OrderListDto> entityListToDtoList(List<Order> orders) {
         return orders.stream().map(order -> new OrderListDto(
                 order.getId(),
-                getImageUrl(order.getImages(), 1),
                 order.getName(),
                 order.getDescription(),
                 order.getPrice(),
-                order.getDateOfExecution()
+                getImageUrl(order.getImages(), 1),
+                getFullName(order),
+                getAuthorImageUrl(order)
         )).collect(Collectors.toList());
     }
 
-    public OrderDetailsDto entityToOrderDetailsDto(Order order) {
+    public OrderDetailed entityToDto(Order order) {
+
         List<OrderItemDto> items = order.getItems().stream()
                 .map(orderItem -> new OrderItemDto(orderItem.getSize(), orderItem.getQuantity()))
-                .collect(Collectors.toList());
+                .toList();
 
-        String authorImageUrl = getAuthorImageUrl(order);
-
-        return new OrderDetailsDto(
-                order.getImages().stream().map(Image::getUrl).collect(Collectors.toList()),
-                order.getDateOfExecution(),
+        return new OrderDetailed(
                 order.getId(),
                 order.getName(),
                 order.getDescription(),
                 order.getPrice(),
-                items,
-                authorImageUrl,
-                formatAuthorFullName(order.getAuthor()),
-                order.getContactInfo()
+                order.getContactInfo(),
+                getAuthorImageUrl(order),
+                getFullName(order),
+                order.getImages().stream().map(Image::getUrl).collect(Collectors.toList()),
+                order.getDateOfExecution(),
+                items
         );
     }
 
@@ -72,22 +77,23 @@ public class OrderMapper {
                 .build();
     }
 
-    private static String getImageUrl(List<Image> images, int index) {
-        return (images != null && images.size() > index) ? images.get(index).getUrl() : "";
-    }
-
     private static String getAuthorImageUrl(Order order) {
         return (order.getAuthor() != null && order.getAuthor().getImage() != null) ?
                 order.getAuthor().getImage().getUrl() : "";
     }
 
-    private static String formatAuthorFullName(AppUser author) {
-        if (author == null) {
+    private static String getFullName(Order order) {
+        if (order == null || order.getAuthor() == null) {
             return "";
         }
+        AppUser author = order.getAuthor();
         String name = author.getName() != null ? author.getName() : "";
         String surname = author.getSurname() != null ? author.getSurname() : "";
         String patronymic = author.getPatronymic() != null ? author.getPatronymic() : "";
-        return (surname + " " + name + " " + patronymic).trim();
+        return (name + " " + surname + " " + patronymic).trim();
+    }
+
+    private static String getImageUrl(List<Image> images, int index) {
+        return (images != null && images.size() > index) ? images.get(index).getUrl() : "";
     }
 }

@@ -1,5 +1,7 @@
 package kg.neobis.smarttailor.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
 import jakarta.validation.Valid;
@@ -44,8 +46,18 @@ public class AppUserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.createAdmin(request));
     }
 
+    @Operation(
+            summary = "SEND SUBSCRIPTION REQUEST",
+            description = "The method accepts user data from jwt, and then sends the subscription request to the admin email address",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Subscription request has been sent"),
+                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "409", description = "User already has a subscription | User is a member of another organization"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
     @PostMapping("/send-subscription-request")
     public ResponseEntity<?> sendSubscriptionRequest(Authentication authentication) throws MessagingException {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.sendSubscriptionRequest(authentication));
+        return ResponseEntity.status(HttpStatus.OK).body(service.sendSubscriptionRequest(authentication));
     }
 }

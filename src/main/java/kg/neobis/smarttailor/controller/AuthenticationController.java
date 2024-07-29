@@ -10,7 +10,6 @@ import kg.neobis.smarttailor.constants.EndpointConstants;
 import kg.neobis.smarttailor.dtos.LoginAdmin;
 import kg.neobis.smarttailor.dtos.LoginResponse;
 import kg.neobis.smarttailor.dtos.SignUpRequest;
-import kg.neobis.smarttailor.exception.UnauthorizedException;
 import kg.neobis.smarttailor.service.AuthenticationService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -39,13 +38,11 @@ public class AuthenticationController {
 
     @Operation(
             summary = "EMAIL CONFIRMATION",
-            description = "User enters an email and 4-digit code that was sent to the mail, and if the data is valid, receives access and refresh tokens",
+            description = "The method accepts email and confirmation code, and then sends access and refresh tokens",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Data is valid. Access and refresh tokens received successfully"),
-                    @ApiResponse(responseCode = "400", description = "Confirmation code has expired"),
-                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
-                    @ApiResponse(responseCode = "404", description = "Invalid confirmation code"),
-                    @ApiResponse(responseCode = "404", description = "User not found with specified email"),
+                    @ApiResponse(responseCode = "400", description = "Confirmation code has expired | Required parameter(s) is not present"),
+                    @ApiResponse(responseCode = "404", description = "Invalid confirmation code | User not found with specified email"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
@@ -56,7 +53,7 @@ public class AuthenticationController {
 
     @Operation(
             summary = "LOGIN",
-            description = "User enters an email address and receives 4-digit confirmation code at specified email",
+            description = "The method accepts email, and then sends the confirmation code to the specified email address",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Confirmation code has been sent to the specified email"),
                     @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
@@ -86,7 +83,7 @@ public class AuthenticationController {
 
     @Operation(
             summary = "LOG OUT",
-            description = "Authorized user's jwt is added to the blacklist",
+            description = "The method accepts access token and adds it to black list",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Log out completed"),
                     @ApiResponse(responseCode = "403", description = "Unauthorized"),
@@ -100,7 +97,7 @@ public class AuthenticationController {
 
     @Operation(
             summary = "REFRESH TOKEN",
-            description = "Changing access token using the refresh token",
+            description = "The method accepts refresh token, and generate new access and refresh tokens",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Access token changed"),
                     @ApiResponse(responseCode = "400", description = "Refresh token expired"),
@@ -111,19 +108,15 @@ public class AuthenticationController {
     )
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(@RequestParam("refreshToken") String request) {
-        try {
-            Map<String, String> tokens = service.refreshToken(request);
-            return ResponseEntity.ok(tokens);
-        } catch (UnauthorizedException e) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(e.getMessage());
-        }
+        Map<String, String> tokens = service.refreshToken(request);
+        return ResponseEntity.ok(tokens);
     }
 
     @Operation(
             summary = "RESEND CONFIRMATION CODE",
-            description = "User enters the data required for registration and receives 4-digit confirmation code at specified email",
+            description = "The method accepts email, and then sends confirmation code to specified email",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Confirmation code has been resent to the specified email"),
+                    @ApiResponse(responseCode = "200", description = "Confirmation code has been sent to the specified email"),
                     @ApiResponse(responseCode = "400", description = "Required parameter 'email' is not present"),
                     @ApiResponse(responseCode = "404", description = "User not found with specified email"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
@@ -136,11 +129,11 @@ public class AuthenticationController {
 
     @Operation(
             summary = "REGISTRATION",
-            description = "User enters the data required for registration and receives 4-digit confirmation code at specified email",
+            description = "The method accepts user data, and then sends the confirmation code to the specified email address",
             responses = {
-                    @ApiResponse(responseCode = "201", description = "Data saved in database. Confirmation code has been sent to the specified email"),
+                    @ApiResponse(responseCode = "201", description = "User's data saved in database. Confirmation code has been sent to the specified email"),
                     @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present or entered data has not been validated"),
-                    @ApiResponse(responseCode = "409", description = "Specified email is already in user"),
+                    @ApiResponse(responseCode = "409", description = "User with specified email already exists"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )

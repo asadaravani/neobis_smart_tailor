@@ -11,5 +11,7 @@ public interface InvitationTokenService {
 
     InvitationToken findByToken(String token);
 
+    InvitationToken findByUser(AppUser user);
+
     InvitationToken generateInvitationToken(AppUser user, Organization organization, Position position);
 }

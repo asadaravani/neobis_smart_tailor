@@ -8,7 +8,7 @@ import java.io.IOException;
 
 public interface EmailService {
 
-    MimeMessage createInvitationEmployeeMail(AppUser user, InvitationToken token, Organization organization, Position position) throws MessagingException;
+    MimeMessage createInvitationEmployeeMail(AppUser user, String employeeEmail, InvitationToken token, Organization organization, Position position) throws MessagingException;
 
     MimeMessage createMailWithConfirmationCode(AppUser user, ConfirmationCode confirmationCode) throws MessagingException;
 

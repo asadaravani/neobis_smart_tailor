@@ -33,7 +33,7 @@ public class EmailServiceImpl implements EmailService {
     JavaMailSender javaMailSender;
 
     @Override
-    public MimeMessage createInvitationEmployeeMail(AppUser user, InvitationToken token, Organization organization, Position position) throws MessagingException {
+    public MimeMessage createInvitationEmployeeMail(AppUser user, String employeeEmail, InvitationToken token, Organization organization, Position position) throws MessagingException {
 
         Context context = new Context();
         context.setVariable("invitationToken", token.getToken());
@@ -48,7 +48,7 @@ public class EmailServiceImpl implements EmailService {
         MimeMessage mimeMessage = javaMailSender.createMimeMessage();
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
         helper.setText(emailBody, true);
-        helper.setTo(user.getEmail());
+        helper.setTo(employeeEmail);
         helper.setSubject("Приглашение в организацию");
         helper.setFrom("smart_tailor@gmail.com");
         return mimeMessage;
@@ -98,9 +98,8 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendEmailWithConfirmationCode(ConfirmationCode confirmationCode, AppUser user) {
 
-        if (confirmationCode != null) {
+        if (confirmationCode != null)
             confirmationCodeService.delete(confirmationCode);
-        }
 
         confirmationCode = confirmationCodeService.generateConfirmationCode(user);
         MimeMessage simpleMailMessage;

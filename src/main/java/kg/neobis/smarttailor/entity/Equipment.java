@@ -8,11 +8,13 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
-import lombok.*;
+import lombok.AccessLevel;
+import lombok.Getter;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import lombok.experimental.FieldDefaults;
-import lombok.experimental.SuperBuilder;
+
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,21 +22,21 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@FieldDefaults(level = AccessLevel.PRIVATE)
-@AllArgsConstructor
 @NoArgsConstructor
-public class Equipment extends BaseEntity{
+@AllArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE)
+public class Equipment extends BaseEntity {
 
     String name;
 
     String description;
 
-    Integer quantity;
-
     @Column(nullable = false)
     BigDecimal price;
 
     String contactInfo;
+
+    Integer quantity;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinTable(

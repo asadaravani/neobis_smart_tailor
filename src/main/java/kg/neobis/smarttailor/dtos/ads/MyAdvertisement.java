@@ -1,4 +1,4 @@
-package kg.neobis.smarttailor.dtos;
+package kg.neobis.smarttailor.dtos.ads;
 
 import kg.neobis.smarttailor.enums.AdvertType;
 import lombok.Builder;

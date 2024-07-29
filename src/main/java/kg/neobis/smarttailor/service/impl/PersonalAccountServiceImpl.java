@@ -1,8 +1,8 @@
 package kg.neobis.smarttailor.service.impl;
 
-import kg.neobis.smarttailor.dtos.MyAdvertisement;
 import kg.neobis.smarttailor.dtos.UserProfileDto;
 import kg.neobis.smarttailor.dtos.UserProfileEditRequest;
+import kg.neobis.smarttailor.dtos.ads.MyAdvertisement;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Equipment;
 import kg.neobis.smarttailor.entity.Order;
@@ -29,23 +29,24 @@ import java.util.stream.Collectors;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PersonalAccountServiceImpl implements PersonalAccountService {
 
-    AppUserService userService;
+    AppUserService appUserService;
     CloudinaryService cloudinaryService;
-    EquipmentService equipmentService;
-    ServicesService servicesService;
-    OrderService orderService;
-    OrderMapper orderMapper;
     EquipmentMapper equipmentMapper;
+    EquipmentService equipmentService;
+    OrderMapper orderMapper;
+    OrderService orderService;
+    ServiceMapper serviceMapper;
+    ServicesService servicesService;
 
     @Override
     public UserProfileDto getUserProfile(String email) {
-        AppUser user = userService.findUserByEmail(email);
+        AppUser user = appUserService.findUserByEmail(email);
         return AppUserMapper.INSTANCE.toUserProfileDto(user);
     }
 
     @Override
     public void uploadProfileImage(MultipartFile file, String email) {
-        AppUser user = userService.findUserByEmail(email);
+        AppUser user = appUserService.findUserByEmail(email);
         String imageUrl;
         try {
             imageUrl = cloudinaryService.uploadImage(file);
@@ -60,24 +61,24 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
             }
         }
         user.getImage().setUrl(imageUrl);
-        userService.save(user);
+        appUserService.save(user);
     }
 
     @Override
     public void editProfile(UserProfileEditRequest request, String email) {
-        AppUser updatedUser = AppUserMapper.INSTANCE.updateProfile(request, userService.findUserByEmail(email));
-        userService.save(updatedUser);
+        AppUser updatedUser = AppUserMapper.INSTANCE.updateProfile(request, appUserService.findUserByEmail(email));
+        appUserService.save(updatedUser);
     }
 
     @Override
     public List<MyAdvertisement> getUserAds(int pageNo, int pageSize, String email) {
         try {
             List<MyAdvertisement> dto = new ArrayList<>();
-            AppUser user = userService.findUserByEmail(email);
+            AppUser user = appUserService.findUserByEmail(email);
             List<Services> services = servicesService.findAllByUser(user);
             List<Order> orders = orderService.findAllByUser(user);
             List<Equipment> equipments = equipmentService.findAllByUser(user);
-            services.forEach(service -> dto.add(ServiceMapper.INSTANCE.toMyAdvertisement(service)));
+            services.forEach(service -> dto.add(serviceMapper.toMyAdvertisement(service)));
             orders.forEach(order -> dto.add(orderMapper.toMyAdvertisement(order)));
             equipments.forEach(equipment -> dto.add(equipmentMapper.toMyAdvertisement(equipment)));
             return dto.stream()

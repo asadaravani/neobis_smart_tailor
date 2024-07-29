@@ -4,7 +4,6 @@ import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.OneToOne;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.AllArgsConstructor;
@@ -29,11 +28,11 @@ public class InvitationToken extends BaseEntity {
     @JoinColumn
     AppUser user;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn
     Organization organization;
 
-    @OneToOne
+    @ManyToOne
     @JoinColumn
     Position position;
 
