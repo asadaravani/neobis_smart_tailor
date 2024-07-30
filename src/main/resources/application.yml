@@ -1,6 +1,9 @@
 server:
   port: 8090
   address: 0.0.0.0
+  servlet:
+    encoding:
+      charset: UTF-8
 
 spring:
   application:
