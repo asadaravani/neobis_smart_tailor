@@ -189,7 +189,7 @@ public class EquipmentServiceImpl implements EquipmentService {
         try {
             PdfWriter.getInstance(document, out);
             document.open();
-            Font titleFont = new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD, BaseColor.DARK_GRAY);
+            Font titleFont = new Font(Font.FontFamily.TIMES_ROMAN, 18, Font.BOLD, BaseColor.DARK_GRAY);
             Paragraph title = new Paragraph("Receipt", titleFont);
             title.setAlignment(Element.ALIGN_CENTER);
             title.setSpacingAfter(20f);
@@ -201,8 +201,8 @@ public class EquipmentServiceImpl implements EquipmentService {
             table.setSpacingAfter(10f);
             table.setWidths(new float[]{1, 2});
 
-            Font headerFont = new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, BaseColor.WHITE);
-            Font cellFont = new Font(Font.FontFamily.HELVETICA, 12, Font.NORMAL, BaseColor.DARK_GRAY);
+            Font headerFont = new Font(Font.FontFamily.TIMES_ROMAN, 12, Font.BOLD, BaseColor.WHITE);
+            Font cellFont = new Font(Font.FontFamily.TIMES_ROMAN, 12, Font.NORMAL, BaseColor.DARK_GRAY);
             BaseColor headerColor = new BaseColor(79, 129, 189);
             BaseColor borderColor = BaseColor.LIGHT_GRAY;
 
