@@ -5,6 +5,7 @@ import jakarta.mail.internet.MimeMessage;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import kg.neobis.smarttailor.config.JwtUtil;
+import kg.neobis.smarttailor.dtos.AccessToken;
 import kg.neobis.smarttailor.dtos.LoginAdmin;
 import kg.neobis.smarttailor.dtos.LoginResponse;
 import kg.neobis.smarttailor.dtos.SignUpRequest;
@@ -26,8 +27,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -140,7 +139,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public Map<String, String> refreshToken(String refreshToken) {
+    public AccessToken refreshToken(String refreshToken) {
 
         if (!refreshTokenService.existsByToken(refreshToken))
             throw new ResourceNotFoundException("Refresh token not found");
@@ -154,11 +153,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         String newAccessToken = jwtUtil.generateToken(userDetails);
 
-        Map<String, String> tokens = new HashMap<>();
-        tokens.put("accessToken", newAccessToken);
-        tokens.put("refreshToken", refreshToken);
-
-        return tokens;
+        return AccessToken.builder()
+                .accessToken(newAccessToken)
+                .build();
     }
 
     @Override
