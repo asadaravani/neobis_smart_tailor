@@ -24,8 +24,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.Map;
-
 @Validated
 @RestController
 @RequiredArgsConstructor
@@ -108,8 +106,7 @@ public class AuthenticationController {
     )
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(@RequestParam("refreshToken") String request) {
-        Map<String, String> tokens = service.refreshToken(request);
-        return ResponseEntity.ok(tokens);
+        return ResponseEntity.ok(service.refreshToken(request));
     }
 
     @Operation(

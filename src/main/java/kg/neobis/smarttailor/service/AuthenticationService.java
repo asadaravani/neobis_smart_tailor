@@ -2,11 +2,10 @@ package kg.neobis.smarttailor.service;
 
 import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
+import kg.neobis.smarttailor.dtos.AccessToken;
 import kg.neobis.smarttailor.dtos.LoginAdmin;
 import kg.neobis.smarttailor.dtos.LoginResponse;
 import kg.neobis.smarttailor.dtos.SignUpRequest;
-
-import java.util.Map;
 
 public interface AuthenticationService {
 
@@ -18,7 +17,7 @@ public interface AuthenticationService {
 
     String logOut(HttpServletRequest request);
 
-    Map<String, String> refreshToken(String refreshToken);
+    AccessToken refreshToken(String refreshToken);
 
     String resendConfirmationCode(String email) throws MessagingException;
 
