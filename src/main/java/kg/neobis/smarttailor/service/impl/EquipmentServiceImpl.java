@@ -1,5 +1,6 @@
 package kg.neobis.smarttailor.service.impl;
 
+import com.cloudinary.utils.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.itextpdf.text.BaseColor;
@@ -20,6 +21,7 @@ import kg.neobis.smarttailor.dtos.ads.detailed.EquipmentDetailed;
 import kg.neobis.smarttailor.dtos.ads.list.EquipmentListDto;
 import kg.neobis.smarttailor.dtos.ads.request.EquipmentRequestDto;
 import kg.neobis.smarttailor.exception.InvalidJsonException;
+import kg.neobis.smarttailor.exception.InvalidRequestException;
 import kg.neobis.smarttailor.exception.OutOfStockException;
 import kg.neobis.smarttailor.exception.PdfGenerationException;
 import kg.neobis.smarttailor.exception.ResourceNotFoundException;
@@ -45,6 +47,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -116,6 +119,21 @@ public class EquipmentServiceImpl implements EquipmentService {
             if (bindingResult.hasErrors()) {
                 throw new IllegalArgumentException("Invalid input " + bindingResult.getAllErrors());
             }
+            if (StringUtils.isBlank(requestDto.name())) {
+                throw new InvalidRequestException("Name cannot be empty");
+            }
+            if (StringUtils.isBlank(requestDto.description())) {
+                throw new InvalidRequestException("Description cannot be empty");
+            }
+            if (requestDto.price() == null || requestDto.price().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new InvalidRequestException("Price must be greater than zero");
+            }
+            if (StringUtils.isBlank(requestDto.contactInfo())) {
+                throw new InvalidRequestException("Contact info cannot be empty");
+            }
+            if (requestDto.quantity() == null || requestDto.quantity() <= 0) {
+                throw new InvalidRequestException("Quantity must be greater than zero");
+            }
             return requestDto;
         } catch (JsonProcessingException e) {
             throw new InvalidJsonException(e.getMessage());
@@ -129,7 +147,7 @@ public class EquipmentServiceImpl implements EquipmentService {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
-        if (equipment.getQuantity() <= 0) {
+        if (equipment.getQuantity() == null || equipment.getQuantity() <= 0) {
             throw new OutOfStockException("This equipment is out of stock");
         }
 
@@ -143,7 +161,7 @@ public class EquipmentServiceImpl implements EquipmentService {
 
         equipment.setQuantity(equipment.getQuantity() - 1);
         equipmentRepository.save(equipment);
-        return "Receipt sent to the email successfully";
+        return "You have successfully purchased the equipment. Receipt sent to the email. Please check your email";
     }
 
     @Override
