@@ -4,9 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.mail.MessagingException;
-import jakarta.validation.Valid;
 import kg.neobis.smarttailor.constants.EndpointConstants;
-import kg.neobis.smarttailor.dtos.CreateAdmin;
 import kg.neobis.smarttailor.service.AppUserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -14,12 +12,10 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
-import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -36,14 +32,6 @@ public class AppUserController {
     @RequestMapping(value="/confirm-subscription-request", method= {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<?> confirmSubscriptionRequest(@RequestParam("token")String subscriptionConfirmationToken) {
         return ResponseEntity.status(HttpStatus.OK).body(service.confirmSubscriptionRequest(subscriptionConfirmationToken));
-    }
-
-    @PostMapping("/create-admin")
-    public ResponseEntity<?> createAdmin(@Valid @RequestBody CreateAdmin request, BindingResult result) {
-        if (result.hasErrors()) {
-            return ResponseEntity.badRequest().body("Validation error: " + result.getAllErrors());
-        }
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.createAdmin(request));
     }
 
     @Operation(

@@ -45,9 +45,6 @@ public class AppUser extends BaseEntity implements UserDetails {
     String email;
 
     @Column
-    String password;
-
-    @Column
     String phoneNumber;
 
     @Column
@@ -67,7 +64,7 @@ public class AppUser extends BaseEntity implements UserDetails {
 
     @Override
     public String getPassword() {
-        return this.password;
+        return "";
     }
 
     @Override

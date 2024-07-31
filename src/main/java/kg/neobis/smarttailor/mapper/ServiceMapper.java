@@ -33,7 +33,7 @@ public class ServiceMapper {
                 service.getName(),
                 service.getDescription(),
                 service.getPrice(),
-                getImageUrl(service.getImages(), 1),
+                getImageUrl(service.getImages(), 0),
                 getFullName(service),
                 getAuthorImageUrl(service)
         )).collect(Collectors.toList());

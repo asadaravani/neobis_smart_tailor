@@ -1,7 +1,6 @@
 package kg.neobis.smarttailor.service;
 
 import jakarta.mail.MessagingException;
-import kg.neobis.smarttailor.dtos.CreateAdmin;
 import kg.neobis.smarttailor.entity.AppUser;
 import org.springframework.security.core.Authentication;
 
@@ -10,8 +9,6 @@ import java.util.Optional;
 public interface AppUserService {
 
     String confirmSubscriptionRequest(String subscriptionConfirmationToken);
-
-    String createAdmin(CreateAdmin request);
 
     Boolean existsUserByEmail(String email);
 

@@ -49,7 +49,8 @@ public class OrderMapper {
                 order.getName(),
                 order.getDescription(),
                 order.getPrice(),
-                getImageUrl(order.getImages(), 1),
+                order.getDateOfExecution(),
+                getImageUrl(order.getImages(), 0),
                 getFullName(order),
                 getAuthorImageUrl(order)
         )).collect(Collectors.toList());

@@ -90,16 +90,22 @@ public class OrganizationServiceImpl implements OrganizationService {
         organizationRepository.save(organization);
         Set<AccessRight> accessRights = EnumSet.allOf(AccessRight.class);
 
-        Position position = Position.builder()
+        Position adminPosition = Position.builder()
                 .name("Директор")
                 .accessRights(accessRights)
                 .organization(organization)
                 .build();
-        positionService.save(position);
+        positionService.save(adminPosition);
+        Position directorPosition = Position.builder()
+                .name("Администратор")
+                .accessRights(accessRights)
+                .organization(organization)
+                .build();
+        positionService.save(directorPosition);
 
         OrganizationEmployee organizationEmployee = OrganizationEmployee.builder()
                 .organization(organization)
-                .position(position)
+                .position(directorPosition)
                 .employee(user)
                 .build();
         organizationEmployeeService.save(organizationEmployee);
@@ -128,7 +134,6 @@ public class OrganizationServiceImpl implements OrganizationService {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
-
         EmployeeInvitationRequest employeeInvitationRequest = parseAndValidateEmployeeInvitationRequest(request);
         Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.ADD_EMPLOYEE, user.getEmail());
         Boolean isUserExists = appUserService.existsUserByEmail(employeeInvitationRequest.email());
