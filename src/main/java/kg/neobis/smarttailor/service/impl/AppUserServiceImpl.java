@@ -2,10 +2,8 @@ package kg.neobis.smarttailor.service.impl;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import kg.neobis.smarttailor.dtos.CreateAdmin;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.SubscriptionToken;
-import kg.neobis.smarttailor.enums.Role;
 import kg.neobis.smarttailor.exception.OutOfDateException;
 import kg.neobis.smarttailor.exception.UnauthorizedException;
 import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
@@ -19,7 +17,6 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.Optional;
@@ -32,7 +29,6 @@ public class AppUserServiceImpl implements AppUserService {
     AppUserRepository appUserRepository;
     EmailService emailService;
     OrganizationEmployeeService organizationEmployeeService;
-    PasswordEncoder passwordEncoder;
     SubscriptionTokenService subscriptionTokenService;
 
     @Override
@@ -44,35 +40,10 @@ public class AppUserServiceImpl implements AppUserService {
             user.setHasSubscription(true);
             appUserRepository.save(user);
             subscriptionTokenService.delete(token);
-
             return "Subscription for the user \"".concat(user.getEmail()).concat("\" has been activated");
         } else {
             throw new OutOfDateException("Token has been expired");
         }
-    }
-
-    @Override
-    public String createAdmin(CreateAdmin request) {
-
-        if (appUserRepository.existsUserByEmail(request.email())) {
-            throw new ResourceAlreadyExistsException("User with email \"".concat(request.email()).concat("\" is already exists"));
-        }
-
-        AppUser user = AppUser.builder()
-                .name(request.name())
-                .surname(request.surname())
-                .patronymic(request.patronymic())
-                .email(request.email())
-                .phoneNumber(request.phoneNumber())
-                .hasSubscription(false)
-                .role(Role.ADMIN)
-                .password(passwordEncoder.encode(request.password()))
-                .enabled(true)
-                .build();
-
-        appUserRepository.save(user);
-
-        return "Admin has been created";
     }
 
     @Override

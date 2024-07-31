@@ -6,7 +6,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import kg.neobis.smarttailor.config.JwtUtil;
 import kg.neobis.smarttailor.dtos.AccessToken;
-import kg.neobis.smarttailor.dtos.LoginAdmin;
 import kg.neobis.smarttailor.dtos.LoginResponse;
 import kg.neobis.smarttailor.dtos.SignUpRequest;
 import kg.neobis.smarttailor.entity.AppUser;
@@ -14,19 +13,21 @@ import kg.neobis.smarttailor.entity.ConfirmationCode;
 import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.entity.RefreshToken;
 import kg.neobis.smarttailor.enums.Role;
-import kg.neobis.smarttailor.exception.*;
-import kg.neobis.smarttailor.service.*;
+import kg.neobis.smarttailor.exception.OutOfDateException;
+import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
+import kg.neobis.smarttailor.exception.ResourceNotFoundException;
+import kg.neobis.smarttailor.service.AppUserService;
+import kg.neobis.smarttailor.service.AuthenticationService;
+import kg.neobis.smarttailor.service.BlackListTokenService;
+import kg.neobis.smarttailor.service.ConfirmationCodeService;
+import kg.neobis.smarttailor.service.EmailService;
+import kg.neobis.smarttailor.service.RefreshTokenService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
 
 @Service
 @RequiredArgsConstructor
@@ -34,12 +35,10 @@ import java.time.LocalDateTime;
 public class AuthenticationServiceImpl implements AuthenticationService {
 
     AppUserService appUserService;
-    AuthenticationManager authenticationManager;
     BlackListTokenService blackListTokenService;
     ConfirmationCodeService confirmationCodeService;
     EmailService emailService;
     JwtUtil jwtUtil;
-    PasswordEncoder passwordEncoder;
     RefreshTokenService refreshTokenService;
     UserDetailsService userDetailsService;
 
@@ -49,7 +48,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         AppUser user = appUserService.findByEmail(requestEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email \"".concat(requestEmail).concat("\"")));
-
         ConfirmationCode confirmationCode = confirmationCodeService.findByUserAndCode(user, requestCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Confirmation code not found for user with email \"".concat(requestEmail).concat("\"")));
 
@@ -68,7 +66,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             RefreshToken refreshTokenToSave = RefreshToken.builder()
                     .token(refreshToken)
                     .build();
-
             refreshTokenService.save(refreshTokenToSave);
 
             return LoginResponse.builder()
@@ -82,49 +79,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public String login(String requestEmail) {
-
         AppUser user = appUserService.findByEmail(requestEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email \"".concat(requestEmail).concat("\"")));
-
         ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
         emailService.sendEmailWithConfirmationCode(confirmationCode, user);
 
         return "Confirmation code has been sent to the ".concat(requestEmail);
-    }
-
-    @Override
-    public LoginResponse loginAdmin(LoginAdmin request) {
-
-        if (request.email() == null || request.password() == null || request.email().isEmpty() || request.password().isEmpty()) {
-            throw new InvalidRequestException("Email and password are required");
-        }
-
-        AppUser user = appUserService.findByEmail(request.email())
-                .orElseThrow(() -> new ResourceNotFoundException("Invalid email or password"));
-
-        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new ResourceNotFoundException("Invalid email or password");
-        }
-
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        user.getUsername(),
-                        request.password()
-                )
-        );
-
-        var jwtToken = jwtUtil.generateToken(user);
-        var refreshToken = jwtUtil.generateRefreshToken(user);
-        RefreshToken refreshTokenToSave = RefreshToken.builder()
-                .token(refreshToken)
-                .expirationTime(LocalDateTime.now().plusDays(7))
-                .build();
-        refreshTokenService.save(refreshTokenToSave);
-
-        return LoginResponse.builder()
-                .accessToken(jwtToken)
-                .refreshToken(refreshToken)
-                .build();
     }
 
     @Override
@@ -143,12 +103,10 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         if (!refreshTokenService.existsByToken(refreshToken))
             throw new ResourceNotFoundException("Refresh token not found");
-
         if (jwtUtil.isRefreshTokenExpired(refreshToken)) {
             refreshTokenService.deleteExpiredTokens();
             throw new OutOfDateException("Refresh token has expired");
         }
-
         String username = jwtUtil.extractUsername(refreshToken);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         String newAccessToken = jwtUtil.generateToken(userDetails);
@@ -163,10 +121,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         AppUser user = appUserService.findByEmail(requestEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with email \n".concat(requestEmail).concat("\"")));
-
         ConfirmationCode confirmationCode = confirmationCodeService.findByUser(user)
                 .orElse(null);
-
         emailService.sendEmailWithConfirmationCode(confirmationCode, user);
 
         return "Confirmation code has been resent to the ".concat(requestEmail);

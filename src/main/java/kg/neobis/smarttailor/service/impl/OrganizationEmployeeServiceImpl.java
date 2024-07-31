@@ -36,7 +36,7 @@ public class OrganizationEmployeeServiceImpl implements OrganizationEmployeeServ
     @Override
     public OrganizationEmployee findByEmployeeEmail(String email){
         return organizationEmployeeRepository.findByEmployeeEmail(email)
-                .orElseThrow(() -> new ResourceNotFoundException("OrganizationEmployee Not Found"));
+                .orElseThrow(() -> new ResourceNotFoundException("User is not a member of any organization"));
     }
 
     @Override

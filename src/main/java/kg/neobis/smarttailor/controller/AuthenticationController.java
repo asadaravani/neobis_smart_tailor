@@ -7,7 +7,6 @@ import jakarta.mail.MessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import kg.neobis.smarttailor.constants.EndpointConstants;
-import kg.neobis.smarttailor.dtos.LoginAdmin;
 import kg.neobis.smarttailor.dtos.LoginResponse;
 import kg.neobis.smarttailor.dtos.SignUpRequest;
 import kg.neobis.smarttailor.service.AuthenticationService;
@@ -62,21 +61,6 @@ public class AuthenticationController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestParam String email) {
         return ResponseEntity.status(HttpStatus.OK).body(service.login(email));
-    }
-
-    @Operation(
-            summary = "LOGIN FOR ADMIN",
-            description = "Admin enters an email and password, and if the data is valid, receives access and refresh tokens",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Data is valid. Access and refresh tokens received successfully"),
-                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
-                    @ApiResponse(responseCode = "404", description = "User not found with specified email or/and password"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
-            }
-    )
-    @PostMapping("/login-admin")
-    public ResponseEntity<LoginResponse> loginAdmin(@RequestBody LoginAdmin request) {
-        return ResponseEntity.status(HttpStatus.OK).body(service.loginAdmin(request));
     }
 
     @Operation(

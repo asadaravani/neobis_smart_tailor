@@ -34,7 +34,7 @@ public class EquipmentMapper {
                 equipment.getName(),
                 equipment.getDescription(),
                 equipment.getPrice(),
-                getImageUrl(equipment.getImages(), 1),
+                getImageUrl(equipment.getImages(), 0),
                 getFullName(equipment),
                 getAuthorImageUrl(equipment)
         )).collect(Collectors.toList());
