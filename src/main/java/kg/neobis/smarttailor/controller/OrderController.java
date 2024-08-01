@@ -44,7 +44,7 @@ public class OrderController {
             responses = {
                     @ApiResponse(responseCode = "201", description = "Order has been created"),
                     @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
@@ -60,7 +60,7 @@ public class OrderController {
             description = "To delete order, the method accepts its id",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Order has been deleted"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "404", description = "Order not found with specified id"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
@@ -75,7 +75,7 @@ public class OrderController {
             description = "The method returns list of orders",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Order list received"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "404", description = "Orders not found"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
@@ -91,14 +91,31 @@ public class OrderController {
             description = "The method accepts order's id, and then sends order's detailed information",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Order information received"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "404", description = "Order not found with specified id"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
     @GetMapping("/get-order-detailed/{orderId}")
-    public ResponseEntity<OrderDetailed> getOrderDetailed(@PathVariable Long orderId) {
-        return ResponseEntity.ok(orderService.getOrderById(orderId));
+    public ResponseEntity<OrderDetailed> getOrderDetailed(@PathVariable Long orderId, Authentication authentication) {
+        return ResponseEntity.ok(orderService.getOrderById(orderId, authentication));
+    }
+
+    @Operation(
+            summary = "ASSIGN ORDER TO ORGANIZATION",
+            description = "The method accepts order id and organization's name to assign order to specified organization",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Order has been assigned to specified organization"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "Order (or Organization) not found | Organization hasn't sent request | User is not a member of any organization"),
+                    @ApiResponse(responseCode = "409", description = "User can't manage an order that is not his own"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
+    @PostMapping("/assign-order-to-organization/{orderId}")
+    public ResponseEntity<String> assignOrderToOrganization(@PathVariable Long orderId, @RequestParam String organizationName, Authentication authentication) {
+        return ResponseEntity.status(HttpStatus.OK).body(orderService.assignOrderToOrganization(orderId, organizationName, authentication));
     }
 
     @Operation(
@@ -107,7 +124,7 @@ public class OrderController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "User has left a request to execute the order"),
                     @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "404", description = "Order not found | User has no permission to send request to execute order | User is not a member of any organization"),
                     @ApiResponse(responseCode = "409", description = "User can't respond to his/her own order | Order is already taken by another user"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")

@@ -1,14 +1,12 @@
 package kg.neobis.smarttailor.mapper;
 
 import kg.neobis.smarttailor.dtos.OrderItemDto;
+import kg.neobis.smarttailor.dtos.OrganizationDto;
 import kg.neobis.smarttailor.dtos.ads.MyAdvertisement;
 import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
 import kg.neobis.smarttailor.dtos.ads.list.OrderListDto;
 import kg.neobis.smarttailor.dtos.ads.request.OrderRequestDto;
-import kg.neobis.smarttailor.entity.AppUser;
-import kg.neobis.smarttailor.entity.Image;
-import kg.neobis.smarttailor.entity.Order;
-import kg.neobis.smarttailor.entity.OrderItem;
+import kg.neobis.smarttailor.entity.*;
 
 import kg.neobis.smarttailor.enums.AdvertType;
 import kg.neobis.smarttailor.enums.OrderStatus;
@@ -34,7 +32,7 @@ public class OrderMapper {
                 requestDto.dateOfExecution(),
                 null,
                 null,
-                OrderStatus.WAITING,
+                null,
                 null,
                 orderImages,
                 items,
@@ -56,7 +54,19 @@ public class OrderMapper {
         )).collect(Collectors.toList());
     }
 
-    public OrderDetailed entityToDto(Order order) {
+    public OrderDetailed entityToDto(Order order, boolean isAuthor) {
+
+        OrderStatus status = order.getStatus();
+        List<OrganizationDto> candidates;
+
+        if (isAuthor) {
+            candidates = order.getOrganizationCandidates().stream()
+                    .map(organization -> new OrganizationDto(organization.getName(), organization.getDescription()))
+                    .toList();
+        } else {
+            candidates = null;
+            status = null;
+        }
 
         List<OrderItemDto> items = order.getItems().stream()
                 .map(orderItem -> new OrderItemDto(orderItem.getSize(), orderItem.getQuantity()))
@@ -72,7 +82,9 @@ public class OrderMapper {
                 getFullName(order),
                 order.getImages().stream().map(Image::getUrl).collect(Collectors.toList()),
                 order.getDateOfExecution(),
-                items
+                status,
+                items,
+                candidates
         );
     }
 

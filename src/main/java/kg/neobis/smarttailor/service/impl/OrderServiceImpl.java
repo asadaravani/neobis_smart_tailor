@@ -6,9 +6,7 @@ import jakarta.transaction.Transactional;
 import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
 import kg.neobis.smarttailor.dtos.ads.list.OrderListDto;
 import kg.neobis.smarttailor.dtos.ads.request.OrderRequestDto;
-import kg.neobis.smarttailor.entity.AppUser;
-import kg.neobis.smarttailor.entity.Image;
-import kg.neobis.smarttailor.entity.Order;
+import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.enums.OrderStatus;
 import kg.neobis.smarttailor.exception.InvalidJsonException;
@@ -17,10 +15,7 @@ import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
 import kg.neobis.smarttailor.exception.ResourceNotFoundException;
 import kg.neobis.smarttailor.mapper.OrderMapper;
 import kg.neobis.smarttailor.repository.OrderRepository;
-import kg.neobis.smarttailor.service.AppUserService;
-import kg.neobis.smarttailor.service.CloudinaryService;
-import kg.neobis.smarttailor.service.OrderService;
-import kg.neobis.smarttailor.service.OrganizationEmployeeService;
+import kg.neobis.smarttailor.service.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -35,6 +30,7 @@ import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
@@ -47,6 +43,7 @@ public class OrderServiceImpl implements OrderService {
     ObjectMapper objectMapper;
     OrderMapper orderMapper;
     OrderRepository orderRepository;
+    OrganizationService organizationService;
     OrganizationEmployeeService organizationEmployeeService;
     Validator validator;
 
@@ -60,6 +57,28 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderMapper.dtoToEntity(requestDto, orderImages, user);
         orderRepository.save(order);
         return "Order has been created";
+    }
+
+    @Override
+    public String assignOrderToOrganization(Long orderId, String organizationName, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        Organization organization = organizationService.getOrganizationByName(organizationName);
+
+        if (!order.getAuthor().getId().equals(user.getId())) {
+            throw new NoPermissionException("User cannot manage an order that is not his own");
+        }
+        if (order.getOrganizationCandidates().stream().noneMatch(org -> org.getId().equals(organization.getId()))) {
+            throw new ResourceNotFoundException("Organization \"".concat(organizationName).concat("\" hasn't sent request"));
+        }
+        order.setOrganizationExecutor(organization);
+        order.setDateOfStart(LocalDate.now());
+        order.setStatus(OrderStatus.WAITING);
+        orderRepository.save(order);
+
+        return "Order has been assigned to \"".concat(organizationName).concat("\" organization");
     }
 
     @Override
@@ -91,10 +110,17 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderDetailed getOrderById(Long orderId) {
+    public OrderDetailed getOrderById(Long orderId, Authentication authentication) {
+
+        boolean isAuthor = false;
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
         Order order = orderRepository.findById(orderId).
                 orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-        return orderMapper.entityToDto(order);
+
+        if (order.getAuthor().getId().equals(user.getId())) {
+            isAuthor = true;
+        }
+        return orderMapper.entityToDto(order, isAuthor);
     }
 
     @Override
@@ -104,27 +130,30 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        Organization usersOrganization = organizationEmployee.getOrganization();
 
         if (order.getAuthor().equals(user)) {
-            throw new ResourceAlreadyExistsException("User can't respond to his/her own order");
+            throw new ResourceAlreadyExistsException("User can't execute to his/her own order");
         }
 
-        if (order.getStatus() == OrderStatus.WAITING) {
-            if (organizationEmployeeService.existsByEmployeeEmail(user.getEmail())) {
-                if (organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.SEND_REQUEST_TO_EXECUTE_ORDER, user.getEmail())) {
-                    if (!order.getCandidates().contains(user)) {
-                        order.getCandidates().add(user);
-                        orderRepository.save(order);
-                    }
-                    return "User has left a request to execute the order";
-                } else {
-                    throw new NoPermissionException("User has no permission to send request to execute order");
+        if (order.getOrganizationCandidates().stream()
+                .anyMatch(org -> org.getId().equals(usersOrganization.getId()))) {
+            throw new ResourceAlreadyExistsException("User's organization already sent the request");
+        }
+
+        if (order.getOrganizationExecutor() == null) {
+            if (organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.SEND_REQUEST_TO_EXECUTE_ORDER, user.getEmail())) {
+                if (!order.getOrganizationCandidates().contains(usersOrganization)) {
+                    order.getOrganizationCandidates().add(usersOrganization);
+                    orderRepository.save(order);
                 }
+                return "User has left a request to execute the order";
             } else {
-                throw new ResourceNotFoundException("User is not a member of any organization");
+                throw new NoPermissionException("User has no permission to send request to execute order");
             }
         } else {
-            throw new ResourceAlreadyExistsException("Order is already taken by another user");
+            throw new ResourceAlreadyExistsException("Order is already taken by another organization");
         }
     }
 

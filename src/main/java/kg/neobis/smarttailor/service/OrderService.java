@@ -14,13 +14,15 @@ public interface OrderService {
 
     String addOrder(String orderRequestDto, List<MultipartFile> images, Authentication authentication);
 
+    String assignOrderToOrganization(Long orderId, String organizationName, Authentication authentication);
+
     String deleteOrder(Long orderId) throws IOException;
 
     List<Order> findAllByUser(AppUser user);
 
     List<OrderListDto> getAllOrders(int pageNumber, int pageSize);
 
-    OrderDetailed getOrderById(Long orderId);
+    OrderDetailed getOrderById(Long orderId, Authentication authentication);
 
     String sendRequestToExecuteOrder(Long orderId, Authentication authentication);
 }
