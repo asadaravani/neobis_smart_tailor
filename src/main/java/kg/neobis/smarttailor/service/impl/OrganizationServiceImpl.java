@@ -125,6 +125,12 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
+    public Organization getOrganizationByName(String organizationName) {
+        return organizationRepository.findByName(organizationName)
+                .orElseThrow(() -> new ResourceNotFoundException("Organization not found"));
+    }
+
+    @Override
     public Organization getOrganizationByDirectorEmail(String email) {
         return organizationRepository.getByDirectorEmail(email);
     }

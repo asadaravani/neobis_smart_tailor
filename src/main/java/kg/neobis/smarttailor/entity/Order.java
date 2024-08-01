@@ -52,7 +52,7 @@ public class Order extends BaseEntity {
 
     @ManyToOne
     @JoinColumn
-    AppUser executor;
+    Organization organizationExecutor;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinTable(
@@ -73,11 +73,11 @@ public class Order extends BaseEntity {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinTable(
-            name = "order_order_candidate",
+            name = "order_candidates",
             joinColumns = @JoinColumn(name = "order_id"),
-            inverseJoinColumns = @JoinColumn(name = "order_candidate_id")
+            inverseJoinColumns = @JoinColumn(name = "organization_id")
     )
-    List<AppUser> candidates = new ArrayList<>();
+    List<Organization> organizationCandidates = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn
