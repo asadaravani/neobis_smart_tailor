@@ -8,7 +8,7 @@ public record EquipmentListDto(
         String name,
         String description,
         BigDecimal price,
-        String equipmentImageUrl,
+        String imageUrl,
         String authorFullName,
         String authorImageUrl
 ) implements Serializable {}

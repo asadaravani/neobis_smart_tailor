@@ -3,6 +3,7 @@ package kg.neobis.smarttailor.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import kg.neobis.smarttailor.dtos.OrganizationOrders;
 import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
 import kg.neobis.smarttailor.dtos.ads.list.OrderListDto;
 import kg.neobis.smarttailor.dtos.ads.request.OrderRequestDto;
@@ -28,7 +29,6 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
@@ -155,6 +155,15 @@ public class OrderServiceImpl implements OrderService {
         } else {
             throw new ResourceAlreadyExistsException("Order is already taken by another organization");
         }
+    }
+
+    @Override
+    public List<OrganizationOrders> getOrdersOfOrganization(String email){
+        Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
+        List<Order> orders = orderRepository.findAllByOrganizationExecutor(organization);
+        return orders.stream().map(
+                orderMapper::toOrganizationOrders
+        ).toList();
     }
 
     private OrderRequestDto parseAndValidateOrderRequestDto(String orderDto) {
