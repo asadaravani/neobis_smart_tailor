@@ -17,6 +17,8 @@ public interface OrganizationService {
 
     Organization getOrganizationByDirectorEmail(String email);
 
+    Organization findOrganizationByDirectorOrEmployee(String email);
+
     Organization getOrganizationByName(String organizationName);
 
     OrganizationDetailed getOrganization(String email);

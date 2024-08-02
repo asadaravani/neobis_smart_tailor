@@ -27,7 +27,6 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.Set;
@@ -115,15 +114,18 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     public OrganizationDetailed getOrganization(String email) {
-
-        Organization organization = organizationRepository.findByDirectorEmail(email)
-                .orElseThrow(null);
-        if (organization == null) {
-            organization = organizationEmployeeService.findByEmployeeEmail(email).getOrganization();
-        }
-        return organizationMapper.toOrganizationDetailed(organization);
+        return organizationMapper.toOrganizationDetailed(findOrganizationByDirectorOrEmployee(email));
     }
 
+    @Override
+    public Organization findOrganizationByDirectorOrEmployee(String email){
+        try {
+            return organizationRepository.findByDirectorEmail(email)
+                    .orElse(organizationEmployeeService.findByEmployeeEmail(email).getOrganization());
+        }catch (Exception e){
+            throw new ResourceNotFoundException("Organization Not Found");
+        }
+    }
     @Override
     public Organization getOrganizationByName(String organizationName) {
         return organizationRepository.findByName(organizationName)

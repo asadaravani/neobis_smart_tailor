@@ -2,6 +2,7 @@ package kg.neobis.smarttailor.mapper;
 
 import kg.neobis.smarttailor.dtos.OrderItemDto;
 import kg.neobis.smarttailor.dtos.OrganizationDto;
+import kg.neobis.smarttailor.dtos.OrganizationOrders;
 import kg.neobis.smarttailor.dtos.ads.MyAdvertisement;
 import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
 import kg.neobis.smarttailor.dtos.ads.list.OrderListDto;
@@ -117,5 +118,15 @@ public class OrderMapper {
 
     private static String getImageUrl(List<Image> images, int index) {
         return (images != null && images.size() > index) ? images.get(index).getUrl() : "";
+    }
+
+    public OrganizationOrders toOrganizationOrders(Order order){
+        return new OrganizationOrders(
+                order.getId(),
+                order.getName(),
+                order.getDescription(),
+                order.getPrice(),
+                order.getImages().get(0).getUrl()
+        );
     }
 }

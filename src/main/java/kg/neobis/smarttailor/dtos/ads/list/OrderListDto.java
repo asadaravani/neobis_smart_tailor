@@ -10,7 +10,7 @@ public record OrderListDto(
         String description,
         BigDecimal price,
         LocalDate dateOfExecution,
-        String equipmentImageUrl,
+        String imageUrl,
         String authorFullName,
         String authorImageUrl
 ) implements Serializable {}
