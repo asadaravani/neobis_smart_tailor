@@ -5,6 +5,9 @@ import kg.neobis.smarttailor.entity.Organization;
 import kg.neobis.smarttailor.entity.Position;
 import org.springframework.stereotype.Component;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
 public class PositionMapper {
 
@@ -14,5 +17,13 @@ public class PositionMapper {
                 dto.accessRights(),
                 organization
         );
+    }
+
+    public List<PositionDto> entityListToDtoList(List<Position> positions) {
+
+        return positions.stream().map(position -> new PositionDto(
+                position.getName(),
+                position.getAccessRights()
+        )).collect(Collectors.toList());
     }
 }
