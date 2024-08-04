@@ -24,6 +24,8 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -54,6 +56,15 @@ public class PositionServiceImpl implements PositionService {
             throw new NoPermissionException("User has no permission to create position");
         }
         return "Position has been created";
+    }
+
+    @Override
+    public List<PositionDto> getAllPositionsExceptDirector(Authentication authentication) {
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        List<Position> positions = positionRepository.findAllPositionsExceptDirector(organizationEmployee.getOrganization());
+
+        return positionMapper.entityListToDtoList(positions);
     }
 
     @Override
