@@ -8,7 +8,10 @@ import kg.neobis.smarttailor.dtos.ads.MyAdvertisement;
 import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
 import kg.neobis.smarttailor.dtos.ads.list.OrderListDto;
 import kg.neobis.smarttailor.dtos.ads.request.OrderRequestDto;
-import kg.neobis.smarttailor.entity.*;
+import kg.neobis.smarttailor.entity.AppUser;
+import kg.neobis.smarttailor.entity.Image;
+import kg.neobis.smarttailor.entity.Order;
+import kg.neobis.smarttailor.entity.OrderItem;
 
 import kg.neobis.smarttailor.enums.AdvertType;
 import kg.neobis.smarttailor.enums.OrderStatus;
@@ -26,21 +29,22 @@ public class OrderMapper {
                 .map(orderItemDto -> new OrderItem(orderItemDto.size(), orderItemDto.quantity()))
                 .toList();
 
-        return new Order(
-                requestDto.name(),
-                requestDto.description(),
-                requestDto.price(),
-                requestDto.contactInfo(),
-                requestDto.dateOfExecution(),
-                null,
-                null,
-                OrderStatus.NULL,
-                null,
-                orderImages,
-                items,
-                null,
-                user
-        );
+        return Order.builder()
+                .name(requestDto.name())
+                .description(requestDto.description())
+                .price(requestDto.price())
+                .contactInfo(requestDto.contactInfo())
+                .isVisible(true)
+                .dateOfExecution(requestDto.dateOfExecution())
+                .dateOfStart(null)
+                .dateOfCompletion(null)
+                .status(OrderStatus.NOT_CONFIRMED)
+                .author(user)
+                .images(orderImages)
+                .items(items)
+                .organizationCandidates(null)
+                .organizationExecutor(null)
+                .build();
     }
 
     public List<OrderListDto> entityListToDtoList(List<Order> orders) {
@@ -50,9 +54,9 @@ public class OrderMapper {
                 order.getDescription(),
                 order.getPrice(),
                 order.getDateOfExecution(),
-                getImageUrl(order.getImages(), 0),
-                getFullName(order),
-                getAuthorImageUrl(order)
+                order.getFirstImage(order.getImages()),
+                order.getFullName(order),
+                order.getAuthorImageUrl(order)
         )).collect(Collectors.toList());
     }
 
@@ -80,8 +84,8 @@ public class OrderMapper {
                 order.getDescription(),
                 order.getPrice(),
                 order.getContactInfo(),
-                getAuthorImageUrl(order),
-                getFullName(order),
+                order.getAuthorImageUrl(order),
+                order.getFullName(order),
                 order.getImages().stream().map(Image::getUrl).collect(Collectors.toList()),
                 order.getDateOfExecution(),
                 status,
@@ -94,48 +98,28 @@ public class OrderMapper {
         return MyAdvertisement.builder()
                 .id(order.getId())
                 .type(AdvertType.ORDER)
-                .imagePath(getImageUrl(order.getImages(), 0))
+                .imagePath(order.getFirstImage(order.getImages()))
                 .name(order.getName())
                 .description(order.getDescription())
                 .createdAt(order.getCreatedAt())
                 .build();
     }
 
-    private static String getAuthorImageUrl(Order order) {
-        return (order.getAuthor() != null && order.getAuthor().getImage() != null) ?
-                order.getAuthor().getImage().getUrl() : "";
+    public OrderCard toOrderCard(Order order) {
+        return new OrderCard(
+                order.getId(),
+                order.getDescription(),
+                order.getDateOfStart()
+        );
     }
 
-    private static String getFullName(Order order) {
-        if (order == null || order.getAuthor() == null) {
-            return "";
-        }
-        AppUser author = order.getAuthor();
-        String name = author.getName() != null ? author.getName() : "";
-        String surname = author.getSurname() != null ? author.getSurname() : "";
-        String patronymic = author.getPatronymic() != null ? author.getPatronymic() : "";
-        return (name + " " + surname + " " + patronymic).trim();
-    }
-
-    private static String getImageUrl(List<Image> images, int index) {
-        return (images != null && images.size() > index) ? images.get(index).getUrl() : "";
-    }
-
-    public OrganizationOrders toOrganizationOrders(Order order){
+    public OrganizationOrders toOrganizationOrders(Order order) {
         return new OrganizationOrders(
                 order.getId(),
                 order.getName(),
                 order.getDescription(),
                 order.getPrice(),
                 order.getImages().get(0).getUrl()
-        );
-    }
-
-    public OrderCard toOrderCard(Order order){
-        return new OrderCard(
-                order.getId(),
-                order.getDescription(),
-                order.getDateOfStart()
         );
     }
 }

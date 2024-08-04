@@ -1,7 +1,7 @@
 package kg.neobis.smarttailor.enums;
 
 public enum OrderStatus {
-    NULL,
+    NOT_CONFIRMED,
     WAITING,
     IN_PROGRESS,
     CHECKING,
