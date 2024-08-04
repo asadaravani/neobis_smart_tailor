@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
+import kg.neobis.smarttailor.dtos.CurrentOrganizationOrders;
 import kg.neobis.smarttailor.dtos.OrganizationOrders;
 import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
 import kg.neobis.smarttailor.dtos.ads.list.OrderListDto;
@@ -149,4 +150,19 @@ public class OrderController {
     public ResponseEntity<List<OrganizationOrders>> getOrdersOfOrganization(Authentication authentication){
         return ResponseEntity.ok(orderService.getOrdersOfOrganization(authentication.getName()));
     }
+
+    @Operation(
+            summary = "ORDERS OF THE ORGANIZATION BY STATUSES",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Returns a body"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "Organization Not Found"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
+    @GetMapping("/organization-current-orders")
+    public ResponseEntity<CurrentOrganizationOrders> getCurrentOrders(Authentication authentication){
+        return ResponseEntity.ok(orderService.getCurrentOrdersOfOrganization(authentication.getName()));
+    }
+
 }
