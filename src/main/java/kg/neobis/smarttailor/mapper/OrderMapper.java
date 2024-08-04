@@ -1,5 +1,6 @@
 package kg.neobis.smarttailor.mapper;
 
+import kg.neobis.smarttailor.dtos.OrderCard;
 import kg.neobis.smarttailor.dtos.OrderItemDto;
 import kg.neobis.smarttailor.dtos.OrganizationDto;
 import kg.neobis.smarttailor.dtos.OrganizationOrders;
@@ -33,7 +34,7 @@ public class OrderMapper {
                 requestDto.dateOfExecution(),
                 null,
                 null,
-                null,
+                OrderStatus.NULL,
                 null,
                 orderImages,
                 items,
@@ -127,6 +128,14 @@ public class OrderMapper {
                 order.getDescription(),
                 order.getPrice(),
                 order.getImages().get(0).getUrl()
+        );
+    }
+
+    public OrderCard toOrderCard(Order order){
+        return new OrderCard(
+                order.getId(),
+                order.getDescription(),
+                order.getDateOfStart()
         );
     }
 }

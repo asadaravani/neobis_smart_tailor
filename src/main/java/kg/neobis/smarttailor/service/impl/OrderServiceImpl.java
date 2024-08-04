@@ -3,6 +3,8 @@ package kg.neobis.smarttailor.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import kg.neobis.smarttailor.dtos.CurrentOrganizationOrders;
+import kg.neobis.smarttailor.dtos.OrderCard;
 import kg.neobis.smarttailor.dtos.OrganizationOrders;
 import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
 import kg.neobis.smarttailor.dtos.ads.list.OrderListDto;
@@ -31,6 +33,7 @@ import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -166,6 +169,19 @@ public class OrderServiceImpl implements OrderService {
         ).toList();
     }
 
+    @Override
+    public CurrentOrganizationOrders getCurrentOrdersOfOrganization(String email){
+        Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
+        List<Order> orders = orderRepository.findAllByOrganizationExecutor(organization);
+        return new CurrentOrganizationOrders(
+                extractOrdersByStatusAndMap(OrderStatus.WAITING, orders),
+                extractOrdersByStatusAndMap(OrderStatus.IN_PROGRESS, orders),
+                extractOrdersByStatusAndMap(OrderStatus.CHECKING, orders),
+                extractOrdersByStatusAndMap(OrderStatus.SENDING, orders),
+                extractOrdersByStatusAndMap(OrderStatus.ARRIVED, orders)
+        );
+    }
+
     private OrderRequestDto parseAndValidateOrderRequestDto(String orderDto) {
         try {
             OrderRequestDto requestDto = objectMapper.readValue(orderDto, OrderRequestDto.class);
@@ -178,5 +194,14 @@ public class OrderServiceImpl implements OrderService {
         } catch (JsonProcessingException e) {
             throw new InvalidJsonException(e.getMessage());
         }
+    }
+    private List<OrderCard> extractOrdersByStatusAndMap(OrderStatus status, List<Order> orders){
+        List<OrderCard> orderToReturn = new ArrayList<>();
+        orders.forEach(order -> {
+            if(order.getStatus() == status){
+                orderToReturn.add(orderMapper.toOrderCard(order));
+            }
+        });
+        return orderToReturn;
     }
 }

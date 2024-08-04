@@ -1,5 +1,6 @@
 package kg.neobis.smarttailor.service;
 
+import kg.neobis.smarttailor.dtos.CurrentOrganizationOrders;
 import kg.neobis.smarttailor.dtos.OrganizationOrders;
 import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
 import kg.neobis.smarttailor.dtos.ads.list.OrderListDto;
@@ -28,4 +29,6 @@ public interface OrderService {
     String sendRequestToExecuteOrder(Long orderId, Authentication authentication);
 
     List<OrganizationOrders> getOrdersOfOrganization(String email);
+
+    CurrentOrganizationOrders getCurrentOrdersOfOrganization(String email);
 }
