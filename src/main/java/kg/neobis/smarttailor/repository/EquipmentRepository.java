@@ -12,7 +12,7 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
 
     List<Equipment> findAllByAuthor(AppUser user);
 
-    Page<Equipment> findByIsVisible(boolean isVisible, Pageable pageable);
+    Page<Equipment> findByIsVisibleAndQuantityGreaterThan(boolean isVisible, int quantity, Pageable pageable);
 
     List<Equipment> findEquipmentByNameContainingIgnoreCase(String name);
 }
