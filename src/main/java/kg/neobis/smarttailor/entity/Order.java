@@ -1,58 +1,45 @@
 package kg.neobis.smarttailor.entity;
 
-import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.Size;
 import kg.neobis.smarttailor.enums.OrderStatus;
 import lombok.AccessLevel;
-import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
+import lombok.experimental.SuperBuilder;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 @Getter
 @Setter
-@Entity(name = "orders")
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity(name = "orders")
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Order extends BaseEntity {
+public class Order extends Advertisement {
 
-    @Column(nullable = false)
-    @Size(min = 5, max = 250)
-    String name;
-
-    @Column(nullable = false)
-    @Size(min = 5, max = 1000)
-    String description;
-
-    @Column(nullable = false)
-    BigDecimal price;
-
-    @Column(nullable = false)
-    String contactInfo;
-
-    @Column(nullable = false)
     LocalDate dateOfExecution;
 
-    @Column
-    LocalDate dateOfCompletion;
-
-    @Column
     LocalDate dateOfStart;
 
-    @Column
+    LocalDate dateOfCompletion;
+
     @Enumerated(EnumType.STRING)
     OrderStatus status;
-
-    @ManyToOne
-    @JoinColumn
-    Organization organizationExecutor;
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinTable(
@@ -81,5 +68,5 @@ public class Order extends BaseEntity {
 
     @ManyToOne
     @JoinColumn
-    AppUser author;
+    Organization organizationExecutor;
 }

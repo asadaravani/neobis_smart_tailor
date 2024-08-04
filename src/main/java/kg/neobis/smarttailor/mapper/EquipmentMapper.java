@@ -17,15 +17,15 @@ import java.util.stream.Collectors;
 public class EquipmentMapper {
 
     public Equipment dtoToEntity(EquipmentRequestDto requestDto, List<Image> equipmentImages, AppUser user) {
-        return new Equipment(
-                requestDto.name(),
-                requestDto.description(),
-                requestDto.price(),
-                requestDto.contactInfo(),
-                requestDto.quantity(),
-                equipmentImages,
-                user
-        );
+        return Equipment.builder()
+                .name(requestDto.name())
+                .description(requestDto.description())
+                .price(requestDto.price())
+                .contactInfo(requestDto.contactInfo())
+                .isVisible(true)
+                .author(user)
+                .images(equipmentImages)
+                .build();
     }
 
     public List<EquipmentListDto> entityListToDtoList(List<Equipment> equipments) {
@@ -34,9 +34,9 @@ public class EquipmentMapper {
                 equipment.getName(),
                 equipment.getDescription(),
                 equipment.getPrice(),
-                getImageUrl(equipment.getImages(), 0),
-                getFullName(equipment),
-                getAuthorImageUrl(equipment)
+                equipment.getFirstImage(equipment.getImages()),
+                equipment.getFullName(equipment),
+                equipment.getAuthorImageUrl(equipment)
         )).collect(Collectors.toList());
     }
 
@@ -47,41 +47,21 @@ public class EquipmentMapper {
                 equipment.getDescription(),
                 equipment.getPrice(),
                 equipment.getContactInfo(),
-                getAuthorImageUrl(equipment),
-                getFullName(equipment),
+                equipment.getAuthorImageUrl(equipment),
+                equipment.getFullName(equipment),
                 equipment.getImages().stream().map(Image::getUrl).collect(Collectors.toList()),
                 equipment.getQuantity()
         );
     }
 
-    public MyAdvertisement toMyAdvertisement(Equipment equipment){
+    public MyAdvertisement toMyAdvertisement(Equipment equipment) {
         return MyAdvertisement.builder()
                 .id(equipment.getId())
-                .imagePath(getImageUrl(equipment.getImages(), 0))
+                .imagePath(equipment.getFirstImage(equipment.getImages()))
                 .type(AdvertType.EQUIPMENT)
                 .name(equipment.getName())
                 .description(equipment.getDescription())
                 .createdAt(equipment.getCreatedAt())
                 .build();
-    }
-
-    private static String getAuthorImageUrl(Equipment equipment) {
-        return (equipment.getAuthor() != null && equipment.getAuthor().getImage() != null) ?
-                equipment.getAuthor().getImage().getUrl() : "";
-    }
-
-    private static String getFullName(Equipment equipment) {
-        if (equipment == null || equipment.getAuthor() == null) {
-            return "";
-        }
-        AppUser author = equipment.getAuthor();
-        String name = author.getName() != null ? author.getName() : "";
-        String surname = author.getSurname() != null ? author.getSurname() : "";
-        String patronymic = author.getPatronymic() != null ? author.getPatronymic() : "";
-        return (name + " " + surname + " " + patronymic).trim();
-    }
-
-    private static String getImageUrl(List<Image> images, int index) {
-        return (images != null && images.size() > index) ? images.get(index).getUrl() : "";
     }
 }
