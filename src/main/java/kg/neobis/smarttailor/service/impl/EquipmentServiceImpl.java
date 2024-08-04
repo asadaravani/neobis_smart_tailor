@@ -20,11 +20,7 @@ import com.itextpdf.text.pdf.PdfWriter;
 import kg.neobis.smarttailor.dtos.ads.detailed.EquipmentDetailed;
 import kg.neobis.smarttailor.dtos.ads.list.EquipmentListDto;
 import kg.neobis.smarttailor.dtos.ads.request.EquipmentRequestDto;
-import kg.neobis.smarttailor.exception.InvalidJsonException;
-import kg.neobis.smarttailor.exception.InvalidRequestException;
-import kg.neobis.smarttailor.exception.OutOfStockException;
-import kg.neobis.smarttailor.exception.PdfGenerationException;
-import kg.neobis.smarttailor.exception.ResourceNotFoundException;
+import kg.neobis.smarttailor.exception.*;
 import kg.neobis.smarttailor.mapper.EquipmentMapper;
 import kg.neobis.smarttailor.repository.EquipmentRepository;
 import kg.neobis.smarttailor.service.AppUserService;
@@ -97,7 +93,7 @@ public class EquipmentServiceImpl implements EquipmentService {
     @Override
     public List<EquipmentListDto> getAllEquipments(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<Equipment> equipments = equipmentRepository.findAll(pageable);
+        Page<Equipment> equipments = equipmentRepository.findByIsVisible(true, pageable);
         List<Equipment> equipmentList = equipments.getContent();
         return equipmentMapper.entityListToDtoList(equipmentList);
     }
@@ -109,6 +105,24 @@ public class EquipmentServiceImpl implements EquipmentService {
         return equipmentMapper.entityToDto(equipment);
     }
 
+    @Override
+    public String hideEquipment(Long equipmentId, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Equipment equipment = equipmentRepository.findById(equipmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
+
+        if (!equipment.getIsVisible()) {
+            throw new ResourceAlreadyExistsException("Equipment is already hidden");
+        }
+        if (!equipment.getAuthor().getId().equals(user.getId())) {
+            throw new NoPermissionException("Only authors can hide their equipments");
+        }
+        equipment.setIsVisible(false);
+        equipmentRepository.save(equipment);
+
+        return "Equipment is now invisible in marketplace";
+    }
 
     private EquipmentRequestDto parseAndValidateRecipeDto(String equipmentDto) {
         try {

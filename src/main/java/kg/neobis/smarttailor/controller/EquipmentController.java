@@ -41,7 +41,8 @@ public class EquipmentController {
             responses = {
                     @ApiResponse(responseCode = "201", description = "Equipment has been created"),
                     @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
@@ -57,7 +58,8 @@ public class EquipmentController {
             description = "To delete equipment, the method accepts its id",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Equipment has been deleted"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
                     @ApiResponse(responseCode = "404", description = "Equipment not found with specified id"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
@@ -72,7 +74,8 @@ public class EquipmentController {
             description = "The method returns list of equipments",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Equipment list received"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
                     @ApiResponse(responseCode = "404", description = "Equipments not found"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
@@ -88,7 +91,8 @@ public class EquipmentController {
             description = "The method accepts equipment's id, and then sends equipment's detailed information",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Equipment information received"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
                     @ApiResponse(responseCode = "404", description = "Equipment not found with specified id"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
@@ -96,6 +100,23 @@ public class EquipmentController {
     @GetMapping("/get-equipment-detailed/{equipmentId}")
     public ResponseEntity<EquipmentDetailed> getEquipmentDetailed(@PathVariable Long equipmentId) {
         return ResponseEntity.ok(equipmentService.getEquipmentById(equipmentId));
+    }
+
+    @Operation(
+            summary = "HIDE EQUIPMENT",
+            description = "The method accepts equipment's id and then makes order invisible in marketplace",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Equipment is now invisible in marketplace"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
+                    @ApiResponse(responseCode = "404", description = "Equipment not found with specified id"),
+                    @ApiResponse(responseCode = "409", description = "Equipment is already hidden | Only authors can hide their equipments"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
+    @GetMapping("/hide/{equipmentId}")
+    public ResponseEntity<String> hideOrder(@PathVariable Long equipmentId, Authentication authentication) {
+        return ResponseEntity.ok(equipmentService.hideEquipment(equipmentId, authentication));
     }
 
     @Operation(

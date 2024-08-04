@@ -31,6 +31,7 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -107,7 +108,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public List<OrderListDto> getAllOrders(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<Order> orders = orderRepository.findAll(pageable);
+        Page<Order> orders = orderRepository.findByIsVisible(true, pageable);
         List<Order> ordersList = orders.getContent();
         return orderMapper.entityListToDtoList(ordersList);
     }
@@ -124,6 +125,25 @@ public class OrderServiceImpl implements OrderService {
             isAuthor = true;
         }
         return orderMapper.entityToDto(order, isAuthor);
+    }
+
+    @Override
+    public String hideOrder(Long orderId, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (!order.getIsVisible()) {
+            throw new ResourceAlreadyExistsException("Order is already hidden");
+        }
+        if (!order.getAuthor().getId().equals(user.getId())) {
+            throw new NoPermissionException("Only authors can hide their orders");
+        }
+        order.setIsVisible(false);
+        orderRepository.save(order);
+
+        return "Order is now invisible in marketplace";
     }
 
     @Override
@@ -161,7 +181,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrganizationOrders> getOrdersOfOrganization(String email){
+    public List<OrganizationOrders> getOrdersOfOrganization(String email) {
         Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
         List<Order> orders = orderRepository.findAllByOrganizationExecutor(organization);
         return orders.stream().map(
@@ -170,7 +190,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public CurrentOrganizationOrders getCurrentOrdersOfOrganization(String email){
+    public CurrentOrganizationOrders getCurrentOrdersOfOrganization(String email) {
         Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
         List<Order> orders = orderRepository.findAllByOrganizationExecutor(organization);
         return new CurrentOrganizationOrders(
@@ -195,10 +215,11 @@ public class OrderServiceImpl implements OrderService {
             throw new InvalidJsonException(e.getMessage());
         }
     }
-    private List<OrderCard> extractOrdersByStatusAndMap(OrderStatus status, List<Order> orders){
+
+    private List<OrderCard> extractOrdersByStatusAndMap(OrderStatus status, List<Order> orders) {
         List<OrderCard> orderToReturn = new ArrayList<>();
         orders.forEach(order -> {
-            if(order.getStatus() == status){
+            if (order.getStatus() == status) {
                 orderToReturn.add(orderMapper.toOrderCard(order));
             }
         });

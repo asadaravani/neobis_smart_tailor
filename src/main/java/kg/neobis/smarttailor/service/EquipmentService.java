@@ -20,6 +20,8 @@ public interface EquipmentService {
 
     EquipmentDetailed getEquipmentById(Long equipmentId);
 
+    String hideEquipment(Long equipmentId, Authentication authentication);
+
     String buyEquipment(Long equipmentId, Authentication authentication);
 
     List<Equipment> findAllByUser(AppUser user);
