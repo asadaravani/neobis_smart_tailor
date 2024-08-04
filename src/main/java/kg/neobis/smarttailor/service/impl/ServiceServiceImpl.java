@@ -9,6 +9,8 @@ import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.entity.Services;
 import kg.neobis.smarttailor.exception.InvalidJsonException;
+import kg.neobis.smarttailor.exception.NoPermissionException;
+import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
 import kg.neobis.smarttailor.exception.ResourceNotFoundException;
 import kg.neobis.smarttailor.mapper.ServiceMapper;
 import kg.neobis.smarttailor.repository.ServicesRepository;
@@ -74,7 +76,7 @@ public class ServiceServiceImpl implements ServicesService {
     @Override
     public List<ServiceListDto> getAllServices(int pageNo, int pageSize) {
         Pageable pageable = PageRequest.of(pageNo, pageSize);
-        Page<Services> services = serviceRepository.findAll(pageable);
+        Page<Services> services = serviceRepository.findByIsVisible(true, pageable);
         List<Services> servicesList = services.getContent();
         return serviceMapper.entityListToDtoList(servicesList);
     }
@@ -84,6 +86,25 @@ public class ServiceServiceImpl implements ServicesService {
         Services service = serviceRepository.findById(serviceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found"));
         return serviceMapper.entityToDto(service);
+    }
+
+    @Override
+    public String hideService(Long serviceId, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Services service = serviceRepository.findById(serviceId)
+                .orElseThrow(() -> new ResourceNotFoundException("Service not found"));
+
+        if (!service.getIsVisible()) {
+            throw new ResourceAlreadyExistsException("Service is already hidden");
+        }
+        if (!service.getAuthor().getId().equals(user.getId())) {
+            throw new NoPermissionException("Only authors can hide their services");
+        }
+        service.setIsVisible(false);
+        serviceRepository.save(service);
+
+        return "Service is now invisible in marketplace";
     }
 
     @Override

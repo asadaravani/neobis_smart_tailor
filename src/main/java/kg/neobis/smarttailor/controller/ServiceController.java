@@ -34,7 +34,8 @@ public class ServiceController {
             responses = {
                     @ApiResponse(responseCode = "201", description = "Service has been created"),
                     @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
@@ -50,7 +51,8 @@ public class ServiceController {
             description = "To delete service, the method accepts its id",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Service has been deleted"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
                     @ApiResponse(responseCode = "404", description = "Service not found with specified id"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
@@ -65,7 +67,8 @@ public class ServiceController {
             description = "The method returns list of services",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Service list received"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
                     @ApiResponse(responseCode = "404", description = "Services not found"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
@@ -81,7 +84,8 @@ public class ServiceController {
             description = "The method accepts service's id, and then sends service's detailed information",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Service information received"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
                     @ApiResponse(responseCode = "404", description = "Service not found with specified id"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
@@ -89,5 +93,22 @@ public class ServiceController {
     @GetMapping("/get-service-detailed/{serviceId}")
     public ServiceDetailed getServiceDetailed(@PathVariable Long serviceId) {
         return servicesService.getServiceById(serviceId);
+    }
+
+    @Operation(
+            summary = "HIDE SERVICE",
+            description = "The method accepts service's id and then makes order invisible in marketplace",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Service is now invisible in marketplace"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
+                    @ApiResponse(responseCode = "404", description = "Service not found with specified id"),
+                    @ApiResponse(responseCode = "409", description = "Service is already hidden | Only authors can hide their services"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
+    @GetMapping("/hide/{serviceId}")
+    public ResponseEntity<String> hideService(@PathVariable Long serviceId, Authentication authentication) {
+        return ResponseEntity.ok(servicesService.hideService(serviceId, authentication));
     }
 }

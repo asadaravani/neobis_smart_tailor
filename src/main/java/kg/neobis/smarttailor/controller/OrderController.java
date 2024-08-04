@@ -47,6 +47,7 @@ public class OrderController {
                     @ApiResponse(responseCode = "201", description = "Order has been created"),
                     @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
@@ -63,6 +64,7 @@ public class OrderController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Order has been deleted"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
                     @ApiResponse(responseCode = "404", description = "Order not found with specified id"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
@@ -78,6 +80,7 @@ public class OrderController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Order list received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
                     @ApiResponse(responseCode = "404", description = "Orders not found"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
@@ -101,6 +104,23 @@ public class OrderController {
     @GetMapping("/get-order-detailed/{orderId}")
     public ResponseEntity<OrderDetailed> getOrderDetailed(@PathVariable Long orderId, Authentication authentication) {
         return ResponseEntity.ok(orderService.getOrderById(orderId, authentication));
+    }
+
+    @Operation(
+            summary = "HIDE ORDER",
+            description = "The method accepts order's id and then makes order invisible in marketplace",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Order is now invisible in marketplace"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
+                    @ApiResponse(responseCode = "404", description = "Order not found with specified id"),
+                    @ApiResponse(responseCode = "409", description = "Order is already hidden | Only authors can hide their orders"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
+    @GetMapping("/hide/{orderId}")
+    public ResponseEntity<String> hideOrder(@PathVariable Long orderId, Authentication authentication) {
+        return ResponseEntity.ok(orderService.hideOrder(orderId, authentication));
     }
 
     @Operation(

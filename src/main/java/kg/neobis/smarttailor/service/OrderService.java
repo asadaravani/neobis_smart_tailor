@@ -26,6 +26,8 @@ public interface OrderService {
 
     OrderDetailed getOrderById(Long orderId, Authentication authentication);
 
+    String hideOrder(Long orderId, Authentication authentication);
+
     String sendRequestToExecuteOrder(Long orderId, Authentication authentication);
 
     List<OrganizationOrders> getOrdersOfOrganization(String email);

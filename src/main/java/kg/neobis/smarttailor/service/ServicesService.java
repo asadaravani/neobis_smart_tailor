@@ -23,4 +23,6 @@ public interface ServicesService {
     List<ServiceListDto> getAllServices(int pageNo, int pageSize);
 
     ServiceDetailed getServiceById(Long id);
+
+    String hideService(Long serviceId, Authentication authentication);
 }
