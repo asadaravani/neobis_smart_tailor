@@ -93,7 +93,7 @@ public class EquipmentServiceImpl implements EquipmentService {
     @Override
     public List<EquipmentListDto> getAllEquipments(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize);
-        Page<Equipment> equipments = equipmentRepository.findByIsVisible(true, pageable);
+        Page<Equipment> equipments = equipmentRepository.findByIsVisibleAndQuantityGreaterThan(true, 0, pageable);
         List<Equipment> equipmentList = equipments.getContent();
         return equipmentMapper.entityListToDtoList(equipmentList);
     }
