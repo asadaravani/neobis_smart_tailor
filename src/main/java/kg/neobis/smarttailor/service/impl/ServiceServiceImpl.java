@@ -62,16 +62,20 @@ public class ServiceServiceImpl implements ServicesService {
 
     @Override
     @Transactional
-    public String deleteService(Long serviceId) throws IOException {
+    public String deleteService(Long serviceId, Authentication authentication) throws IOException {
 
-        Services services = serviceRepository.findById(serviceId)
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Services service = serviceRepository.findById(serviceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found"));
 
-        for (Image image : services.getImages()) {
+        if (!user.getId().equals(service.getAuthor().getId())) {
+            throw new NoPermissionException("Only authors can delete their services");
+        }
+        for (Image image : service.getImages()) {
             cloudinaryService.deleteImage(image.getUrl());
         }
+        serviceRepository.delete(service);
 
-        serviceRepository.delete(services);
         return "Service has been deleted";
     }
 

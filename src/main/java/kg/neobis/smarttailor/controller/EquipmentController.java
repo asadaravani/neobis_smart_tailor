@@ -66,8 +66,8 @@ public class EquipmentController {
             }
     )
     @DeleteMapping("/delete-equipment/{equipmentId}")
-    public ResponseEntity<String> deleteEquipment(@PathVariable Long equipmentId) throws IOException {
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(equipmentService.deleteEquipment(equipmentId));
+    public ResponseEntity<String> deleteEquipment(@PathVariable Long equipmentId, Authentication authentication) throws IOException {
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(equipmentService.deleteEquipment(equipmentId, authentication));
     }
 
     @Operation(

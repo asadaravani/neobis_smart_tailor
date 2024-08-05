@@ -15,7 +15,7 @@ public interface EquipmentService {
 
     String addEquipment(String equipmentDto, List<MultipartFile> images, Authentication authentication);
 
-    String deleteEquipment(Long equipmentId) throws IOException;
+    String deleteEquipment(Long equipmentId, Authentication authentication) throws IOException;
 
     AdvertisementPageDto getAllEquipments(int pageNumber, int pageSize);
 

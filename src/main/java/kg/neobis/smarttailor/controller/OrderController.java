@@ -70,8 +70,8 @@ public class OrderController {
             }
     )
     @DeleteMapping("/delete-order/{orderId}")
-    public ResponseEntity<String> deleteOrder(@PathVariable Long orderId) throws IOException {
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(orderService.deleteOrder(orderId));
+    public ResponseEntity<String> deleteOrder(@PathVariable Long orderId, Authentication authentication) throws IOException {
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(orderService.deleteOrder(orderId, authentication));
     }
 
     @Operation(

@@ -14,7 +14,7 @@ public interface ServicesService {
 
     String addService(String serviceRequestDto, List<MultipartFile> images, Authentication authentication);
 
-    String deleteService(Long serviceId) throws IOException;
+    String deleteService(Long serviceId, Authentication authentication) throws IOException;
 
     List<Services> findAllByUser(AppUser user);
 

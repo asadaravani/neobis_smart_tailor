@@ -79,16 +79,20 @@ public class EquipmentServiceImpl implements EquipmentService {
 
     @Override
     @Transactional
-    public String deleteEquipment(Long equipmentId) throws IOException {
+    public String deleteEquipment(Long equipmentId, Authentication authentication) throws IOException {
 
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
         Equipment equipment = equipmentRepository.findById(equipmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
 
+        if (!user.getId().equals(equipment.getAuthor().getId())) {
+            throw new NoPermissionException("Only authors can delete their equipments");
+        }
         for (Image image : equipment.getImages()) {
             cloudinaryService.deleteImage(image.getUrl());
         }
-
         equipmentRepository.delete(equipment);
+
         return "Equipment has been deleted";
     }
 
