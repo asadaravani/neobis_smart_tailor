@@ -11,6 +11,7 @@ import com.itextpdf.text.Font;
 import com.itextpdf.text.Phrase;
 import jakarta.mail.MessagingException;
 import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
+import kg.neobis.smarttailor.dtos.NotificationDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Equipment;
 import kg.neobis.smarttailor.entity.Image;
@@ -28,6 +29,7 @@ import kg.neobis.smarttailor.service.AppUserService;
 import kg.neobis.smarttailor.service.CloudinaryService;
 import kg.neobis.smarttailor.service.EmailService;
 import kg.neobis.smarttailor.service.EquipmentService;
+import kg.neobis.smarttailor.service.NotificationService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -57,6 +59,7 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EquipmentServiceImpl implements EquipmentService {
 
+    NotificationService notificationService;
     AppUserService appUserService;
     EquipmentRepository equipmentRepository;
     EquipmentMapper equipmentMapper;
@@ -183,6 +186,7 @@ public class EquipmentServiceImpl implements EquipmentService {
 
         equipment.setQuantity(equipment.getQuantity() - 1);
         equipmentRepository.save(equipment);
+        notificationService.sendNotification(new NotificationDto("Equipment sold!", equipment.getName() + " has been bought by user " + user.getName(), LocalDateTime.now()));
         return "You have successfully purchased the equipment. Receipt sent to the email. Please check your email";
     }
 
