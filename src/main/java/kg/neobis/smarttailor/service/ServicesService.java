@@ -1,7 +1,7 @@
 package kg.neobis.smarttailor.service;
 
+import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.dtos.ads.detailed.ServiceDetailed;
-import kg.neobis.smarttailor.dtos.ads.list.ServiceListDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Services;
 import org.springframework.security.core.Authentication;
@@ -20,7 +20,7 @@ public interface ServicesService {
 
     Services findServiceById(Long id);
 
-    List<ServiceListDto> getAllServices(int pageNo, int pageSize);
+    AdvertisementPageDto getAllServices(int pageNumber, int pageSize);
 
     ServiceDetailed getServiceById(Long id);
 

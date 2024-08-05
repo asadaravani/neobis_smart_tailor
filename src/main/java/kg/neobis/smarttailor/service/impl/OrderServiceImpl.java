@@ -3,6 +3,7 @@ package kg.neobis.smarttailor.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
+import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.dtos.CurrentOrganizationOrders;
 import kg.neobis.smarttailor.dtos.OrderCard;
 import kg.neobis.smarttailor.dtos.OrganizationOrders;
@@ -107,11 +108,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrderListDto> getAllOrders(int pageNumber, int pageSize) {
+    public AdvertisementPageDto getAllOrders(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Order> orders = orderRepository.findByIsVisible(true, pageable);
         List<Order> ordersList = orders.getContent();
-        return orderMapper.entityListToDtoList(ordersList);
+        List<OrderListDto> orderListDto = orderMapper.entityListToDtoList(ordersList);
+        boolean isLast = orders.isLast();
+        return new AdvertisementPageDto(orderListDto, isLast);
     }
 
     @Override

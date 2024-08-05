@@ -4,10 +4,10 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
+import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.dtos.CurrentOrganizationOrders;
 import kg.neobis.smarttailor.dtos.OrganizationOrders;
 import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
-import kg.neobis.smarttailor.dtos.ads.list.OrderListDto;
 import kg.neobis.smarttailor.service.OrderService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -86,8 +86,8 @@ public class OrderController {
             }
     )
     @GetMapping("/get-all-orders")
-    public ResponseEntity<List<OrderListDto>> getAllOrders(@RequestParam int pageNumber,
-                                                           @RequestParam int pageSize) {
+    public ResponseEntity<AdvertisementPageDto> getAllOrders(@RequestParam int pageNumber,
+                                                             @RequestParam int pageSize) {
         return ResponseEntity.ok(orderService.getAllOrders(pageNumber, pageSize));
     }
 

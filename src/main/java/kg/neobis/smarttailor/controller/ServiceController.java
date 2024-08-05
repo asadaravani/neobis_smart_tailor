@@ -4,8 +4,8 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
+import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.dtos.ads.detailed.ServiceDetailed;
-import kg.neobis.smarttailor.dtos.ads.list.ServiceListDto;
 import kg.neobis.smarttailor.service.ServicesService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -74,7 +74,7 @@ public class ServiceController {
             }
     )
     @GetMapping("/get-all-services")
-    public ResponseEntity<List<ServiceListDto>> getAllServices(@RequestParam int pageNumber,
+    public ResponseEntity<AdvertisementPageDto> getAllServices(@RequestParam int pageNumber,
                                                                @RequestParam int pageSize) {
         return ResponseEntity.ok(servicesService.getAllServices(pageNumber, pageSize));
     }

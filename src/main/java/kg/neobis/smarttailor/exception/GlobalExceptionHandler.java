@@ -1,6 +1,7 @@
 package kg.neobis.smarttailor.exception;
 
 import jakarta.validation.ConstraintViolationException;
+import kg.neobis.smarttailor.dtos.ErrorResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,73 +14,85 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(InvalidJsonException.class)
-    public ResponseEntity<Object> handleInvalidJsonException(InvalidJsonException ex) {
+    public ResponseEntity<ErrorResponse> handleInvalidJsonException(InvalidJsonException ex) {
         log.error("InvalidJsonException: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(InvalidRequestException.class)
-    public ResponseEntity<Object> handleProductException(InvalidRequestException ex) {
+    public ResponseEntity<ErrorResponse> handleProductException(InvalidRequestException ex) {
         log.error("InvalidRequestException: ({})", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NoPermissionException.class)
-    public ResponseEntity<Object> handleNoPermissionException(NoPermissionException ex) {
+    public ResponseEntity<ErrorResponse> handleNoPermissionException(NoPermissionException ex) {
         log.error("NoPermissionException: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(OutOfDateException.class)
-    public ResponseEntity<Object> handleOutOfDateException(OutOfDateException ex) {
+    public ResponseEntity<ErrorResponse> handleOutOfDateException(OutOfDateException ex) {
         log.error("OutOfDateException: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(OutOfStockException.class)
-    public ResponseEntity<Object> handleOutOfStockException(OutOfStockException ex) {
+    public ResponseEntity<ErrorResponse> handleOutOfStockException(OutOfStockException ex) {
         log.error("OutOfStockException: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.NOT_ACCEPTABLE).body(ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_ACCEPTABLE);
     }
 
     @ExceptionHandler(PdfGenerationException.class)
-    public ResponseEntity<Object> handlePdfGenerationException(PdfGenerationException ex) {
+    public ResponseEntity<ErrorResponse> handlePdfGenerationException(PdfGenerationException ex) {
         log.error("PdfGenerationException: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @ExceptionHandler(ResourceAlreadyExistsException.class)
-    public ResponseEntity<Object> handleProductException(ResourceAlreadyExistsException ex) {
+    public ResponseEntity<ErrorResponse> handleProductException(ResourceAlreadyExistsException ex) {
         log.error("ResourceAlreadyExistsException: ({})", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
-    public ResponseEntity<Object> handleProductException(ResourceNotFoundException ex) {
+    public ResponseEntity<ErrorResponse> handleProductException(ResourceNotFoundException ex) {
         log.error("ResourceNotFoundException: ({})", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
     @ExceptionHandler(ResourceProcessingErrorException.class)
-    public ResponseEntity<Object> handleResourceProcessing(ResourceProcessingErrorException ex) {
+    public ResponseEntity<ErrorResponse> handleResourceProcessing(ResourceProcessingErrorException ex) {
         log.error("ResourceProcessingErrorException: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(UnauthorizedException.class)
-    public ResponseEntity<Object> handleNotAuthorizedException(UnauthorizedException ex) {
-        log.error("Exception UUID: {}", ex.getMessage(), ex);
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> handleNotAuthorizedException(UnauthorizedException ex) {
+        log.error("UnauthorizedException: {}", ex.getMessage(), ex);
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
     @ExceptionHandler(ConstraintViolationException.class)
-    public ResponseEntity<Object> handleConstraintViolation(ConstraintViolationException ex) {
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ex.getMessage());
+    public ResponseEntity<ErrorResponse> handleConstraintViolation(ConstraintViolationException ex) {
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleAllExceptions(Exception ex) {
+    public ResponseEntity<ErrorResponse> handleAllExceptions(Exception ex) {
         log.error("Internal Server Error: {}", ex.getMessage());
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(ex.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 }

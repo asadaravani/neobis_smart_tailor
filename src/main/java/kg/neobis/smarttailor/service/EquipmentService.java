@@ -1,5 +1,6 @@
 package kg.neobis.smarttailor.service;
 
+import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.dtos.ads.detailed.EquipmentDetailed;
 import kg.neobis.smarttailor.dtos.ads.list.EquipmentListDto;
 import kg.neobis.smarttailor.entity.AppUser;
@@ -16,7 +17,7 @@ public interface EquipmentService {
 
     String deleteEquipment(Long equipmentId) throws IOException;
 
-    List<EquipmentListDto> getAllEquipments(int pageNumber, int pageSize);
+    AdvertisementPageDto getAllEquipments(int pageNumber, int pageSize);
 
     EquipmentDetailed getEquipmentById(Long equipmentId);
 
