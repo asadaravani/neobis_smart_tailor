@@ -25,6 +25,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -107,7 +108,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<OrderListDto> getAllOrders(int pageNumber, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNumber, pageSize);
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Order> orders = orderRepository.findByIsVisible(true, pageable);
         List<Order> ordersList = orders.getContent();
         return orderMapper.entityListToDtoList(ordersList);

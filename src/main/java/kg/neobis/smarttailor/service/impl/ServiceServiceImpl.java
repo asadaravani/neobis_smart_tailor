@@ -23,6 +23,7 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -74,8 +75,8 @@ public class ServiceServiceImpl implements ServicesService {
     }
 
     @Override
-    public List<ServiceListDto> getAllServices(int pageNo, int pageSize) {
-        Pageable pageable = PageRequest.of(pageNo, pageSize);
+    public List<ServiceListDto> getAllServices(int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Services> services = serviceRepository.findByIsVisible(true, pageable);
         List<Services> servicesList = services.getContent();
         return serviceMapper.entityListToDtoList(servicesList);
