@@ -89,16 +89,20 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public String deleteOrder(Long orderId) throws IOException {
+    public String deleteOrder(Long orderId, Authentication authentication) throws IOException {
 
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
+        if (!user.getId().equals(order.getAuthor().getId())) {
+            throw new NoPermissionException("Only authors can delete their orders");
+        }
         for (Image image : order.getImages()) {
             cloudinaryService.deleteImage(image.getUrl());
         }
-
         orderRepository.delete(order);
+
         return "Order has been deleted";
     }
 

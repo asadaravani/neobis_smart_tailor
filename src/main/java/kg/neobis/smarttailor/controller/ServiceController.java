@@ -58,8 +58,8 @@ public class ServiceController {
             }
     )
     @DeleteMapping("/delete-service/{serviceId}")
-    public ResponseEntity<String> deleteService(@PathVariable Long serviceId) throws IOException {
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(servicesService.deleteService(serviceId));
+    public ResponseEntity<String> deleteService(@PathVariable Long serviceId, Authentication authentication) throws IOException {
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(servicesService.deleteService(serviceId, authentication));
     }
 
     @Operation(
