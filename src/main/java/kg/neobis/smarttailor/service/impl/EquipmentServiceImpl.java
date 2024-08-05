@@ -10,6 +10,7 @@ import com.itextpdf.text.Element;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Phrase;
 import jakarta.mail.MessagingException;
+import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Equipment;
 import kg.neobis.smarttailor.entity.Image;
@@ -92,11 +93,13 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
-    public List<EquipmentListDto> getAllEquipments(int pageNumber, int pageSize) {
+    public AdvertisementPageDto getAllEquipments(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Equipment> equipments = equipmentRepository.findByIsVisibleAndQuantityGreaterThan(true, 0, pageable);
         List<Equipment> equipmentList = equipments.getContent();
-        return equipmentMapper.entityListToDtoList(equipmentList);
+        List<EquipmentListDto> equipmentListDto = equipmentMapper.entityListToDtoList(equipmentList);
+        boolean isLast = equipments.isLast();
+        return new AdvertisementPageDto(equipmentListDto, isLast);
     }
 
     @Override

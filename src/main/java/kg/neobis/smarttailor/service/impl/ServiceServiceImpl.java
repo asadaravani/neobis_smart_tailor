@@ -2,6 +2,7 @@ package kg.neobis.smarttailor.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.dtos.ads.list.ServiceListDto;
 import kg.neobis.smarttailor.dtos.ads.request.ServiceRequestDto;
 import kg.neobis.smarttailor.dtos.ads.detailed.ServiceDetailed;
@@ -75,11 +76,13 @@ public class ServiceServiceImpl implements ServicesService {
     }
 
     @Override
-    public List<ServiceListDto> getAllServices(int pageNumber, int pageSize) {
+    public AdvertisementPageDto getAllServices(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Services> services = serviceRepository.findByIsVisible(true, pageable);
         List<Services> servicesList = services.getContent();
-        return serviceMapper.entityListToDtoList(servicesList);
+        List<ServiceListDto> serviceListDto = serviceMapper.entityListToDtoList(servicesList);
+        boolean isLast = services.isLast();
+        return new AdvertisementPageDto(serviceListDto, isLast);
     }
 
     @Override

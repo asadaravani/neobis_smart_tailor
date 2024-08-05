@@ -80,7 +80,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public String login(String requestEmail) {
         AppUser user = appUserService.findByEmail(requestEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email \"".concat(requestEmail).concat("\"")));
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with email ".concat(requestEmail)));
         ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
         emailService.sendEmailWithConfirmationCode(confirmationCode, user);
 

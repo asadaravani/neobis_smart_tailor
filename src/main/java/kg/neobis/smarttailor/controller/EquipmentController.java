@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
+import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.dtos.ads.detailed.EquipmentDetailed;
 import kg.neobis.smarttailor.dtos.ads.list.EquipmentListDto;
 import kg.neobis.smarttailor.service.EquipmentService;
@@ -81,8 +82,8 @@ public class EquipmentController {
             }
     )
     @GetMapping("/get-all-equipments")
-    public ResponseEntity<List<EquipmentListDto>> getAllEquipments(@RequestParam int pageNumber,
-                                                                   @RequestParam int pageSize) {
+    public ResponseEntity<AdvertisementPageDto> getAllEquipments(@RequestParam int pageNumber,
+                                                                 @RequestParam int pageSize) {
         return ResponseEntity.ok(equipmentService.getAllEquipments(pageNumber, pageSize));
     }
 

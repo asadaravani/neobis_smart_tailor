@@ -1,9 +1,9 @@
 package kg.neobis.smarttailor.service;
 
+import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.dtos.CurrentOrganizationOrders;
 import kg.neobis.smarttailor.dtos.OrganizationOrders;
 import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
-import kg.neobis.smarttailor.dtos.ads.list.OrderListDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Order;
 import org.springframework.security.core.Authentication;
@@ -22,7 +22,7 @@ public interface OrderService {
 
     List<Order> findAllByUser(AppUser user);
 
-    List<OrderListDto> getAllOrders(int pageNumber, int pageSize);
+    AdvertisementPageDto getAllOrders(int pageNumber, int pageSize);
 
     OrderDetailed getOrderById(Long orderId, Authentication authentication);
 
