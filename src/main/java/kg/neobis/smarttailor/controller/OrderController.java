@@ -124,7 +124,7 @@ public class OrderController {
     }
 
     @Operation(
-            summary = "ASSIGN ORDER TO ORGANIZATION",
+            summary = "ASSIGN ORGANIZATION TO ORDER",
             description = "The method accepts order id and organization's name to assign order to specified organization",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Order has been assigned to specified organization"),
@@ -135,9 +135,25 @@ public class OrderController {
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
-    @PostMapping("/assign-order-to-organization/{orderId}")
-    public ResponseEntity<String> assignOrderToOrganization(@PathVariable Long orderId, @RequestParam String organizationName, Authentication authentication) {
-        return ResponseEntity.status(HttpStatus.OK).body(orderService.assignOrderToOrganization(orderId, organizationName, authentication));
+    @PostMapping("/assign-organization-to-order/{orderId}")
+    public ResponseEntity<String> assignOrganizationToOrder(@PathVariable Long orderId, @RequestParam String organizationName, Authentication authentication) {
+        return ResponseEntity.status(HttpStatus.OK).body(orderService.assignOrganizationToOrder(orderId, organizationName, authentication));
+    }
+
+    @Operation(
+            summary = "ASSIGN EMPLOYEE TO ORDER",
+            description = "The method accepts order id and organization's name to assign order to specified organization",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Order has been assigned to specified employee"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "Order (or Employee) not found | Employee is not a member of organization"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
+    @PostMapping("/assign-employee-to-order/{orderId}")
+    public ResponseEntity<String> assignEmployeeToOrder(@PathVariable Long orderId, @RequestParam Long employeeId, Authentication authentication) {
+        return ResponseEntity.status(HttpStatus.OK).body(orderService.assignEmployeeToOrder(orderId, employeeId, authentication));
     }
 
     @Operation(

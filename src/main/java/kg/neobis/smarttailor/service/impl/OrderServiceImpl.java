@@ -3,20 +3,14 @@ package kg.neobis.smarttailor.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
-import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
-import kg.neobis.smarttailor.dtos.CurrentOrganizationOrders;
-import kg.neobis.smarttailor.dtos.OrderCard;
-import kg.neobis.smarttailor.dtos.OrganizationOrders;
+import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
 import kg.neobis.smarttailor.dtos.ads.list.OrderListDto;
 import kg.neobis.smarttailor.dtos.ads.request.OrderRequestDto;
 import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.enums.OrderStatus;
-import kg.neobis.smarttailor.exception.InvalidJsonException;
-import kg.neobis.smarttailor.exception.NoPermissionException;
-import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
-import kg.neobis.smarttailor.exception.ResourceNotFoundException;
+import kg.neobis.smarttailor.exception.*;
 import kg.neobis.smarttailor.mapper.OrderMapper;
 import kg.neobis.smarttailor.repository.OrderRepository;
 import kg.neobis.smarttailor.service.*;
@@ -66,7 +60,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public String assignOrderToOrganization(Long orderId, String organizationName, Authentication authentication) {
+    public String assignOrganizationToOrder(Long orderId, String organizationName, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         Order order = orderRepository.findById(orderId)
@@ -85,6 +79,41 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
 
         return "Order has been assigned to \"".concat(organizationName).concat("\" organization");
+    }
+
+    @Override
+    public String assignEmployeeToOrder(Long orderId, Long employeeId, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        AppUser employee = appUserService.findUserById(employeeId);
+
+        Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.ASSIGN_ORDER_TO_EMPLOYEE, user.getEmail());
+        OrganizationEmployee authenticatedOrganizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        OrganizationEmployee assignedToOrderEmployee = organizationEmployeeService.findByEmployeeEmail(employee.getEmail());
+
+        if (hasRights) {
+            if (authenticatedOrganizationEmployee.getOrganization().getId()
+                    .equals(assignedToOrderEmployee.getOrganization().getId())) {
+                if (order.getDateOfCompletion() == null) {
+                    if (!order.getOrderEmployees().contains(employee)) {
+                        order.getOrderEmployees().add(employee);
+                        orderRepository.save(order);
+
+                        return "Employee has been assigned to order";
+                    } else {
+                        throw new ResourceAlreadyExistsException("Employee is already assigned to order");
+                    }
+                } else {
+                    throw new OutOfDateException("Order is already completed");
+                }
+            } else {
+                throw new ResourceNotFoundException("User can't assign order to employee, who is not a member of organization");
+            }
+        } else {
+            throw new NoPermissionException("User has no permission to assign employee to order");
+        }
     }
 
     @Override

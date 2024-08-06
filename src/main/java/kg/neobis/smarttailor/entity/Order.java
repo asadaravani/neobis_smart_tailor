@@ -33,9 +33,7 @@ import java.util.List;
 public class Order extends Advertisement {
 
     LocalDate dateOfExecution;
-
     LocalDate dateOfStart;
-
     LocalDate dateOfCompletion;
 
     @Enumerated(EnumType.STRING)
@@ -69,4 +67,12 @@ public class Order extends Advertisement {
     @ManyToOne
     @JoinColumn
     Organization organizationExecutor;
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "order_employees",
+            joinColumns = @JoinColumn(name = "order_id"),
+            inverseJoinColumns = @JoinColumn(name = "order_employee_id")
+    )
+    List<AppUser> orderEmployees = new ArrayList<>();
 }
