@@ -16,7 +16,9 @@ public interface OrderService {
 
     String addOrder(String orderRequestDto, List<MultipartFile> images, Authentication authentication);
 
-    String assignOrderToOrganization(Long orderId, String organizationName, Authentication authentication);
+    String assignOrganizationToOrder(Long orderId, String organizationName, Authentication authentication);
+
+    String assignEmployeeToOrder(Long orderId, Long employeeId, Authentication authentication);
 
     String deleteOrder(Long orderId, Authentication authentication) throws IOException;
 

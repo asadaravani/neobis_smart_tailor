@@ -63,6 +63,12 @@ public class AppUserServiceImpl implements AppUserService {
     }
 
     @Override
+    public AppUser findUserById(Long id) {
+        return appUserRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: ".concat(String.valueOf(id))));
+    }
+
+    @Override
     public AppUser getUserFromAuthentication(Authentication authentication) {
         if (authentication != null && authentication.isAuthenticated()) {
             Object principal = authentication.getPrincipal();

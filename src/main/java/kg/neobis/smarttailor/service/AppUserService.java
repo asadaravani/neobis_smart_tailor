@@ -16,6 +16,8 @@ public interface AppUserService {
 
     AppUser findUserByEmail(String email);
 
+    AppUser findUserById(Long id);
+
     AppUser getUserFromAuthentication(Authentication authentication);
 
     AppUser save(AppUser appUser);
