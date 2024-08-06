@@ -86,7 +86,8 @@ public class ServiceServiceImpl implements ServicesService {
         List<Services> servicesList = services.getContent();
         List<ServiceListDto> serviceListDto = serviceMapper.entityListToDtoList(servicesList);
         boolean isLast = services.isLast();
-        return new AdvertisementPageDto(serviceListDto, isLast);
+        Long totalCount = services.getTotalElements();
+        return new AdvertisementPageDto(serviceListDto, isLast, totalCount);
     }
 
     @Override

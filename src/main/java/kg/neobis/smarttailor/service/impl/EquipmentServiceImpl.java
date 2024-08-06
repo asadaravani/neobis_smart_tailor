@@ -106,7 +106,8 @@ public class EquipmentServiceImpl implements EquipmentService {
         List<Equipment> equipmentList = equipments.getContent();
         List<EquipmentListDto> equipmentListDto = equipmentMapper.entityListToDtoList(equipmentList);
         boolean isLast = equipments.isLast();
-        return new AdvertisementPageDto(equipmentListDto, isLast);
+        Long totalCount = equipments.getTotalElements();
+        return new AdvertisementPageDto(equipmentListDto, isLast, totalCount);
     }
 
     @Override

@@ -147,7 +147,8 @@ public class OrderServiceImpl implements OrderService {
         List<Order> ordersList = orders.getContent();
         List<OrderListDto> orderListDto = orderMapper.entityListToDtoList(ordersList);
         boolean isLast = orders.isLast();
-        return new AdvertisementPageDto(orderListDto, isLast);
+        Long totalCount = orders.getTotalElements();
+        return new AdvertisementPageDto(orderListDto, isLast, totalCount);
     }
 
     @Override
