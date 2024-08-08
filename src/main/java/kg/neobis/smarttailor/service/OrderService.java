@@ -17,6 +17,8 @@ public interface OrderService {
 
     String assignEmployeeToOrder(Long orderId, Long employeeId, Authentication authentication);
 
+    String completeOrder(Long orderId, Authentication authentication);
+
     String deleteOrder(Long orderId, Authentication authentication) throws IOException;
 
     List<Order> findAllByUser(AppUser user);

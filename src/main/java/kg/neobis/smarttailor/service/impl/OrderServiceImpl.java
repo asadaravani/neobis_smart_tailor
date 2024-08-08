@@ -117,6 +117,38 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public String completeOrder(Long orderId, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (order.getOrganizationExecutor() == null) {
+            throw new ResourceNotFoundException("Customer hasn't chosen an executor to order");
+        }
+        Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.COMPLETE_ORDER, user.getEmail());
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+
+        if (hasRights) {
+            if (organizationEmployee.getOrganization().getId().
+                    equals(order.getOrganizationExecutor().getId())) {
+                if (order.getDateOfCompletion() == null) {
+                    order.setDateOfCompletion(LocalDate.now());
+                    orderRepository.save(order);
+
+                    return "Order has been completed";
+                } else {
+                    throw new ResourceAlreadyExistsException("Order is already completed");
+                }
+            } else {
+                throw new NoPermissionException("Order taken by another organization");
+            }
+        } else {
+            throw new NoPermissionException("User has no permission to complete order");
+        }
+    }
+
+    @Override
     @Transactional
     public String deleteOrder(Long orderId, Authentication authentication) throws IOException {
 
