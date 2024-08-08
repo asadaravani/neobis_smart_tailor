@@ -29,6 +29,8 @@ public interface OrderService {
 
     List<EmployeeStageOrderListDto> getEmployeeOrdersByStage(Long employeeId, String stage, Authentication authentication);
 
+    AuthorOrderDetailedDto getOrderDetailedForAuthor(Long orderId, Authentication authentication);
+
     List<Long> getOrderIdsByEmployee(AppUser employee);
 
     OrderDetailed getOrderById(Long orderId);
