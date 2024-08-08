@@ -153,7 +153,7 @@ public class OrderController {
     }
 
     @Operation(
-            summary = "GET EMPLOYEE'S CURRENT ORDERS",
+            summary = "GET EMPLOYEE'S ORDERS BY STAGE",
             description = "Returns list of employee's orders by stage (completed / current)",
             responses = {
                     @ApiResponse(responseCode = "200", description = "List of employee's orders received"),
@@ -181,6 +181,22 @@ public class OrderController {
     @GetMapping("/get-order-detailed/{orderId}")
     public ResponseEntity<OrderDetailed> getOrderDetailed(@PathVariable Long orderId) {
         return ResponseEntity.ok(orderService.getOrderById(orderId));
+    }
+
+    @Operation(
+            summary = "GET ORDER DETAILED FOR AUTHOR",
+            description = "Accepts order's id, and returns order's detailed information",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Order information received"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | User is not an author of this order"),
+                    @ApiResponse(responseCode = "404", description = "Order not found with specified id"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
+    @GetMapping("/get-order-detailed-for-author/{orderId}")
+    public ResponseEntity<AuthorOrderDetailedDto> getOrderDetailedForAuthor(@PathVariable Long orderId, Authentication authentication) {
+        return ResponseEntity.ok(orderService.getOrderDetailedForAuthor(orderId, authentication));
     }
 
     @Operation(

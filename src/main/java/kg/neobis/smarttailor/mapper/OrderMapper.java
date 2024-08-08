@@ -90,6 +90,33 @@ public class OrderMapper {
         );
     }
 
+    public AuthorOrderDetailedDto entityToAuthorOrderDetailedDto(Order order) {
+
+        List<OrderItemDto> items = order.getItems().stream()
+                .map(orderItem -> new OrderItemDto(orderItem.getSize(), orderItem.getQuantity()))
+                .toList();
+
+        List<OrganizationDto> candidates = order.getOrganizationCandidates().stream()
+                .map(organization -> new OrganizationDto(organization.getName(), organization.getDescription()))
+                .toList();
+
+        return new AuthorOrderDetailedDto(
+                order.getId(),
+                order.getName(),
+                order.getDescription(),
+                order.getPrice(),
+                order.getContactInfo(),
+                order.getAuthorImageUrl(order),
+                order.getFullName(order),
+                order.getImages().stream().map(Image::getUrl).collect(Collectors.toList()),
+                order.getDateOfExecution(),
+                order.getStatus(),
+                items,
+                candidates
+        );
+    }
+
+
     public MyAdvertisement toMyAdvertisement(Order order) {
         return MyAdvertisement.builder()
                 .id(order.getId())

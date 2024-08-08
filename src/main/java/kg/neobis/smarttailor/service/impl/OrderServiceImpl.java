@@ -231,6 +231,18 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public AuthorOrderDetailedDto getOrderDetailedForAuthor(Long orderId, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Order order = orderRepository.findById(orderId).
+                orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        if (!order.getAuthor().getId().equals(user.getId())) {
+            throw new NoPermissionException("User is not an author of this order");
+        }
+        return orderMapper.entityToAuthorOrderDetailedDto(order);
+    }
+
+    @Override
     public List<Long> getOrderIdsByEmployee(AppUser employee) {
         return findAllByEmployee(employee)
                 .stream()
