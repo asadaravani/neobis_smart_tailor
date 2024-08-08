@@ -157,7 +157,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<EmployeeOrderListDto> getEmployeeCurrentOrders(Long employeeId, Authentication authentication) {
+    public List<EmployeeStageOrderListDto> getEmployeeOrdersByStage(Long employeeId, String stage, Authentication authentication) {
+
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         Organization organization = organizationEmployeeService.findByEmployeeEmail(user.getEmail()).getOrganization();
         AppUser employee = appUserService.findUserById(employeeId);
@@ -166,9 +167,15 @@ public class OrderServiceImpl implements OrderService {
         if (!isEmployeeInOrganization) {
             throw new NoPermissionException("Employee is not a member of your organization");
         }
-        List<Order> employeeCurrentOrders = orderRepository.findCurrentEmployeeOrders(employee);
-
-        return orderMapper.entityListToEmployeeOrderListDto(employeeCurrentOrders);
+        List<Order> employeeOrders;
+        if (stage.equals("current")) {
+            employeeOrders = orderRepository.findCurrentEmployeeOrders(employee);
+        } else if (stage.equals("completed")) {
+            employeeOrders = orderRepository.findCompletedEmployeeOrders(employee);
+        } else {
+            throw new ResourceNotFoundException("Invalid state.\nValid states: completed, current");
+        }
+        return orderMapper.entityListToEmployeeStageOrderListDto(employeeOrders, stage);
     }
 
     @Override

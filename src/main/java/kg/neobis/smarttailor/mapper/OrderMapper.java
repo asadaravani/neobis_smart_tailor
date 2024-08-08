@@ -53,20 +53,21 @@ public class OrderMapper {
         )).collect(Collectors.toList());
     }
 
-    public List<EmployeeOrderListDto> entityListToEmployeeOrderListDto(List<Order> orders) {
-        return orders.stream().map(order -> new EmployeeOrderListDto(
-                order.getId(),
-                order.getName(),
-                order.getDescription(),
-                order.getDateOfStart(),
-                order.getPrice(),
-                order.getOrderEmployees().stream()
-                        .map(AppUserMapper::appUserToEmployeeDto)
-                        .collect(Collectors.toList()),
-                order.getFullName(order),
-                order.getAuthorImageUrl(order),
-                order.getContactInfo()
-        )).collect(Collectors.toList());
+    public List<EmployeeStageOrderListDto> entityListToEmployeeStageOrderListDto(List<Order> orders, String stage) {
+        return orders.stream().map(order -> EmployeeStageOrderListDto.builder()
+                        .id(order.getId())
+                        .name(order.getName())
+                        .description(order.getDescription())
+                        .price(order.getPrice())
+                        .date(stage.equals("completed") ? order.getDateOfCompletion() : order.getDateOfStart())
+                        .employees(order.getOrderEmployees().stream()
+                                .map(AppUserMapper::appUserToEmployeeDto)
+                                .collect(Collectors.toList()))
+                        .authorFullName(order.getFullName(order))
+                        .authorImage(order.getAuthorImageUrl(order))
+                        .authorContactInfo(order.getContactInfo())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     public OrderDetailed entityToDto(Order order) {
