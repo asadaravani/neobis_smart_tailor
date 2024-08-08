@@ -89,6 +89,24 @@ public class OrderController {
     }
 
     @Operation(
+            summary = "COMPLETE ORDER",
+            description = "Accepts order's id and changes order status to completed",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Order has been completed"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | Order taken by another organization | User has no permission to complete order"),
+                    @ApiResponse(responseCode = "404", description = "Order not found with specified id | Customer hasn't chosen an executor to order"),
+                    @ApiResponse(responseCode = "409", description = "Order is already completed"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            }
+    )
+    @GetMapping("/complete/{orderId}")
+    public ResponseEntity<String> completeOrder(@PathVariable Long orderId, Authentication authentication) {
+        return ResponseEntity.ok(orderService.completeOrder(orderId, authentication));
+    }
+
+    @Operation(
             summary = "DELETE ORDER",
             description = "Deletes order by id",
             responses = {
