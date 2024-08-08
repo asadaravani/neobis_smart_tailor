@@ -27,6 +27,7 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.time.LocalDateTime;
 import java.util.EnumSet;
 import java.util.Set;
@@ -75,7 +76,7 @@ public class OrganizationServiceImpl implements OrganizationService {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
         if (!user.getHasSubscription()) {
-            throw new ResourceNotFoundException("User has no subscription");
+            throw new NoPermissionException("User has no subscription");
         }
         if (organizationRepository.existsOrganizationByDirector(user)) {
             throw new ResourceAlreadyExistsException("User already has an organization");
@@ -89,22 +90,22 @@ public class OrganizationServiceImpl implements OrganizationService {
         organizationRepository.save(organization);
         Set<AccessRight> accessRights = EnumSet.allOf(AccessRight.class);
 
-        Position adminPosition = Position.builder()
+        Position directorPosition = Position.builder()
                 .name("Директор")
                 .accessRights(accessRights)
                 .organization(organization)
                 .build();
-        positionService.save(adminPosition);
-        Position directorPosition = Position.builder()
+        positionService.save(directorPosition);
+        Position adminPosition = Position.builder()
                 .name("Администратор")
                 .accessRights(accessRights)
                 .organization(organization)
                 .build();
-        positionService.save(directorPosition);
+        positionService.save(adminPosition);
 
         OrganizationEmployee organizationEmployee = OrganizationEmployee.builder()
                 .organization(organization)
-                .position(directorPosition)
+                .position(adminPosition)
                 .employee(user)
                 .build();
         organizationEmployeeService.save(organizationEmployee);
@@ -113,19 +114,21 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public OrganizationDetailed getOrganization(String email) {
-        return organizationMapper.toOrganizationDetailed(findOrganizationByDirectorOrEmployee(email));
-    }
-
-    @Override
-    public Organization findOrganizationByDirectorOrEmployee(String email){
+    public Organization findOrganizationByDirectorOrEmployee(String email) {
         try {
             return organizationRepository.findByDirectorEmail(email)
                     .orElse(organizationEmployeeService.findByEmployeeEmail(email).getOrganization());
-        }catch (Exception e){
-            throw new ResourceNotFoundException("Organization Not Found");
+        } catch (Exception e) {
+            throw new ResourceNotFoundException("Organization not found");
         }
     }
+
+    @Override
+    public OrganizationDetailed getOrganization(Authentication authentication) {
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        return organizationMapper.toOrganizationDetailed(findOrganizationByDirectorOrEmployee(user.getEmail()));
+    }
+
     @Override
     public Organization getOrganizationByName(String organizationName) {
         return organizationRepository.findByName(organizationName)
@@ -143,26 +146,27 @@ public class OrganizationServiceImpl implements OrganizationService {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
         EmployeeInvitationRequest employeeInvitationRequest = parseAndValidateEmployeeInvitationRequest(request);
-        Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.ADD_EMPLOYEE, user.getEmail());
+        Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.INVITE_EMPLOYEE, user.getEmail());
         Boolean isUserExists = appUserService.existsUserByEmail(employeeInvitationRequest.email());
 
         AppUser employee;
         if (hasRights) {
             if (isUserExists) {
-                if (organizationRepository.existsOrganizationByDirectorEmail(employeeInvitationRequest.email()))
+                if (organizationRepository.existsOrganizationByDirectorEmail(employeeInvitationRequest.email())) {
                     throw new ResourceAlreadyExistsException("User has his own organization");
-
-                if (organizationEmployeeService.existsByOrganizationAndEmployeeEmail(organizationEmployee.getOrganization(), employeeInvitationRequest.email()))
+                }
+                if (organizationEmployeeService.existsByOrganizationAndEmployeeEmail(organizationEmployee.getOrganization(), employeeInvitationRequest.email())) {
                     throw new ResourceAlreadyExistsException("User is already a member of your organization");
-
-                if (organizationEmployeeService.existsByEmployeeEmail(employeeInvitationRequest.email()))
+                }
+                if (organizationEmployeeService.existsByEmployeeEmail(employeeInvitationRequest.email())) {
                     throw new ResourceAlreadyExistsException("User is already a member of another organization");
+                }
             }
 
             Position position = positionService.getPositionByName(employeeInvitationRequest.position());
-            if (position == null)
+            if (position == null) {
                 throw new ResourceNotFoundException("Specified position not found");
-
+            }
             if (!isUserExists) {
                 employee = AppUser.builder()
                         .surname(employeeInvitationRequest.surname())
@@ -176,13 +180,13 @@ public class OrganizationServiceImpl implements OrganizationService {
                         .hasSubscription(false)
                         .build();
                 employee = appUserService.save(employee);
-            } else
+            } else {
                 employee = appUserService.findUserByEmail(employeeInvitationRequest.email());
-
+            }
             InvitationToken invitationToken = invitationTokenService.findByUser(employee);
-            if (invitationToken != null)
+            if (invitationToken != null) {
                 invitationTokenService.delete(invitationToken);
-
+            }
             invitationToken = invitationTokenService.generateInvitationToken(employee, organizationEmployee.getOrganization(), position);
             MimeMessage message = emailService.createInvitationEmployeeMail(user, employee.getEmail(), invitationToken, organizationEmployee.getOrganization(), position);
             emailService.sendEmail(message);

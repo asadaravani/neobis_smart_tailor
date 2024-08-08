@@ -3,15 +3,13 @@ package kg.neobis.smarttailor.service;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.ConfirmationCode;
 
-import java.util.Optional;
-
 public interface ConfirmationCodeService {
 
     void delete(ConfirmationCode confirmationCode);
 
-    Optional<ConfirmationCode> findByUser(AppUser user);
+    ConfirmationCode findByUserAndCode(AppUser user, Integer code);
 
-    Optional<ConfirmationCode> findByUserAndCode(AppUser user, Integer code);
+    ConfirmationCode findCodeByUser(AppUser user);
 
     ConfirmationCode findConfirmationCodeByUser(AppUser user);
 

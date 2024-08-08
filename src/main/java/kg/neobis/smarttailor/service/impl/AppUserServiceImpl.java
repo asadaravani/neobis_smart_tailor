@@ -2,24 +2,19 @@ package kg.neobis.smarttailor.service.impl;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import kg.neobis.smarttailor.entity.AppUser;
-import kg.neobis.smarttailor.entity.SubscriptionToken;
+import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.exception.OutOfDateException;
 import kg.neobis.smarttailor.exception.UnauthorizedException;
 import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
 import kg.neobis.smarttailor.exception.ResourceNotFoundException;
 import kg.neobis.smarttailor.repository.AppUserRepository;
-import kg.neobis.smarttailor.service.AppUserService;
-import kg.neobis.smarttailor.service.EmailService;
-import kg.neobis.smarttailor.service.OrganizationEmployeeService;
-import kg.neobis.smarttailor.service.SubscriptionTokenService;
+import kg.neobis.smarttailor.service.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -49,11 +44,6 @@ public class AppUserServiceImpl implements AppUserService {
     @Override
     public Boolean existsUserByEmail(String email) {
         return appUserRepository.existsUserByEmail(email);
-    }
-
-    @Override
-    public Optional<AppUser> findByEmail(String email) {
-        return appUserRepository.findByEmail(email);
     }
 
     @Override

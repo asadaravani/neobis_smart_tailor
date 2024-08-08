@@ -33,14 +33,14 @@ public class PositionController {
 
     @Operation(
             summary = "CREATE POSITION",
-            description = "The method accepts position's name and permissions to create the position in organization",
+            description = "Accepts position's name and permissions to create the position in organization",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Position has been created"),
                     @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "404", description = "User has no permission to create position"),
-                    @ApiResponse(responseCode = "409", description = "Position with specified name already exists "),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | User has no permission to create position"),
+                    @ApiResponse(responseCode = "409", description = "Position with specified name already exists"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @PostMapping("/add-position")
@@ -50,12 +50,12 @@ public class PositionController {
 
     @Operation(
             summary = "GET ALL POSITIONS",
-            description = "The method accepts user's data and and displays a list of positions in the organization in which he is a member",
+            description = "Accepts user's data and and displays a list of positions in the organization in which he is a member",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Position list has been received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "404", description = "User is not a member of any organization"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @GetMapping("/get-all-positions")

@@ -24,9 +24,13 @@ public interface OrderService {
 
     List<Order> findAllByUser(AppUser user);
 
+    List<Order> findAllByEmployee(AppUser employee);
+
     AdvertisementPageDto getAllOrders(int pageNumber, int pageSize);
 
-    OrderDetailed getOrderById(Long orderId, Authentication authentication);
+    List<Long> getOrderIdsByEmployee(AppUser employee);
+
+    OrderDetailed getOrderById(Long orderId);
 
     String hideOrder(Long orderId, Authentication authentication);
 

@@ -2,6 +2,7 @@ package kg.neobis.smarttailor.service.impl;
 
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.ConfirmationCode;
+import kg.neobis.smarttailor.exception.ResourceNotFoundException;
 import kg.neobis.smarttailor.repository.ConfirmationCodeRepository;
 import kg.neobis.smarttailor.service.ConfirmationCodeService;
 import lombok.AccessLevel;
@@ -9,7 +10,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 import java.util.Random;
 
 @Service
@@ -17,26 +17,27 @@ import java.util.Random;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class ConfirmationCodeServiceImpl implements ConfirmationCodeService {
 
-    ConfirmationCodeRepository repository;
+    ConfirmationCodeRepository confirmationCodeRepository;
 
     @Override
     public void delete(ConfirmationCode confirmationCode) {
-        repository.delete(confirmationCode);
+        confirmationCodeRepository.delete(confirmationCode);
     }
 
     @Override
-    public Optional<ConfirmationCode> findByUser(AppUser user) {
-        return repository.findByUser(user);
+    public ConfirmationCode findCodeByUser(AppUser user) {
+        return confirmationCodeRepository.findByUser(user);
     }
 
     @Override
-    public Optional<ConfirmationCode> findByUserAndCode(AppUser user, Integer code) {
-        return repository.findByUserAndCode(user, code);
+    public ConfirmationCode findByUserAndCode(AppUser user, Integer code) {
+        return confirmationCodeRepository.findByUserAndCode(user, code)
+                .orElseThrow(() -> new ResourceNotFoundException("Confirmation code not found for user with email ".concat(user.getEmail())));
     }
 
     @Override
     public ConfirmationCode findConfirmationCodeByUser(AppUser user) {
-        return repository.findConfirmationCodeByUser(user);
+        return confirmationCodeRepository.findConfirmationCodeByUser(user);
     }
 
     @Override
@@ -46,12 +47,12 @@ public class ConfirmationCodeServiceImpl implements ConfirmationCodeService {
         Integer code = random.nextInt(1000, 9999);
         confirmationCode.setCode(code);
         confirmationCode.setUser(user);
-        repository.save(confirmationCode);
+        confirmationCodeRepository.save(confirmationCode);
         return confirmationCode;
     }
 
     @Override
     public void save(ConfirmationCode confirmationCode) {
-        repository.save(confirmationCode);
+        confirmationCodeRepository.save(confirmationCode);
     }
 }

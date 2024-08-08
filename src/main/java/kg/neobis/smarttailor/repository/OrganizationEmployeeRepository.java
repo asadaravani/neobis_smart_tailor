@@ -6,6 +6,7 @@ import kg.neobis.smarttailor.enums.AccessRight;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -16,6 +17,8 @@ public interface OrganizationEmployeeRepository extends JpaRepository<Organizati
     Boolean existsByOrganizationAndEmployeeEmail(Organization organization, String employeeEmail);
 
     Boolean existsByPosition_AccessRightsIsContainingAndEmployeeEmail(AccessRight accessRight, String employeeEmail);
+
+    List<OrganizationEmployee> findAllByOrganization(Organization organization);
 
     Optional<OrganizationEmployee> findByEmployeeEmail(String email);
 }

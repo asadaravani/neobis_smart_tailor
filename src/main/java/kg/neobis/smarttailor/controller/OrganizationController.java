@@ -25,52 +25,45 @@ import org.springframework.web.multipart.MultipartFile;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class OrganizationController {
 
-    OrganizationService service;
+    OrganizationService organizationService;
 
-    @Operation(
-            summary = "ACCEPT INVITATION TO ORGANIZATION",
-            description = "User who has been sent an invitation to join the organization can accept it by clicking on the button",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "User accepted invitation"),
-                    @ApiResponse(responseCode = "400", description = "Token has been expired"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
-            }
-    )
     @RequestMapping(value = "/accept-invitation", method = {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<?> acceptInvitation(@RequestParam("token") String invitingToken) {
-        return service.acceptInvitation(invitingToken);
+        return organizationService.acceptInvitation(invitingToken);
     }
 
     @Operation(
             summary = "CREATE ORGANIZATION",
-            description = "The method accepts organization's name, description and photo to create the organization",
+            description = "Accepts organization's name, description and photo to create the organization",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Organization has been created"),
                     @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "404", description = "User has no subscription"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | User has no subscription"),
                     @ApiResponse(responseCode = "409", description = "User already has organization | Organization with specified name already exists "),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @PostMapping("/create-organization")
     public ResponseEntity<String> createOrganization(@RequestPart("organization") String organization,
                                                      @RequestPart("image") MultipartFile image,
                                                      Authentication authentication) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.createOrganization(organization, image, authentication));
+        return ResponseEntity.status(HttpStatus.CREATED).body(organizationService.createOrganization(organization, image, authentication));
     }
 
     @Operation(
-            summary = "GET ORGANIZATION",
+            summary = "GET ORGANIZATION DETAILED",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "SUCCESS"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "404", description = "User has no subscription "),
+                    @ApiResponse(responseCode = "200", description = "Organization information received"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "404", description = "Organization not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
-    @GetMapping
+    @GetMapping("/get-organization-detailed")
     public OrganizationDetailed getOrganization(Authentication authentication){
-        return service.getOrganization(authentication.getName());
+        return organizationService.getOrganization(authentication);
     }
 
     @Operation(
@@ -79,14 +72,15 @@ public class OrganizationController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Invitation has been sent"),
                     @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "404", description = "User has no permission to invite employee | User has no organization | Specified position not found"),
-                    @ApiResponse(responseCode = "409", description = "Employee has his own organization | Employee is already a member of another organization"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | User has no permission to invite employee"),
+                    @ApiResponse(responseCode = "404", description = "User has no organization | Specified position not found"),
+                    @ApiResponse(responseCode = "409", description = "Employee has his own organization | Employee is already a member of another organization | Employee is already a member of your organization"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
     @PostMapping("/send-invitation")
     public ResponseEntity<?> sendInvitation(@RequestPart("employee") String request, Authentication authentication) throws MessagingException {
-        return ResponseEntity.status(HttpStatus.OK).body(service.sendInvitation(request, authentication));
+        return ResponseEntity.status(HttpStatus.OK).body(organizationService.sendInvitation(request, authentication));
     }
 }

@@ -48,7 +48,7 @@ public class PositionServiceImpl implements PositionService {
 
         if (hasRights) {
             if (positionRepository.existsPositionByNameAndOrganization(positionRequestDto.positionName(), organizationEmployee.getOrganization())) {
-                throw new ResourceAlreadyExistsException("Position with name \"".concat(positionRequestDto.positionName()).concat("\" already exists"));
+                throw new ResourceAlreadyExistsException("Position with name '".concat(positionRequestDto.positionName()).concat("' already exists"));
             }
             Position position = positionMapper.dtoToEntity(positionRequestDto, organizationEmployee.getOrganization());
             positionRepository.save(position);

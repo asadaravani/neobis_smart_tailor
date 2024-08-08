@@ -3,6 +3,7 @@ package kg.neobis.smarttailor.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import kg.neobis.smarttailor.constants.EndpointConstants;
 import kg.neobis.smarttailor.dtos.UserProfileDto;
 import kg.neobis.smarttailor.dtos.UserProfileEditRequest;
@@ -12,9 +13,16 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -27,38 +35,71 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PersonalAccountController {
 
-    PersonalAccountService service;
+    PersonalAccountService personalAccountService;
 
-    @Operation(summary = "User Profile", description = "May change to token or Id")
+    @Operation(
+            summary = "USER'S INFORMATION",
+            description = "Returns user's personal information",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "User's information received"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            }
+    )
     @GetMapping("/profile")
-    public UserProfileDto getUserProfile(Authentication authentication) {
-        return service.getUserProfile(authentication.getName());
+    public ResponseEntity<UserProfileDto> getUserProfile(Authentication authentication) {
+        return ResponseEntity.ok(personalAccountService.getUserProfile(authentication));
+    }
+
+    @Operation(
+            summary = "EDIT USER'S INFORMATION",
+            description = "Accepts changed data and saves it",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "User's data has been changed"),
+                    @ApiResponse(responseCode = "400", description = "Invalid request content"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            }
+    )
+    @PutMapping("/profile/edit")
+    public ResponseEntity<?> editProfile(@Valid @RequestBody UserProfileEditRequest request,
+                                         Authentication authentication) {
+        return ResponseEntity.ok(personalAccountService.editProfile(request, authentication));
+    }
+
+    @Operation(
+            summary = "USER'S ADVERTISEMENTS",
+            description = "Returns advertisements created by user",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "User's advertisements received"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            })
+    @GetMapping("/my-advertisements")
+    public ResponseEntity<List<MyAdvertisement>> getMyAdvertisements(@RequestParam int pageNumber,
+                                                                     @RequestParam int pageSize,
+                                                                     Authentication authentication) {
+        return ResponseEntity.ok(personalAccountService.getUserAdvertisements(pageNumber, pageSize, authentication));
     }
 
     @SneakyThrows
-    @PostMapping("/profile/uploadImage")
-    @Operation(summary = "Set an avatar",
-            description = "Sets an image to User, removes previous image from the Cloudinary")
-    public void uploadProfileImage(@RequestParam("file") MultipartFile file, Authentication authentication) {
-        service.uploadProfileImage(file, authentication.getName());
-    }
-
-    @PutMapping("/profile/edit")
-    @Operation(summary = "Edits User's Profile Info",
-            description = "It does not validate or check any fields of the request, but sets them directly")
-    public void editProfile(@RequestBody UserProfileEditRequest request, Authentication authentication) {
-        service.editProfile(request, authentication.getName());
-    }
-
-    @Operation(summary = "My Advertisements",
+    @Operation(
+            summary = "UPLOAD PROFILE IMAGE",
+            description = "Sets an image to user, removes previous image from the Cloudinary",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Success"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
-            })
-    @GetMapping("/my-advertisements/{pageNo}/{pageSize}")
-    public List<MyAdvertisement> getMyAdvertisements(@PathVariable int pageNo, @PathVariable int pageSize,
-                                                     Authentication authentication) {
-        return service.getUserAds(pageNo, pageSize, authentication.getName());
+                    @ApiResponse(responseCode = "200", description = "Profile image has been uploaded"),
+                    @ApiResponse(responseCode = "400", description = "Invalid request content"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            }
+    )
+    @PostMapping("/profile/uploadImage")
+    public ResponseEntity<?> uploadProfileImage(@RequestParam("file") MultipartFile file,
+                                                Authentication authentication) {
+        return ResponseEntity.ok(personalAccountService.uploadProfileImage(file, authentication));
     }
 }

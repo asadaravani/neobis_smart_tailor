@@ -13,6 +13,7 @@ import kg.neobis.smarttailor.entity.ConfirmationCode;
 import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.entity.RefreshToken;
 import kg.neobis.smarttailor.enums.Role;
+import kg.neobis.smarttailor.exception.InvalidRequestException;
 import kg.neobis.smarttailor.exception.OutOfDateException;
 import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
 import kg.neobis.smarttailor.exception.ResourceNotFoundException;
@@ -46,15 +47,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Transactional
     public LoginResponse confirmEmail(String requestEmail, Integer requestCode) {
 
-        AppUser user = appUserService.findByEmail(requestEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email \"".concat(requestEmail).concat("\"")));
-        ConfirmationCode confirmationCode = confirmationCodeService.findByUserAndCode(user, requestCode)
-                .orElseThrow(() -> new ResourceNotFoundException("Confirmation code not found for user with email \"".concat(requestEmail).concat("\"")));
+        AppUser user = appUserService.findUserByEmail(requestEmail);
+        ConfirmationCode confirmationCode = confirmationCodeService.findByUserAndCode(user, requestCode);
 
         if (confirmationCode.isExpired()) {
-            throw new OutOfDateException("Confirmation code has expired");
+            throw new OutOfDateException("Confirmation code has been expired");
         }
-
         if (confirmationCode.getCode().equals(requestCode)) {
             user.setEnabled(true);
             appUserService.save(user);
@@ -62,7 +60,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
             var jwtToken = jwtUtil.generateToken(user);
             var refreshToken = jwtUtil.generateRefreshToken(user);
-
             RefreshToken refreshTokenToSave = RefreshToken.builder()
                     .token(refreshToken)
                     .build();
@@ -79,8 +76,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public String login(String requestEmail) {
-        AppUser user = appUserService.findByEmail(requestEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email ".concat(requestEmail)));
+        AppUser user = appUserService.findUserByEmail(requestEmail);
         ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
         emailService.sendEmailWithConfirmationCode(confirmationCode, user);
 
@@ -94,18 +90,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             String jwtToken = authHeader.substring(7);
             blackListTokenService.addTokenToBlacklist(jwtToken);
             return "Log out completed";
+        } else {
+            throw new InvalidRequestException("Invalid authorization header");
         }
-        return "Invalid authorization header";
     }
 
     @Override
     public AccessToken refreshToken(String refreshToken) {
-
-        if (!refreshTokenService.existsByToken(refreshToken))
+        if (!refreshTokenService.existsByToken(refreshToken)) {
             throw new ResourceNotFoundException("Refresh token not found");
+        }
         if (jwtUtil.isRefreshTokenExpired(refreshToken)) {
             refreshTokenService.deleteExpiredTokens();
-            throw new OutOfDateException("Refresh token has expired");
+            throw new OutOfDateException("Refresh token has been expired");
         }
         String username = jwtUtil.extractUsername(refreshToken);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
@@ -118,20 +115,16 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public String resendConfirmationCode(String requestEmail) {
-
-        AppUser user = appUserService.findByEmail(requestEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with email \n".concat(requestEmail).concat("\"")));
-        ConfirmationCode confirmationCode = confirmationCodeService.findByUser(user)
-                .orElse(null);
+        AppUser user = appUserService.findUserByEmail(requestEmail);
+        ConfirmationCode confirmationCode = confirmationCodeService.findCodeByUser(user);
         emailService.sendEmailWithConfirmationCode(confirmationCode, user);
 
-        return "Confirmation code has been resent to the ".concat(requestEmail);
+        return "Confirmation code has been sent to the ".concat(requestEmail);
     }
 
     @Override
     @Transactional
     public String signUp(SignUpRequest request) {
-
         AppUser user;
         if (!appUserService.existsUserByEmail(request.email())) {
             user = AppUser.builder()
@@ -149,7 +142,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         } else {
             user = appUserService.findUserByEmail(request.email());
             if (user.isEnabled()) {
-                throw new ResourceAlreadyExistsException("User with email \"".concat(request.email()).concat("\" is already exists"));
+                throw new ResourceAlreadyExistsException("User with email '".concat(request.email()).concat("' is already exists"));
             } else {
                 ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
                 if (confirmationCode != null) {
