@@ -2,7 +2,7 @@ package kg.neobis.smarttailor.service;
 
 import kg.neobis.smarttailor.dtos.UserProfileDto;
 import kg.neobis.smarttailor.dtos.UserProfileEditRequest;
-import kg.neobis.smarttailor.dtos.ads.MyAdvertisement;
+import kg.neobis.smarttailor.dtos.MyAdvertisement;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
 

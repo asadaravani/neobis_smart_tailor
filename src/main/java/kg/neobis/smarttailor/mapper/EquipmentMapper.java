@@ -1,9 +1,9 @@
 package kg.neobis.smarttailor.mapper;
 
-import kg.neobis.smarttailor.dtos.ads.detailed.EquipmentDetailed;
-import kg.neobis.smarttailor.dtos.ads.list.EquipmentListDto;
-import kg.neobis.smarttailor.dtos.ads.request.EquipmentRequestDto;
-import kg.neobis.smarttailor.dtos.ads.MyAdvertisement;
+import kg.neobis.smarttailor.dtos.EquipmentDetailed;
+import kg.neobis.smarttailor.dtos.EquipmentListDto;
+import kg.neobis.smarttailor.dtos.EquipmentRequestDto;
+import kg.neobis.smarttailor.dtos.MyAdvertisement;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Equipment;
 import kg.neobis.smarttailor.entity.Image;

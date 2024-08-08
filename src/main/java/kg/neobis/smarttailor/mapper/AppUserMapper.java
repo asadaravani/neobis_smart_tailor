@@ -1,5 +1,6 @@
 package kg.neobis.smarttailor.mapper;
 
+import kg.neobis.smarttailor.dtos.EmployeeDto;
 import kg.neobis.smarttailor.dtos.EmployeeListDto;
 import kg.neobis.smarttailor.dtos.UserProfileDto;
 import kg.neobis.smarttailor.entity.AppUser;
@@ -22,6 +23,13 @@ public class AppUserMapper {
                 user.getPhoneNumber(),
                 user.getHasSubscription(),
                 inOrganization
+        );
+    }
+
+    public static EmployeeDto appUserToEmployeeDto(AppUser appUser) {
+        return new EmployeeDto(
+                String.format("%s %s %s", appUser.getSurname(), appUser.getName(), appUser.getPatronymic()),
+                appUser.getImage() != null ? appUser.getImage().getUrl() : null
         );
     }
 

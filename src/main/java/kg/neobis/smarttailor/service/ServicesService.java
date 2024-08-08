@@ -1,7 +1,7 @@
 package kg.neobis.smarttailor.service;
 
 import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
-import kg.neobis.smarttailor.dtos.ads.detailed.ServiceDetailed;
+import kg.neobis.smarttailor.dtos.ServiceDetailed;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Services;
 import org.springframework.security.core.Authentication;

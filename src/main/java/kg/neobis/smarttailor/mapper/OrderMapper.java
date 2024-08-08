@@ -1,12 +1,6 @@
 package kg.neobis.smarttailor.mapper;
 
-import kg.neobis.smarttailor.dtos.OrderCard;
-import kg.neobis.smarttailor.dtos.OrderItemDto;
-import kg.neobis.smarttailor.dtos.OrganizationOrders;
-import kg.neobis.smarttailor.dtos.ads.MyAdvertisement;
-import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
-import kg.neobis.smarttailor.dtos.ads.list.OrderListDto;
-import kg.neobis.smarttailor.dtos.ads.request.OrderRequestDto;
+import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.entity.Order;
@@ -56,6 +50,22 @@ public class OrderMapper {
                 order.getFirstImage(order.getImages()),
                 order.getFullName(order),
                 order.getAuthorImageUrl(order)
+        )).collect(Collectors.toList());
+    }
+
+    public List<EmployeeOrderListDto> entityListToEmployeeOrderListDto(List<Order> orders) {
+        return orders.stream().map(order -> new EmployeeOrderListDto(
+                order.getId(),
+                order.getName(),
+                order.getDescription(),
+                order.getDateOfStart(),
+                order.getPrice(),
+                order.getOrderEmployees().stream()
+                        .map(AppUserMapper::appUserToEmployeeDto)
+                        .collect(Collectors.toList()),
+                order.getFullName(order),
+                order.getAuthorImageUrl(order),
+                order.getContactInfo()
         )).collect(Collectors.toList());
     }
 

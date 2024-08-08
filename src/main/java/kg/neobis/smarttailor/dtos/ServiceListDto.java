@@ -1,4 +1,4 @@
-package kg.neobis.smarttailor.dtos.ads.list;
+package kg.neobis.smarttailor.dtos;
 
 import java.io.Serializable;
 import java.math.BigDecimal;

@@ -7,7 +7,7 @@ import jakarta.validation.Valid;
 import kg.neobis.smarttailor.constants.EndpointConstants;
 import kg.neobis.smarttailor.dtos.UserProfileDto;
 import kg.neobis.smarttailor.dtos.UserProfileEditRequest;
-import kg.neobis.smarttailor.dtos.ads.MyAdvertisement;
+import kg.neobis.smarttailor.dtos.MyAdvertisement;
 import kg.neobis.smarttailor.service.PersonalAccountService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

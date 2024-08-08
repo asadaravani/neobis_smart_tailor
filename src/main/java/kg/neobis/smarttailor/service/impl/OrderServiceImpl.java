@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import kg.neobis.smarttailor.dtos.*;
-import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
-import kg.neobis.smarttailor.dtos.ads.list.OrderListDto;
-import kg.neobis.smarttailor.dtos.ads.request.OrderRequestDto;
+import kg.neobis.smarttailor.dtos.OrderDetailed;
+import kg.neobis.smarttailor.dtos.OrderListDto;
+import kg.neobis.smarttailor.dtos.OrderRequestDto;
 import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.enums.OrderStatus;
@@ -154,6 +154,21 @@ public class OrderServiceImpl implements OrderService {
         boolean isLast = orders.isLast();
         Long totalCount = orders.getTotalElements();
         return new AdvertisementPageDto(orderListDto, isLast, totalCount);
+    }
+
+    @Override
+    public List<EmployeeOrderListDto> getEmployeeCurrentOrders(Long employeeId, Authentication authentication) {
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Organization organization = organizationEmployeeService.findByEmployeeEmail(user.getEmail()).getOrganization();
+        AppUser employee = appUserService.findUserById(employeeId);
+
+        Boolean isEmployeeInOrganization = organizationEmployeeService.existsByOrganizationAndEmployeeEmail(organization, employee.getEmail());
+        if (!isEmployeeInOrganization) {
+            throw new NoPermissionException("Employee is not a member of your organization");
+        }
+        List<Order> employeeCurrentOrders = orderRepository.findCurrentEmployeeOrders(employee);
+
+        return orderMapper.entityListToEmployeeOrderListDto(employeeCurrentOrders);
     }
 
     @Override

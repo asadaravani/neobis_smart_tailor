@@ -2,7 +2,7 @@ package kg.neobis.smarttailor.service.impl;
 
 import kg.neobis.smarttailor.dtos.UserProfileDto;
 import kg.neobis.smarttailor.dtos.UserProfileEditRequest;
-import kg.neobis.smarttailor.dtos.ads.MyAdvertisement;
+import kg.neobis.smarttailor.dtos.MyAdvertisement;
 import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.exception.ResourceProcessingErrorException;
 import kg.neobis.smarttailor.mapper.AppUserMapper;
