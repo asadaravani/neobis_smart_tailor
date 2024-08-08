@@ -17,6 +17,4 @@ public interface EmailService {
     void sendEmail(MimeMessage email);
 
     void sendEmailWithConfirmationCode(ConfirmationCode confirmationCode, AppUser user);
-
-    void sendEmailWithReceiptPDF(AppUser user, byte[] pdfFile) throws MessagingException, IOException;
 }

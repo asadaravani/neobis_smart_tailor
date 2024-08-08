@@ -2,7 +2,6 @@ package kg.neobis.smarttailor.service.impl;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
-import jakarta.mail.util.ByteArrayDataSource;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.ConfirmationCode;
 import kg.neobis.smarttailor.entity.InvitationToken;
@@ -19,9 +18,6 @@ import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.context.Context;
 import org.thymeleaf.spring6.SpringTemplateEngine;
-
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -111,14 +107,4 @@ public class EmailServiceImpl implements EmailService {
         sendEmail(simpleMailMessage);
     }
 
-    @Override
-    public void sendEmailWithReceiptPDF(AppUser user, byte[] pdfFile) throws MessagingException, IOException {
-        MimeMessage message = javaMailSender.createMimeMessage();
-        MimeMessageHelper helper = new MimeMessageHelper(message, true);
-        helper.setTo(user.getEmail());
-        helper.setSubject("Квитанция на покупки");
-        helper.setText("Вы можете найти квитанция для покупки внизу во вложениях.");
-        helper.addAttachment("Receipt.pdf", new ByteArrayDataSource(new ByteArrayInputStream(pdfFile), "application/pdf"));
-        javaMailSender.send(message);
-    }
 }
