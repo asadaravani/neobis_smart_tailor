@@ -24,6 +24,7 @@ public class EquipmentMapper {
                 .contactInfo(requestDto.contactInfo())
                 .isVisible(true)
                 .author(user)
+                .quantity(requestDto.quantity())
                 .images(equipmentImages)
                 .build();
     }

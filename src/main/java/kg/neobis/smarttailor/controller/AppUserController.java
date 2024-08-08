@@ -13,11 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 
 @Validated
 @RestController
@@ -27,25 +23,26 @@ import org.springframework.web.bind.annotation.RequestParam;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AppUserController {
 
-    AppUserService service;
+    AppUserService appUserService;
 
     @RequestMapping(value="/confirm-subscription-request", method= {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<?> confirmSubscriptionRequest(@RequestParam("token")String subscriptionConfirmationToken) {
-        return ResponseEntity.status(HttpStatus.OK).body(service.confirmSubscriptionRequest(subscriptionConfirmationToken));
+        return ResponseEntity.ok(appUserService.confirmSubscriptionRequest(subscriptionConfirmationToken));
     }
 
     @Operation(
             summary = "SEND SUBSCRIPTION REQUEST",
-            description = "The method accepts user data from jwt, and then sends the subscription request to the admin email address",
+            description = "Accepts user's data from jwt, and then sends the subscription request to the admin email address",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Subscription request has been sent"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "409", description = "User already has a subscription | User is a member of another organization"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @PostMapping("/send-subscription-request")
     public ResponseEntity<?> sendSubscriptionRequest(Authentication authentication) throws MessagingException {
-        return ResponseEntity.status(HttpStatus.OK).body(service.sendSubscriptionRequest(authentication));
+        return ResponseEntity.status(HttpStatus.OK).body(appUserService.sendSubscriptionRequest(authentication));
     }
 }

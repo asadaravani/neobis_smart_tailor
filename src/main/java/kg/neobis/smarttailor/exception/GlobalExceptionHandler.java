@@ -31,7 +31,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ErrorResponse> handleNoPermissionException(NoPermissionException ex) {
         log.error("NoPermissionException: {}", ex.getMessage(), ex);
         ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
-        return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
     @ExceptionHandler(OutOfDateException.class)

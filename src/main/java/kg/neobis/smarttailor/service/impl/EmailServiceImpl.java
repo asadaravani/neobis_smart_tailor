@@ -98,9 +98,9 @@ public class EmailServiceImpl implements EmailService {
     @Override
     public void sendEmailWithConfirmationCode(ConfirmationCode confirmationCode, AppUser user) {
 
-        if (confirmationCode != null)
+        if (confirmationCode != null) {
             confirmationCodeService.delete(confirmationCode);
-
+        }
         confirmationCode = confirmationCodeService.generateConfirmationCode(user);
         MimeMessage simpleMailMessage;
         try {

@@ -1,20 +1,38 @@
 package kg.neobis.smarttailor.mapper;
 
+import kg.neobis.smarttailor.dtos.EmployeeListDto;
 import kg.neobis.smarttailor.dtos.UserProfileDto;
-import kg.neobis.smarttailor.dtos.UserProfileEditRequest;
 import kg.neobis.smarttailor.entity.AppUser;
-import org.mapstruct.Mapper;
-import org.mapstruct.Mapping;
-import org.mapstruct.MappingTarget;
-import org.mapstruct.factory.Mappers;
+import kg.neobis.smarttailor.entity.OrganizationEmployee;
+import org.springframework.stereotype.Component;
 
-@Mapper
-public interface AppUserMapper {
+import java.util.List;
 
-    AppUserMapper INSTANCE = Mappers.getMapper(AppUserMapper.class);
+@Component
+public class AppUserMapper {
 
-    @Mapping(source = "image.url", target = "imagePath")
-    UserProfileDto toUserProfileDto(AppUser user);
+    public UserProfileDto entityToDto(AppUser user, boolean inOrganization) {
+        return new UserProfileDto(
+                user.getId(),
+                user.getImage().getUrl(),
+                user.getName(),
+                user.getSurname(),
+                user.getPatronymic(),
+                user.getEmail(),
+                user.getPhoneNumber(),
+                user.getHasSubscription(),
+                inOrganization
+        );
+    }
 
-    AppUser updateProfile(UserProfileEditRequest request, @MappingTarget AppUser user);
+    public EmployeeListDto entityListToListDto(OrganizationEmployee organizationEmployee, List<Long> orderNumbers) {
+        AppUser employee = organizationEmployee.getEmployee();
+        return new EmployeeListDto(
+                employee.getId(),
+                String.format("%s %s %s", employee.getSurname(), employee.getName(), employee.getPatronymic()),
+                employee.getEmail(),
+                orderNumbers,
+                organizationEmployee.getPosition().getName()
+        );
+    }
 }

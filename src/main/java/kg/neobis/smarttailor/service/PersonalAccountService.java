@@ -3,6 +3,7 @@ package kg.neobis.smarttailor.service;
 import kg.neobis.smarttailor.dtos.UserProfileDto;
 import kg.neobis.smarttailor.dtos.UserProfileEditRequest;
 import kg.neobis.smarttailor.dtos.ads.MyAdvertisement;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -10,11 +11,11 @@ import java.util.List;
 
 public interface PersonalAccountService {
 
-    UserProfileDto getUserProfile(String email);
+    String editProfile(UserProfileEditRequest request, Authentication authentication);
 
-    void uploadProfileImage(MultipartFile file, String email) throws IOException;
+    List<MyAdvertisement> getUserAdvertisements(int pageNumber, int pageSize, Authentication authentication);
 
-    void editProfile(UserProfileEditRequest request, String email);
+    UserProfileDto getUserProfile(Authentication authentication);
 
-    List<MyAdvertisement> getUserAds(int pageNumber, int pageSize, String email);
+    String uploadProfileImage(MultipartFile file, Authentication authentication) throws IOException;
 }

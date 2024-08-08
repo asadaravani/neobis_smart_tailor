@@ -50,13 +50,12 @@ public class ServiceServiceImpl implements ServicesService {
 
     @Override
     public String addService(String serviceRequestDto, List<MultipartFile> images, Authentication authentication) {
-
         ServiceRequestDto requestDto = parseAndValidateServiceRequestDto(serviceRequestDto);
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         List<Image> serviceImages = cloudinaryService.saveImages(images);
-
         Services service = serviceMapper.dtoToEntity(requestDto, serviceImages, user);
         serviceRepository.save(service);
+
         return "Service has been created";
     }
 
@@ -69,7 +68,7 @@ public class ServiceServiceImpl implements ServicesService {
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found"));
 
         if (!user.getId().equals(service.getAuthor().getId())) {
-            throw new NoPermissionException("Only authors can delete their services");
+            throw new NoPermissionException("Only authors can delete their advertisements");
         }
         for (Image image : service.getImages()) {
             cloudinaryService.deleteImage(image.getUrl());
@@ -77,6 +76,17 @@ public class ServiceServiceImpl implements ServicesService {
         serviceRepository.delete(service);
 
         return "Service has been deleted";
+    }
+
+    @Override
+    public List<Services> findAllByUser(AppUser user) {
+        return serviceRepository.findAllByAuthor(user);
+    }
+
+    @Override
+    public Services findServiceById(Long id) {
+        return serviceRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Service not found with id: ".concat(String.valueOf(id))));
     }
 
     @Override
@@ -108,23 +118,12 @@ public class ServiceServiceImpl implements ServicesService {
             throw new ResourceAlreadyExistsException("Service is already hidden");
         }
         if (!service.getAuthor().getId().equals(user.getId())) {
-            throw new NoPermissionException("Only authors can hide their services");
+            throw new NoPermissionException("Only authors can hide their advertisements");
         }
         service.setIsVisible(false);
         serviceRepository.save(service);
 
         return "Service is now invisible in marketplace";
-    }
-
-    @Override
-    public List<Services> findAllByUser(AppUser user) {
-        return serviceRepository.findAllByAuthor(user);
-    }
-
-    @Override
-    public Services findServiceById(Long id) {
-        return serviceRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Service not found with id: ".concat(String.valueOf(id))));
     }
 
     private ServiceRequestDto parseAndValidateServiceRequestDto(String serviceDto) {

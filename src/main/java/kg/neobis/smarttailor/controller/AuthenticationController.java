@@ -31,71 +31,71 @@ import org.springframework.web.bind.annotation.RestController;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class AuthenticationController {
 
-    AuthenticationService service;
+    AuthenticationService authenticationService;
 
     @Operation(
             summary = "EMAIL CONFIRMATION",
-            description = "The method accepts email and confirmation code, and then sends access and refresh tokens",
+            description = "Accepts email and confirmation code, and then sends access and refresh tokens",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Data is valid. Access and refresh tokens received successfully"),
-                    @ApiResponse(responseCode = "400", description = "Confirmation code has expired | Required parameter(s) is not present"),
-                    @ApiResponse(responseCode = "404", description = "Invalid confirmation code | User not found with specified email"),
+                    @ApiResponse(responseCode = "200", description = "Access and refresh tokens received successfully"),
+                    @ApiResponse(responseCode = "400", description = "Confirmation code has been expired | Required parameter(s) is not present"),
+                    @ApiResponse(responseCode = "404", description = "Invalid confirmation code | User not found with specified email | Confirmation code not found for user with specified email"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
     @PostMapping("/confirm-email")
-    public LoginResponse confirmEmail(@RequestParam("email") String email, @RequestParam Integer code) {
-        return service.confirmEmail(email, code);
+    public ResponseEntity<LoginResponse> confirmEmail(@RequestParam String email, @RequestParam Integer code) {
+        return ResponseEntity.ok(authenticationService.confirmEmail(email, code));
     }
 
     @Operation(
             summary = "LOGIN",
-            description = "The method accepts email, and then sends the confirmation code to the specified email address",
+            description = "Accepts email and then sends the confirmation code to the specified email",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Confirmation code has been sent to the specified email"),
-                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter 'email' is not present"),
                     @ApiResponse(responseCode = "404", description = "User not found with specified email"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestParam String email) {
-        return ResponseEntity.status(HttpStatus.OK).body(service.login(email));
+        return ResponseEntity.ok(authenticationService.login(email));
     }
 
     @Operation(
             summary = "LOG OUT",
-            description = "The method accepts access token and adds it to black list",
+            description = "Accepts access token and adds it to black list",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Log out completed"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
     @PostMapping("/log-out")
     public ResponseEntity<?> logOut(HttpServletRequest request) {
-        return ResponseEntity.ok(service.logOut(request));
+        return ResponseEntity.ok(authenticationService.logOut(request));
     }
 
     @Operation(
             summary = "REFRESH TOKEN",
-            description = "The method accepts refresh token, and generate new access and refresh tokens",
+            description = "Accepts refresh token and generates new access token",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Access token changed"),
-                    @ApiResponse(responseCode = "400", description = "Refresh token expired"),
-                    @ApiResponse(responseCode = "403", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "200", description = "Access token has been generated"),
+                    @ApiResponse(responseCode = "400", description = "Refresh token has been expired"),
                     @ApiResponse(responseCode = "404", description = "Refresh token not found"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
     @PostMapping("/refresh-token")
     public ResponseEntity<?> refreshToken(@RequestParam("refreshToken") String request) {
-        return ResponseEntity.ok(service.refreshToken(request));
+        return ResponseEntity.ok(authenticationService.refreshToken(request));
     }
 
     @Operation(
             summary = "RESEND CONFIRMATION CODE",
-            description = "The method accepts email, and then sends confirmation code to specified email",
+            description = "Accepts email and then sends confirmation code to specified email",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Confirmation code has been sent to the specified email"),
                     @ApiResponse(responseCode = "400", description = "Required parameter 'email' is not present"),
@@ -105,15 +105,15 @@ public class AuthenticationController {
     )
     @PostMapping("/resend-confirmation-code")
     public ResponseEntity<?> resendConfirmationCode(@RequestParam String email) throws MessagingException {
-        return ResponseEntity.ok(service.resendConfirmationCode(email));
+        return ResponseEntity.ok(authenticationService.resendConfirmationCode(email));
     }
 
     @Operation(
             summary = "REGISTRATION",
-            description = "The method accepts user data, and then sends the confirmation code to the specified email address",
+            description = "Accepts user's data, saves it in database, generates confirmation code and sends it to the specified email",
             responses = {
                     @ApiResponse(responseCode = "201", description = "User's data saved in database. Confirmation code has been sent to the specified email"),
-                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present or entered data has not been validated"),
+                    @ApiResponse(responseCode = "400", description = "Entered data has not been validated"),
                     @ApiResponse(responseCode = "409", description = "User with specified email already exists"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
@@ -123,6 +123,6 @@ public class AuthenticationController {
         if (result.hasErrors()) {
             return ResponseEntity.badRequest().body("Validation error: " + result.getAllErrors());
         }
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.signUp(request));
+        return ResponseEntity.status(HttpStatus.CREATED).body(authenticationService.signUp(request));
     }
 }

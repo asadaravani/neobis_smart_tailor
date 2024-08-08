@@ -38,13 +38,13 @@ public class EquipmentController {
 
     @Operation(
             summary = "ADD EQUIPMENT",
-            description = "The method accepts equipment data and images to create the equipment",
+            description = "Accepts equipment data and images to create the equipment",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Equipment has been created"),
-                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present | Validation failed"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @PostMapping("/add-equipment")
@@ -55,30 +55,44 @@ public class EquipmentController {
     }
 
     @Operation(
+            summary = "BUY EQUIPMENT",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Equipment has been bought"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | Users can't buy their own equipments"),
+                    @ApiResponse(responseCode = "404", description = "Equipment not found with specified email"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            }
+    )
+    @GetMapping("/buy-equipment/{equipmentId}")
+    public ResponseEntity<String> buyEquipment(@PathVariable Long equipmentId, Authentication authentication) {
+        return ResponseEntity.ok(equipmentService.buyEquipment(equipmentId, authentication));
+    }
+
+    @Operation(
             summary = "DELETE EQUIPMENT",
-            description = "To delete equipment, the method accepts its id",
+            description = "Deletes equipment by id",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Equipment has been deleted"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | Only authors can delete their advertisements"),
                     @ApiResponse(responseCode = "404", description = "Equipment not found with specified id"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @DeleteMapping("/delete-equipment/{equipmentId}")
     public ResponseEntity<String> deleteEquipment(@PathVariable Long equipmentId, Authentication authentication) throws IOException {
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(equipmentService.deleteEquipment(equipmentId, authentication));
+        return ResponseEntity.ok(equipmentService.deleteEquipment(equipmentId, authentication));
     }
 
     @Operation(
             summary = "GET ALL EQUIPMENTS",
-            description = "The method returns list of equipments",
+            description = "Returns list of equipments for marketplace",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Equipment list received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
-                    @ApiResponse(responseCode = "404", description = "Equipments not found"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @GetMapping("/get-all-equipments")
@@ -89,13 +103,13 @@ public class EquipmentController {
 
     @Operation(
             summary = "GET EQUIPMENT DETAILED",
-            description = "The method accepts equipment's id, and then sends equipment's detailed information",
+            description = "Accepts equipment's id, and returns equipment's detailed information",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Equipment information received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "404", description = "Equipment not found with specified id"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @GetMapping("/get-equipment-detailed/{equipmentId}")
@@ -105,14 +119,14 @@ public class EquipmentController {
 
     @Operation(
             summary = "HIDE EQUIPMENT",
-            description = "The method accepts equipment's id and then makes order invisible in marketplace",
+            description = "Accepts equipment's id and then makes ad invisible in marketplace",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Equipment is now invisible in marketplace"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | Only authors can hide their advertisements"),
                     @ApiResponse(responseCode = "404", description = "Equipment not found with specified id"),
-                    @ApiResponse(responseCode = "409", description = "Equipment is already hidden | Only authors can hide their equipments"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "409", description = "Equipment is already hidden"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @GetMapping("/hide/{equipmentId}")
@@ -121,30 +135,17 @@ public class EquipmentController {
     }
 
     @Operation(
-            summary = "Buy an equipment",
-            description = "This endpoint is designed to buy an equipment",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Equipment has been bought successfully"),
-                    @ApiResponse(responseCode = "403", description = "Authentication required")
-            }
-    )
-    @GetMapping("/buy-equipment/{equipmentId}")
-    public ResponseEntity<String> buyEquipment(@PathVariable Long equipmentId,
-                                               Authentication authentication) {
-        return ResponseEntity.ok(equipmentService.buyEquipment(equipmentId, authentication));
-    }
-
-    @Operation(
             summary = "Search equipments",
-            description = "This endpoint is designed to search equipments",
+            description = "Accepts equipment name and returns list of equipments",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Returns list of equipments"),
+                    @ApiResponse(responseCode = "200", description = "Equipment list received"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "404", description = "Equipment not found"),
-                    @ApiResponse(responseCode = "403", description = "Authentication required")
             }
     )
     @GetMapping("/search-equipment")
-    public ResponseEntity<List<EquipmentListDto>> searchEquipments(@RequestParam(name = "query") String query, Authentication authentication) {
-        return ResponseEntity.ok().body(equipmentService.searchEquipments(query, authentication));
+    public ResponseEntity<List<EquipmentListDto>> searchEquipments(@RequestParam(name = "query") String query) {
+        return ResponseEntity.ok().body(equipmentService.searchEquipments(query));
     }
 }

@@ -7,6 +7,7 @@ import jakarta.persistence.EnumType;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.JoinTable;
+import jakarta.persistence.ManyToMany;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.validation.constraints.Size;
@@ -56,7 +57,7 @@ public class Order extends Advertisement {
     )
     List<OrderItem> items = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "order_candidates",
             joinColumns = @JoinColumn(name = "order_id"),

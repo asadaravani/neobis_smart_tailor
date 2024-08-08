@@ -30,13 +30,13 @@ public class ServiceController {
 
     @Operation(
             summary = "ADD SERVICE",
-            description = "The method accepts service data and images to create the service",
+            description = "Accepts service data and images to create the service",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Service has been created"),
-                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present | Validation failed"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @PostMapping("/add-service")
@@ -48,29 +48,28 @@ public class ServiceController {
 
     @Operation(
             summary = "DELETE SERVICE",
-            description = "To delete service, the method accepts its id",
+            description = "Deletes service by id",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Service has been deleted"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | Only authors can delete their advertisements"),
                     @ApiResponse(responseCode = "404", description = "Service not found with specified id"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @DeleteMapping("/delete-service/{serviceId}")
     public ResponseEntity<String> deleteService(@PathVariable Long serviceId, Authentication authentication) throws IOException {
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).body(servicesService.deleteService(serviceId, authentication));
+        return ResponseEntity.ok(servicesService.deleteService(serviceId, authentication));
     }
 
     @Operation(
             summary = "GET ALL SERVICES",
-            description = "The method returns list of services",
+            description = "Returns list of services for marketplace",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Service list received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
-                    @ApiResponse(responseCode = "404", description = "Services not found"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @GetMapping("/get-all-services")
@@ -81,13 +80,13 @@ public class ServiceController {
 
     @Operation(
             summary = "GET SERVICE DETAILED",
-            description = "The method accepts service's id, and then sends service's detailed information",
+            description = "Accepts service's id, and returns service's detailed information",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Service information received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "404", description = "Service not found with specified id"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @GetMapping("/get-service-detailed/{serviceId}")
@@ -97,14 +96,14 @@ public class ServiceController {
 
     @Operation(
             summary = "HIDE SERVICE",
-            description = "The method accepts service's id and then makes order invisible in marketplace",
+            description = "Accepts service's id and then makes ad invisible in marketplace",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Service is now invisible in marketplace"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid jwt or authorization type"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | Only authors can hide their advertisements"),
                     @ApiResponse(responseCode = "404", description = "Service not found with specified id"),
-                    @ApiResponse(responseCode = "409", description = "Service is already hidden | Only authors can hide their services"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "409", description = "Service is already hidden"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @GetMapping("/hide/{serviceId}")

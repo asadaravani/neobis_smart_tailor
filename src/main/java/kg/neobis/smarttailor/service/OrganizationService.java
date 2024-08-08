@@ -9,17 +9,17 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface OrganizationService {
 
-    String createOrganization(String organizationDto, MultipartFile organizationImage, Authentication authentication);
-
     ResponseEntity<?> acceptInvitation(String invitingToken);
 
-    String sendInvitation(String request, Authentication authentication) throws MessagingException;
-
-    Organization getOrganizationByDirectorEmail(String email);
+    String createOrganization(String organizationDto, MultipartFile organizationImage, Authentication authentication);
 
     Organization findOrganizationByDirectorOrEmployee(String email);
 
+    OrganizationDetailed getOrganization(Authentication authentication);
+
+    Organization getOrganizationByDirectorEmail(String email);
+
     Organization getOrganizationByName(String organizationName);
 
-    OrganizationDetailed getOrganization(String email);
+    String sendInvitation(String request, Authentication authentication) throws MessagingException;
 }

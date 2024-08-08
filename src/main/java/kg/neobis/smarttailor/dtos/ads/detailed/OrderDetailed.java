@@ -1,8 +1,6 @@
 package kg.neobis.smarttailor.dtos.ads.detailed;
 
 import kg.neobis.smarttailor.dtos.OrderItemDto;
-import kg.neobis.smarttailor.dtos.OrganizationDto;
-import kg.neobis.smarttailor.enums.OrderStatus;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
@@ -19,7 +17,5 @@ public record OrderDetailed(
         String authorFullName,
         List<String> orderImages,
         LocalDate dateOfExecution,
-        OrderStatus orderStatus,
-        List<OrderItemDto> orderItems,
-        List<OrganizationDto> orderCandidates
+        List<OrderItemDto> orderItems
 ) implements Serializable {}

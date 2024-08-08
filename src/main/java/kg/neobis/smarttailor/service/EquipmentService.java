@@ -15,7 +15,11 @@ public interface EquipmentService {
 
     String addEquipment(String equipmentDto, List<MultipartFile> images, Authentication authentication);
 
+    String buyEquipment(Long equipmentId, Authentication authentication);
+
     String deleteEquipment(Long equipmentId, Authentication authentication) throws IOException;
+
+    List<Equipment> findAllByUser(AppUser user);
 
     AdvertisementPageDto getAllEquipments(int pageNumber, int pageSize);
 
@@ -23,9 +27,5 @@ public interface EquipmentService {
 
     String hideEquipment(Long equipmentId, Authentication authentication);
 
-    String buyEquipment(Long equipmentId, Authentication authentication);
-
-    List<Equipment> findAllByUser(AppUser user);
-
-    List<EquipmentListDto> searchEquipments(String query, Authentication authentication);
+    List<EquipmentListDto> searchEquipments(String query);
 }

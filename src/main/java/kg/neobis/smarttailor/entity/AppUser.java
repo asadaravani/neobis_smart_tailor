@@ -29,33 +29,21 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE)
 public class AppUser extends BaseEntity implements UserDetails {
 
-    @OneToOne(orphanRemoval = true, cascade = CascadeType.ALL)
-    Image image;
-
-    @Column
-    String name;
-
-    @Column
     String surname;
-
-    @Column
+    String name;
     String patronymic;
+    String phoneNumber;
+    Boolean enabled;
+    Boolean hasSubscription;
 
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     String email;
 
-    @Column
-    String phoneNumber;
-
-    @Column
     @Enumerated(EnumType.STRING)
     Role role;
 
-    @Column
-    Boolean enabled;
-
-    @Column(nullable = false)
-    Boolean hasSubscription;
+    @OneToOne(orphanRemoval = true, cascade = CascadeType.ALL)
+    Image image;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

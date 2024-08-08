@@ -3,10 +3,7 @@ package kg.neobis.smarttailor.service.impl;
 import kg.neobis.smarttailor.dtos.UserProfileDto;
 import kg.neobis.smarttailor.dtos.UserProfileEditRequest;
 import kg.neobis.smarttailor.dtos.ads.MyAdvertisement;
-import kg.neobis.smarttailor.entity.AppUser;
-import kg.neobis.smarttailor.entity.Equipment;
-import kg.neobis.smarttailor.entity.Order;
-import kg.neobis.smarttailor.entity.Services;
+import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.exception.ResourceProcessingErrorException;
 import kg.neobis.smarttailor.mapper.AppUserMapper;
 import kg.neobis.smarttailor.mapper.EquipmentMapper;
@@ -16,6 +13,7 @@ import kg.neobis.smarttailor.service.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,24 +27,41 @@ import java.util.stream.Collectors;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class PersonalAccountServiceImpl implements PersonalAccountService {
 
+    AppUserMapper appUserMapper;
     AppUserService appUserService;
     CloudinaryService cloudinaryService;
     EquipmentMapper equipmentMapper;
     EquipmentService equipmentService;
     OrderMapper orderMapper;
     OrderService orderService;
+    OrganizationEmployeeService organizationEmployeeService;
     ServiceMapper serviceMapper;
     ServicesService servicesService;
 
     @Override
-    public UserProfileDto getUserProfile(String email) {
-        AppUser user = appUserService.findUserByEmail(email);
-        return AppUserMapper.INSTANCE.toUserProfileDto(user);
+    public String editProfile(UserProfileEditRequest request, Authentication authentication) {
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        user.setName(request.name());
+        user.setSurname(request.surname());
+        user.setPatronymic(request.patronymic());
+        user.setPhoneNumber(request.phoneNumber());
+        appUserService.save(user);
+
+        return "User's data has been changed";
     }
 
     @Override
-    public void uploadProfileImage(MultipartFile file, String email) {
-        AppUser user = appUserService.findUserByEmail(email);
+    public UserProfileDto getUserProfile(Authentication authentication) {
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Boolean inOrganization = organizationEmployeeService.existsByEmployeeEmail(user.getEmail());
+
+        return appUserMapper.entityToDto(user, inOrganization);
+    }
+
+    @Override
+    public String uploadProfileImage(MultipartFile file, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
         String imageUrl;
         try {
             imageUrl = cloudinaryService.uploadImage(file);
@@ -62,19 +77,15 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
         }
         user.getImage().setUrl(imageUrl);
         appUserService.save(user);
+
+        return "Profile image has been uploaded";
     }
 
     @Override
-    public void editProfile(UserProfileEditRequest request, String email) {
-        AppUser updatedUser = AppUserMapper.INSTANCE.updateProfile(request, appUserService.findUserByEmail(email));
-        appUserService.save(updatedUser);
-    }
-
-    @Override
-    public List<MyAdvertisement> getUserAds(int pageNo, int pageSize, String email) {
+    public List<MyAdvertisement> getUserAdvertisements(int pageNumber, int pageSize, Authentication authentication) {
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
         try {
             List<MyAdvertisement> dto = new ArrayList<>();
-            AppUser user = appUserService.findUserByEmail(email);
             List<Services> services = servicesService.findAllByUser(user);
             List<Order> orders = orderService.findAllByUser(user);
             List<Equipment> equipments = equipmentService.findAllByUser(user);
@@ -83,7 +94,7 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
             equipments.forEach(equipment -> dto.add(equipmentMapper.toMyAdvertisement(equipment)));
             return dto.stream()
                     .sorted((dto1, dto2) -> dto2.createdAt().compareTo(dto1.createdAt()))
-                    .skip((long) pageNo * pageSize)
+                    .skip((long) pageNumber * pageSize)
                     .limit(pageSize)
                     .collect(Collectors.toList());
         } catch (Exception e) {

@@ -11,6 +11,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
@@ -31,6 +33,11 @@ public class OrganizationEmployeeServiceImpl implements OrganizationEmployeeServ
     @Override
     public Boolean existsByOrganizationAndEmployeeEmail(Organization organization, String employeeEmail) {
         return organizationEmployeeRepository.existsByOrganizationAndEmployeeEmail(organization, employeeEmail);
+    }
+
+    @Override
+    public List<OrganizationEmployee> findAllByOrganization(Organization organization) {
+        return organizationEmployeeRepository.findAllByOrganization(organization);
     }
 
     @Override

@@ -59,25 +59,52 @@ import java.util.List;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class EquipmentServiceImpl implements EquipmentService {
 
-    NotificationService notificationService;
     AppUserService appUserService;
-    EquipmentRepository equipmentRepository;
-    EquipmentMapper equipmentMapper;
-    ObjectMapper objectMapper;
-    EmailService emailService;
-    Validator validator;
     CloudinaryService cloudinaryService;
+    EmailService emailService;
+    EquipmentMapper equipmentMapper;
+    EquipmentRepository equipmentRepository;
+    NotificationService notificationService;
+    ObjectMapper objectMapper;
+    Validator validator;
 
     @Override
     public String addEquipment(String equipmentRequestDto, List<MultipartFile> images, Authentication authentication) {
-
         EquipmentRequestDto requestDto = parseAndValidateRecipeDto(equipmentRequestDto);
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         List<Image> equipmentImages = cloudinaryService.saveImages(images);
-
         Equipment equipment = equipmentMapper.dtoToEntity(requestDto, equipmentImages, user);
         equipmentRepository.save(equipment);
+
         return "Equipment has been created";
+    }
+
+    @Override
+    public String buyEquipment(Long equipmentId, Authentication authentication) {
+
+        Equipment equipment = equipmentRepository.findById(equipmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+
+        if (equipment.getAuthor().getId().equals(user.getId())) {
+            throw new NoPermissionException("Users can't buy their own equipments");
+        }
+        if (equipment.getQuantity() == null || equipment.getQuantity() <= 0) {
+            throw new OutOfStockException("This equipment is out of stock");
+        }
+
+        byte[] pdfFile;
+        try {
+            pdfFile = generateReceiptPdf(equipment, user);
+            emailService.sendEmailWithReceiptPDF(user, pdfFile);
+        } catch (IOException | MessagingException exception) {
+            throw new IllegalStateException("Something went wrong! Please, try again!");
+        }
+
+        equipment.setQuantity(equipment.getQuantity() - 1);
+        equipmentRepository.save(equipment);
+        notificationService.sendNotification(new NotificationDto("Equipment sold!", equipment.getName() + " has been bought by user " + user.getName(), LocalDateTime.now()));
+        return "You have successfully purchased the equipment. Receipt sent to the email. Please check your email";
     }
 
     @Override
@@ -89,7 +116,7 @@ public class EquipmentServiceImpl implements EquipmentService {
                 .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
 
         if (!user.getId().equals(equipment.getAuthor().getId())) {
-            throw new NoPermissionException("Only authors can delete their equipments");
+            throw new NoPermissionException("Only authors can delete their advertisements");
         }
         for (Image image : equipment.getImages()) {
             cloudinaryService.deleteImage(image.getUrl());
@@ -97,6 +124,11 @@ public class EquipmentServiceImpl implements EquipmentService {
         equipmentRepository.delete(equipment);
 
         return "Equipment has been deleted";
+    }
+
+    @Override
+    public List<Equipment> findAllByUser(AppUser user) {
+        return equipmentRepository.findAllByAuthor(user);
     }
 
     @Override
@@ -128,7 +160,7 @@ public class EquipmentServiceImpl implements EquipmentService {
             throw new ResourceAlreadyExistsException("Equipment is already hidden");
         }
         if (!equipment.getAuthor().getId().equals(user.getId())) {
-            throw new NoPermissionException("Only authors can hide their equipments");
+            throw new NoPermissionException("Only authors can hide their advertisements");
         }
         equipment.setIsVisible(false);
         equipmentRepository.save(equipment);
@@ -136,69 +168,8 @@ public class EquipmentServiceImpl implements EquipmentService {
         return "Equipment is now invisible in marketplace";
     }
 
-    private EquipmentRequestDto parseAndValidateRecipeDto(String equipmentDto) {
-        try {
-            EquipmentRequestDto requestDto = objectMapper.readValue(equipmentDto, EquipmentRequestDto.class);
-
-            BindingResult bindingResult = new BeanPropertyBindingResult(requestDto, "equipmentRequestDto");
-            validator.validate(equipmentDto, bindingResult);
-            if (bindingResult.hasErrors()) {
-                throw new IllegalArgumentException("Invalid input " + bindingResult.getAllErrors());
-            }
-            if (StringUtils.isBlank(requestDto.name())) {
-                throw new InvalidRequestException("Name cannot be empty");
-            }
-            if (StringUtils.isBlank(requestDto.description())) {
-                throw new InvalidRequestException("Description cannot be empty");
-            }
-            if (requestDto.price() == null || requestDto.price().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new InvalidRequestException("Price must be greater than zero");
-            }
-            if (StringUtils.isBlank(requestDto.contactInfo())) {
-                throw new InvalidRequestException("Contact info cannot be empty");
-            }
-            if (requestDto.quantity() == null || requestDto.quantity() <= 0) {
-                throw new InvalidRequestException("Quantity must be greater than zero");
-            }
-            return requestDto;
-        } catch (JsonProcessingException e) {
-            throw new InvalidJsonException(e.getMessage());
-        }
-    }
-
     @Override
-    public String buyEquipment(Long equipmentId, Authentication authentication) {
-        Equipment equipment = equipmentRepository.findById(equipmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
-
-        AppUser user = appUserService.getUserFromAuthentication(authentication);
-
-        if (equipment.getQuantity() == null || equipment.getQuantity() <= 0) {
-            throw new OutOfStockException("This equipment is out of stock");
-        }
-
-        byte[] pdfFile;
-        try {
-            pdfFile = generateReceiptPdf(equipment, user);
-            emailService.sendEmailWithReceiptPDF(user, pdfFile);
-        } catch (IOException | MessagingException exception) {
-            throw new IllegalStateException("Something went wrong! Please, try again!");
-        }
-
-        equipment.setQuantity(equipment.getQuantity() - 1);
-        equipmentRepository.save(equipment);
-        notificationService.sendNotification(new NotificationDto("Equipment sold!", equipment.getName() + " has been bought by user " + user.getName(), LocalDateTime.now()));
-        return "You have successfully purchased the equipment. Receipt sent to the email. Please check your email";
-    }
-
-    @Override
-    public List<Equipment> findAllByUser(AppUser user) {
-        return equipmentRepository.findAllByAuthor(user);
-    }
-
-    @Override
-    public List<EquipmentListDto> searchEquipments(String name, Authentication authentication) {
-        appUserService.getUserFromAuthentication(authentication);
+    public List<EquipmentListDto> searchEquipments(String name) {
         List<Equipment> equipmentList = equipmentRepository.findEquipmentByNameContainingIgnoreCase(name);
         return equipmentMapper.entityListToDtoList(equipmentList);
     }
@@ -265,5 +236,35 @@ public class EquipmentServiceImpl implements EquipmentService {
             throw new PdfGenerationException(exception.getMessage());
         }
         return out.toByteArray();
+    }
+
+    private EquipmentRequestDto parseAndValidateRecipeDto(String equipmentDto) {
+        try {
+            EquipmentRequestDto requestDto = objectMapper.readValue(equipmentDto, EquipmentRequestDto.class);
+
+            BindingResult bindingResult = new BeanPropertyBindingResult(requestDto, "equipmentRequestDto");
+            validator.validate(equipmentDto, bindingResult);
+            if (bindingResult.hasErrors()) {
+                throw new IllegalArgumentException("Invalid input " + bindingResult.getAllErrors());
+            }
+            if (StringUtils.isBlank(requestDto.name())) {
+                throw new InvalidRequestException("Name cannot be empty");
+            }
+            if (StringUtils.isBlank(requestDto.description())) {
+                throw new InvalidRequestException("Description cannot be empty");
+            }
+            if (requestDto.price() == null || requestDto.price().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new InvalidRequestException("Price must be greater than zero");
+            }
+            if (StringUtils.isBlank(requestDto.contactInfo())) {
+                throw new InvalidRequestException("Contact info cannot be empty");
+            }
+            if (requestDto.quantity() == null || requestDto.quantity() <= 0) {
+                throw new InvalidRequestException("Quantity must be greater than zero");
+            }
+            return requestDto;
+        } catch (JsonProcessingException e) {
+            throw new InvalidJsonException(e.getMessage());
+        }
     }
 }
