@@ -1,24 +1,13 @@
 package kg.neobis.smarttailor.service.impl;
-
 import com.cloudinary.utils.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.itextpdf.text.BaseColor;
-import com.itextpdf.text.Document;
-import com.itextpdf.text.DocumentException;
-import com.itextpdf.text.Element;
-import com.itextpdf.text.Font;
-import com.itextpdf.text.Phrase;
-import jakarta.mail.MessagingException;
 import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.dtos.NotificationDto;
+import kg.neobis.smarttailor.dtos.NotificationPdfDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Equipment;
 import kg.neobis.smarttailor.entity.Image;
-import com.itextpdf.text.Paragraph;
-import com.itextpdf.text.pdf.PdfPCell;
-import com.itextpdf.text.pdf.PdfPTable;
-import com.itextpdf.text.pdf.PdfWriter;
 import kg.neobis.smarttailor.dtos.EquipmentDetailed;
 import kg.neobis.smarttailor.dtos.EquipmentListDto;
 import kg.neobis.smarttailor.dtos.EquipmentRequestDto;
@@ -45,13 +34,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -69,6 +54,7 @@ public class EquipmentServiceImpl implements EquipmentService {
     Validator validator;
 
     @Override
+    @Transactional
     public String addEquipment(String equipmentRequestDto, List<MultipartFile> images, Authentication authentication) {
         EquipmentRequestDto requestDto = parseAndValidateRecipeDto(equipmentRequestDto);
         AppUser user = appUserService.getUserFromAuthentication(authentication);
@@ -80,32 +66,52 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
+    @Transactional
     public String buyEquipment(Long equipmentId, Authentication authentication) {
 
-        Equipment equipment = equipmentRepository.findById(equipmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
+        Equipment equipment = findEquipmentById(equipmentId);
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
-        if (equipment.getAuthor().getId().equals(user.getId())) {
-            throw new NoPermissionException("Users can't buy their own equipments");
-        }
-        if (equipment.getQuantity() == null || equipment.getQuantity() <= 0) {
-            throw new OutOfStockException("This equipment is out of stock");
-        }
+        validatePurchase(equipment, user);
 
-        byte[] pdfFile;
-        try {
-            pdfFile = generateReceiptPdf(equipment, user);
-            emailService.sendEmailWithReceiptPDF(user, pdfFile);
-        } catch (IOException | MessagingException exception) {
-            throw new IllegalStateException("Something went wrong! Please, try again!");
-        }
+        updateEquipmentStock(equipment);
 
-        equipment.setQuantity(equipment.getQuantity() - 1);
-        equipmentRepository.save(equipment);
-        notificationService.sendNotification(new NotificationDto("Equipment sold!", equipment.getName() + " has been bought by user " + user.getName(), LocalDateTime.now()));
+        notificationService.sendNotification(
+                new NotificationDto("Equipment has been sold!", equipment.getName() + " has been bought by user " + user.getName(), LocalDateTime.now()),
+                new NotificationPdfDto(user.getName() + " " + user.getSurname(), user.getEmail(), equipment.getName(), equipment.getPrice())
+        );
+
+
         return "You have successfully purchased the equipment. Receipt sent to the email. Please check your email";
     }
+
+    private Equipment findEquipmentById(Long equipmentId) {
+        return equipmentRepository.findById(equipmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
+    }
+
+    private void validatePurchase(Equipment equipment, AppUser user) {
+        if (isOwner(equipment, user)) {
+            throw new NoPermissionException("Users can't buy their own equipment");
+        }
+        if (isOutOfStock(equipment)) {
+            throw new OutOfStockException("This equipment is out of stock");
+        }
+    }
+
+    private boolean isOwner(Equipment equipment, AppUser user) {
+        return equipment.getAuthor().getId().equals(user.getId());
+    }
+
+    private boolean isOutOfStock(Equipment equipment) {
+        return equipment.getQuantity() == null || equipment.getQuantity() <= 0;
+    }
+
+    private void updateEquipmentStock(Equipment equipment) {
+        equipment.setQuantity(equipment.getQuantity() - 1);
+        equipmentRepository.save(equipment);
+    }
+
 
     @Override
     @Transactional
@@ -174,69 +180,7 @@ public class EquipmentServiceImpl implements EquipmentService {
         return equipmentMapper.entityListToDtoList(equipmentList);
     }
 
-    private void addTableCell(PdfPTable table, String text, Font font, BaseColor borderColor) {
-        PdfPCell cell = new PdfPCell(new Phrase(text, font));
-        cell.setBorderColor(borderColor);
-        cell.setPadding(10f);
-        table.addCell(cell);
-    }
 
-    private byte[] generateReceiptPdf(Equipment equipment, AppUser user) {
-        Document document = new Document();
-        ByteArrayOutputStream out = new ByteArrayOutputStream();
-        try {
-            PdfWriter.getInstance(document, out);
-            document.open();
-            Font titleFont = new Font(Font.FontFamily.TIMES_ROMAN, 18, Font.BOLD, BaseColor.DARK_GRAY);
-            Paragraph title = new Paragraph("Receipt", titleFont);
-            title.setAlignment(Element.ALIGN_CENTER);
-            title.setSpacingAfter(20f);
-            document.add(title);
-
-            PdfPTable table = new PdfPTable(2);
-            table.setWidthPercentage(100);
-            table.setSpacingBefore(10f);
-            table.setSpacingAfter(10f);
-            table.setWidths(new float[]{1, 2});
-
-            Font headerFont = new Font(Font.FontFamily.TIMES_ROMAN, 12, Font.BOLD, BaseColor.WHITE);
-            Font cellFont = new Font(Font.FontFamily.TIMES_ROMAN, 12, Font.NORMAL, BaseColor.DARK_GRAY);
-            BaseColor headerColor = new BaseColor(79, 129, 189);
-            BaseColor borderColor = BaseColor.LIGHT_GRAY;
-
-            PdfPCell cell1 = new PdfPCell(new Phrase("Field", headerFont));
-            PdfPCell cell2 = new PdfPCell(new Phrase("Details", headerFont));
-            cell1.setBackgroundColor(headerColor);
-            cell2.setBackgroundColor(headerColor);
-            cell1.setBorderColor(borderColor);
-            cell2.setBorderColor(borderColor);
-            cell1.setPadding(10f);
-            cell2.setPadding(10f);
-            table.addCell(cell1);
-            table.addCell(cell2);
-
-            addTableCell(table, "Date", cellFont, borderColor);
-            SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm");
-            Date date = Date.from(LocalDateTime.now().atZone(ZoneId.systemDefault()).toInstant());
-            String formattedDate = dateFormat.format(date);
-            addTableCell(table, formattedDate, cellFont, borderColor);
-
-            addTableCell(table, "Buyer", cellFont, borderColor);
-            addTableCell(table, user.getName() + " " + user.getSurname(), cellFont, borderColor);
-
-            addTableCell(table, "Equipment", cellFont, borderColor);
-            addTableCell(table, equipment.getName(), cellFont, borderColor);
-
-            addTableCell(table, "Price", cellFont, borderColor);
-            addTableCell(table, "$" + equipment.getPrice(), cellFont, borderColor);
-
-            document.add(table);
-            document.close();
-        } catch (DocumentException exception) {
-            throw new PdfGenerationException(exception.getMessage());
-        }
-        return out.toByteArray();
-    }
 
     private EquipmentRequestDto parseAndValidateRecipeDto(String equipmentDto) {
         try {

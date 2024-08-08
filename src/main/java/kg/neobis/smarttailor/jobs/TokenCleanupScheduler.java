@@ -1,4 +1,4 @@
-package kg.neobis.smarttailor.config;
+package kg.neobis.smarttailor.jobs;
 
 import kg.neobis.smarttailor.service.RefreshTokenService;
 import lombok.AccessLevel;
