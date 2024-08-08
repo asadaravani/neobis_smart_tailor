@@ -4,10 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
-import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
-import kg.neobis.smarttailor.dtos.CurrentOrganizationOrders;
-import kg.neobis.smarttailor.dtos.OrganizationOrders;
-import kg.neobis.smarttailor.dtos.ads.detailed.OrderDetailed;
+import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.service.OrderService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -133,8 +130,23 @@ public class OrderController {
             }
     )
     @GetMapping("/organization-current-orders")
-    public ResponseEntity<CurrentOrganizationOrders> getCurrentOrders(Authentication authentication){
+    public ResponseEntity<CurrentOrganizationOrders> getCurrentOrders(Authentication authentication) {
         return ResponseEntity.ok(orderService.getCurrentOrdersOfOrganization(authentication.getName()));
+    }
+
+    @Operation(
+            summary = "GET EMPLOYEE'S CURRENT ORDERS",
+            description = "Returns list of employee's current orders",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "List of employee's current orders received"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            }
+    )
+    @GetMapping("/get-employee-current-orders/{employeeId}")
+    public ResponseEntity<List<EmployeeOrderListDto>> getEmployeeCurrentOrder(@PathVariable Long employeeId, Authentication authentication) {
+        return ResponseEntity.ok(orderService.getEmployeeCurrentOrders(employeeId, authentication));
     }
 
     @Operation(
@@ -163,7 +175,7 @@ public class OrderController {
             }
     )
     @GetMapping("/organization-orders")
-    public ResponseEntity<List<OrganizationOrders>> getOrdersOfOrganization(Authentication authentication){
+    public ResponseEntity<List<OrganizationOrders>> getOrdersOfOrganization(Authentication authentication) {
         return ResponseEntity.ok(orderService.getOrdersOfOrganization(authentication.getName()));
     }
 

@@ -1,16 +1,17 @@
-package kg.neobis.smarttailor.dtos.ads.list;
+package kg.neobis.smarttailor.dtos;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.util.List;
 
-public record OrderListDto(
+public record EquipmentDetailed(
         Long id,
         String name,
         String description,
         BigDecimal price,
-        LocalDate dateOfExecution,
-        String imageUrl,
+        String contactInfo,
+        String authorImage,
         String authorFullName,
-        String authorImageUrl
+        List<String> equipmentImages,
+        Integer quantity
 ) implements Serializable {}

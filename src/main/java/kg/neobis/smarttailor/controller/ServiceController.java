@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
 import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
-import kg.neobis.smarttailor.dtos.ads.detailed.ServiceDetailed;
+import kg.neobis.smarttailor.dtos.ServiceDetailed;
 import kg.neobis.smarttailor.service.ServicesService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;

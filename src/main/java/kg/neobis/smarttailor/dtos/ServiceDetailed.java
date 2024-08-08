@@ -1,10 +1,13 @@
-package kg.neobis.smarttailor.dtos.ads.detailed;
+package kg.neobis.smarttailor.dtos;
+
+import lombok.Builder;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.List;
 
-public record EquipmentDetailed(
+@Builder
+public record ServiceDetailed(
         Long id,
         String name,
         String description,
@@ -12,6 +15,5 @@ public record EquipmentDetailed(
         String contactInfo,
         String authorImage,
         String authorFullName,
-        List<String> equipmentImages,
-        Integer quantity
+        List<String> serviceImages
 ) implements Serializable {}
