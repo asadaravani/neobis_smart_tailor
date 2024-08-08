@@ -136,17 +136,17 @@ public class OrderController {
 
     @Operation(
             summary = "GET EMPLOYEE'S CURRENT ORDERS",
-            description = "Returns list of employee's current orders",
+            description = "Returns list of employee's orders by stage (completed / current)",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "List of employee's current orders received"),
+                    @ApiResponse(responseCode = "200", description = "List of employee's orders received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
-    @GetMapping("/get-employee-current-orders/{employeeId}")
-    public ResponseEntity<List<EmployeeOrderListDto>> getEmployeeCurrentOrder(@PathVariable Long employeeId, Authentication authentication) {
-        return ResponseEntity.ok(orderService.getEmployeeCurrentOrders(employeeId, authentication));
+    @GetMapping("/get-employee-orders-by-stage/{employeeId}")
+    public ResponseEntity<List<EmployeeStageOrderListDto>> getEmployeeOrderByStage(@PathVariable Long employeeId, @RequestParam String stage, Authentication authentication) {
+        return ResponseEntity.ok(orderService.getEmployeeOrdersByStage(employeeId, stage, authentication));
     }
 
     @Operation(
