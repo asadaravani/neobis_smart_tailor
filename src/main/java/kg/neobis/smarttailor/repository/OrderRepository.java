@@ -27,6 +27,12 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT o FROM orders o JOIN o.orderEmployees e WHERE e = :user AND o.dateOfCompletion IS NULL")
     Page<Order> findCurrentEmployeeOrders(@Param("user") AppUser user, Pageable pageable);
 
+    @Query("SELECT o FROM orders o WHERE o.organizationExecutor = :organization AND o.dateOfCompletion IS NULL")
+    Page<Order> findCurrentOrganizationOrders(@Param("organization") Organization organization, Pageable pageable);
+
     @Query("SELECT o FROM orders o JOIN o.orderEmployees e WHERE e = :user AND o.dateOfCompletion IS NOT NULL")
     Page<Order> findCompletedEmployeeOrders(@Param("user") AppUser user, Pageable pageable);
+
+    @Query("SELECT o FROM orders o WHERE o.organizationExecutor = :organization AND o.dateOfCompletion IS NOT NULL")
+    Page<Order> findCompletedOrganizationOrders(@Param("organization") Organization organization, Pageable pageable);
 }

@@ -30,6 +30,8 @@ public interface OrderService {
 
     EmployeePageDto getEmployeeOrdersByStage(Long employeeId, String stage, int pageNumber, int pageSize, Authentication authentication);
 
+    OrganizationPageDto getOrganizationOrdersByStage(String stage, int pageNumber, int pageSize, Authentication authentication);
+
     AuthorOrderDetailedDto getOrderDetailedForAuthor(Long orderId, Authentication authentication);
 
     List<Long> getOrderIdsByEmployee(AppUser employee);
@@ -42,7 +44,7 @@ public interface OrderService {
 
     String sendRequestToExecuteOrder(Long orderId, Authentication authentication);
 
-    List<OrganizationOrders> getOrdersOfOrganization(String email);
+    List<OrganizationOrdersDto> getOrdersOfOrganization(String email);
 
     CurrentOrganizationOrders getCurrentOrdersOfOrganization(String email);
 

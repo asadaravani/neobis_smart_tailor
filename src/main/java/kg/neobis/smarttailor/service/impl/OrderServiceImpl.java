@@ -119,6 +119,31 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public void changeOrderStatus(Long orderId, PlusMinus plusMinus, String email) {
+        AppUser user = appUserService.findUserByEmail(email);
+        Order order = findOrderById(orderId);
+        OrderStatus[] statusArray = OrderStatus.values();
+        Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
+        if (!order.getOrganizationExecutor().getId().equals(organization.getId()) || !order.getOrderEmployees().contains(user)) {
+            throw new NoPermissionException("You do NOT have permission to change the status of this Order");
+        }
+        if ((plusMinus == PlusMinus.MINUS && order.getStatus() == OrderStatus.WAITING)
+                || (plusMinus == PlusMinus.PLUS && order.getStatus() == OrderStatus.ARRIVED)) {
+            throw new InvalidRequestException("Invalid Request");
+        }
+        Arrays.stream(statusArray).forEach(status -> {
+            if (status == order.getStatus()) {
+                if (plusMinus == PlusMinus.PLUS) {
+                    order.setStatus(statusArray[Arrays.asList(statusArray).indexOf(status) + 1]);
+                } else {
+                    order.setStatus(statusArray[Arrays.asList(statusArray).indexOf(status) - 1]);
+                }
+            }
+        });
+        orderRepository.save(order);
+    }
+
+    @Override
     public String completeOrder(Long orderId, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
@@ -179,6 +204,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public Order findOrderById(Long id) {
+        return orderRepository.findById(id).
+                orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+    }
+
+    @Override
     public AdvertisementPageDto getAllOrders(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Order> orders = orderRepository.findByIsVisible(true, pageable);
@@ -187,6 +218,19 @@ public class OrderServiceImpl implements OrderService {
         boolean isLast = orders.isLast();
         Long totalCount = orders.getTotalElements();
         return new AdvertisementPageDto(orderListDto, isLast, totalCount);
+    }
+
+    @Override
+    public CurrentOrganizationOrders getCurrentOrdersOfOrganization(String email) {
+        Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
+        List<Order> orders = orderRepository.findAllByOrganizationExecutor(organization);
+        return new CurrentOrganizationOrders(
+                extractOrdersByStatusAndMap(OrderStatus.WAITING, orders),
+                extractOrdersByStatusAndMap(OrderStatus.IN_PROGRESS, orders),
+                extractOrdersByStatusAndMap(OrderStatus.CHECKING, orders),
+                extractOrdersByStatusAndMap(OrderStatus.SENDING, orders),
+                extractOrdersByStatusAndMap(OrderStatus.ARRIVED, orders)
+        );
     }
 
     @Override
@@ -223,22 +267,28 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public CurrentOrganizationOrders getCurrentOrdersOfOrganization(String email) {
-        Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
-        List<Order> orders = orderRepository.findAllByOrganizationExecutor(organization);
-        return new CurrentOrganizationOrders(
-                extractOrdersByStatusAndMap(OrderStatus.WAITING, orders),
-                extractOrdersByStatusAndMap(OrderStatus.IN_PROGRESS, orders),
-                extractOrdersByStatusAndMap(OrderStatus.CHECKING, orders),
-                extractOrdersByStatusAndMap(OrderStatus.SENDING, orders),
-                extractOrdersByStatusAndMap(OrderStatus.ARRIVED, orders)
-        );
-    }
+    public OrganizationPageDto getOrganizationOrdersByStage(String stage, int pageNumber, int pageSize, Authentication authentication) {
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
+                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
+        Organization organization = organizationEmployee.getOrganization();
 
-    @Override
-    public Order findOrderById(Long id) {
-        return orderRepository.findById(id).
-                orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        Page<Order> organizationOrders;
+        if (stage.equals("current")) {
+            Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.Direction.DESC, "dateOfStart");
+            organizationOrders = orderRepository.findCurrentOrganizationOrders(organization, pageable);
+        } else if (stage.equals("completed")) {
+            Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.Direction.DESC, "dateOfCompletion");
+            organizationOrders = orderRepository.findCompletedOrganizationOrders(organization, pageable);
+        } else {
+            throw new ResourceNotFoundException("Invalid state.\nValid states: completed, current");
+        }
+        List<Order> ordersList = organizationOrders.getContent();
+        List<OrganizationOrdersDto> orderListDto = orderMapper.entityListToOrganizationOrderListDto(ordersList);
+        boolean isLast = organizationOrders.isLast();
+        Long totalCount = organizationOrders.getTotalElements();
+        return new OrganizationPageDto(organization.getId(), organization.getName(),
+                                        organization.getDescription(),orderListDto, isLast, totalCount);
     }
 
     @Override
@@ -268,7 +318,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<OrganizationOrders> getOrdersOfOrganization(String email) {
+    public List<OrganizationOrdersDto> getOrdersOfOrganization(String email) {
         Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
         List<Order> orders = orderRepository.findAllByOrganizationExecutor(organization);
         return orders.stream().map(
@@ -323,31 +373,6 @@ public class OrderServiceImpl implements OrderService {
         } else {
             throw new ResourceAlreadyExistsException("Order is already taken by another organization");
         }
-    }
-
-    @Override
-    public void changeOrderStatus(Long orderId, PlusMinus plusMinus, String email) {
-        AppUser user = appUserService.findUserByEmail(email);
-        Order order = findOrderById(orderId);
-        OrderStatus[] statusArray = OrderStatus.values();
-        Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
-        if (!order.getOrganizationExecutor().getId().equals(organization.getId()) || !order.getOrderEmployees().contains(user)) {
-            throw new NoPermissionException("You do NOT have permission to change the status of this Order");
-        }
-        if ((plusMinus == PlusMinus.MINUS && order.getStatus() == OrderStatus.WAITING)
-                || (plusMinus == PlusMinus.PLUS && order.getStatus() == OrderStatus.ARRIVED)) {
-            throw new InvalidRequestException("Invalid Request");
-        }
-        Arrays.stream(statusArray).forEach(status -> {
-            if (status == order.getStatus()) {
-                if (plusMinus == PlusMinus.PLUS) {
-                    order.setStatus(statusArray[Arrays.asList(statusArray).indexOf(status) + 1]);
-                } else {
-                    order.setStatus(statusArray[Arrays.asList(statusArray).indexOf(status) - 1]);
-                }
-            }
-        });
-        orderRepository.save(order);
     }
 
     private List<OrderCard> extractOrdersByStatusAndMap(OrderStatus status, List<Order> orders) {
