@@ -2,7 +2,6 @@ package kg.neobis.smarttailor.service;
 
 import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.dtos.EquipmentDetailed;
-import kg.neobis.smarttailor.dtos.EquipmentListDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Equipment;
 import org.springframework.security.core.Authentication;
@@ -27,5 +26,5 @@ public interface EquipmentService {
 
     String hideEquipment(Long equipmentId, Authentication authentication);
 
-    List<EquipmentListDto> searchEquipments(String query);
+    AdvertisementPageDto searchEquipments(String query, int pageNumber, int pageSize);
 }

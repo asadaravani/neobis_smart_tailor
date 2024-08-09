@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
 import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.dtos.EquipmentDetailed;
-import kg.neobis.smarttailor.dtos.EquipmentListDto;
 import kg.neobis.smarttailor.service.EquipmentService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -135,7 +134,7 @@ public class EquipmentController {
     }
 
     @Operation(
-            summary = "Search equipments",
+            summary = "SEARCH EQUIPMENTS",
             description = "Accepts equipment name and returns list of equipments",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Equipment list received"),
@@ -145,7 +144,9 @@ public class EquipmentController {
             }
     )
     @GetMapping("/search-equipment")
-    public ResponseEntity<List<EquipmentListDto>> searchEquipments(@RequestParam(name = "query") String query) {
-        return ResponseEntity.ok().body(equipmentService.searchEquipments(query));
+    public ResponseEntity<AdvertisementPageDto> searchEquipments(@RequestParam(name = "query") String query,
+                                                                 @RequestParam int pageNumber,
+                                                                 @RequestParam int pageSize) {
+        return ResponseEntity.ok().body(equipmentService.searchEquipments(query, pageNumber, pageSize));
     }
 }
