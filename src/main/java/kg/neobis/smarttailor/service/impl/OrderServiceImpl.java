@@ -10,6 +10,7 @@ import kg.neobis.smarttailor.dtos.OrderRequestDto;
 import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.enums.OrderStatus;
+import kg.neobis.smarttailor.enums.PlusMinus;
 import kg.neobis.smarttailor.exception.*;
 import kg.neobis.smarttailor.mapper.OrderMapper;
 import kg.neobis.smarttailor.repository.OrderRepository;
@@ -27,10 +28,10 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,8 +64,7 @@ public class OrderServiceImpl implements OrderService {
     public String assignOrganizationToOrder(Long orderId, String organizationName, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        Order order = findOrderById(orderId);
         Organization organization = organizationService.getOrganizationByName(organizationName);
 
         if (!order.getAuthor().getId().equals(user.getId())) {
@@ -85,8 +85,7 @@ public class OrderServiceImpl implements OrderService {
     public String assignEmployeeToOrder(Long orderId, Long employeeId, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        Order order = findOrderById(orderId);
         AppUser employee = appUserService.findUserById(employeeId);
 
         Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.ASSIGN_EMPLOYEE_TO_ORDER, user.getEmail());
@@ -120,8 +119,7 @@ public class OrderServiceImpl implements OrderService {
     public String completeOrder(Long orderId, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        Order order = findOrderById(orderId);
 
         if (order.getOrganizationExecutor() == null) {
             throw new ResourceNotFoundException("Customer hasn't chosen an executor to order");
@@ -153,8 +151,7 @@ public class OrderServiceImpl implements OrderService {
     public String deleteOrder(Long orderId, Authentication authentication) throws IOException {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        Order order = findOrderById(orderId);
 
         if (!user.getId().equals(order.getAuthor().getId())) {
             throw new NoPermissionException("Only authors can delete their advertisements");
@@ -224,9 +221,14 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderDetailed getOrderById(Long orderId) {
-        Order order = orderRepository.findById(orderId).
+    public Order findOrderById(Long id){
+        return orderRepository.findById(id).
                 orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+    }
+
+    @Override
+    public OrderDetailed getOrderById(Long orderId) {
+        Order order = findOrderById(orderId);
         return orderMapper.entityToDto(order);
     }
 
@@ -251,8 +253,7 @@ public class OrderServiceImpl implements OrderService {
     public String hideOrder(Long orderId, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        Order order = findOrderById(orderId);
 
         if (!order.getIsVisible()) {
             throw new ResourceAlreadyExistsException("Order is already hidden");
@@ -269,8 +270,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public String sendRequestToExecuteOrder(Long orderId, Authentication authentication) {
 
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        Order order = findOrderById(orderId);
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
         Organization usersOrganization = organizationEmployee.getOrganization();
@@ -295,6 +295,32 @@ public class OrderServiceImpl implements OrderService {
         } else {
             throw new ResourceAlreadyExistsException("Order is already taken by another organization");
         }
+    }
+
+    @Override
+    public void changeOrderStatus(Long orderId, PlusMinus plusMinus, String email){
+        AppUser user = appUserService.findUserByEmail(email);
+        Order order = findOrderById(orderId);
+        OrderStatus[] statusArray = OrderStatus.values();
+        Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
+        if(!order.getOrganizationExecutor().getId().equals(organization.getId()) || !order.getOrderEmployees().contains(user)){
+            throw new NoPermissionException("You do NOT have permission to change the status of this Order");
+        }
+        if ((plusMinus == PlusMinus.MINUS && order.getStatus() == OrderStatus.WAITING )
+                || (plusMinus == PlusMinus.PLUS && order.getStatus() == OrderStatus.ARRIVED)){
+            throw new InvalidRequestException("Invalid Request");
+        }
+        Arrays.stream(statusArray).forEach(status -> {
+            if(status == order.getStatus()){
+                if(plusMinus == PlusMinus.PLUS){
+                    order.setStatus(statusArray[Arrays.asList(statusArray).indexOf(status) + 1]);
+                }
+                else{
+                    order.setStatus(statusArray[Arrays.asList(statusArray).indexOf(status) - 1]);
+                }
+            }
+        });
+        orderRepository.save(order);
     }
 
     private List<OrderCard> extractOrdersByStatusAndMap(OrderStatus status, List<Order> orders) {

@@ -19,7 +19,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;

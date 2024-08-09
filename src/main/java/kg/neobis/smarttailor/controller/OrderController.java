@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
 import kg.neobis.smarttailor.dtos.*;
+import kg.neobis.smarttailor.enums.PlusMinus;
 import kg.neobis.smarttailor.service.OrderService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -13,17 +14,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RequestPart;
-
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import java.io.IOException;
 import java.util.List;
 
@@ -230,5 +222,23 @@ public class OrderController {
     @PostMapping("/send-request-to-execute-order/{orderId}")
     public ResponseEntity<String> sendRequestToExecuteOrder(@PathVariable Long orderId, Authentication authentication) {
         return ResponseEntity.status(HttpStatus.OK).body(orderService.sendRequestToExecuteOrder(orderId, authentication));
+    }
+
+    @Operation(
+            summary = "SEND REQUEST TO CHANGE STATUS",
+            description = "Accepts order id, CUSTOM enum +/- ,  and user's information from jwt to leave a request to execute order",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Order's status is changed"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present | User has no permission to send request to execute order"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "404", description = "Order not found | User is not a member of any organization"),
+                    @ApiResponse(responseCode = "409", description = "User can't respond to his/her own order | Order is already taken by another user"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
+    @PutMapping("/change-status/{orderId}/{plusMinus}")
+    public void changeOrderStatus(@PathVariable Long orderId, @PathVariable PlusMinus plusMinus, Authentication authentication){
+        orderService.changeOrderStatus(orderId, plusMinus, authentication.getName());
     }
 }
