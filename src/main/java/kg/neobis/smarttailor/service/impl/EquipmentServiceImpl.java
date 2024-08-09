@@ -145,9 +145,14 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
-    public List<EquipmentListDto> searchEquipments(String name) {
-        List<Equipment> equipmentList = equipmentRepository.findEquipmentByNameContainingIgnoreCase(name);
-        return equipmentMapper.entityListToDtoList(equipmentList);
+    public AdvertisementPageDto searchEquipments(String name, int pageNumber, int pageSize) {
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Equipment> equipments = equipmentRepository.findEquipmentByNameContainingIgnoreCase(name, pageable);
+        List<Equipment> equipmentList = equipments.getContent();
+        List<EquipmentListDto> equipmentListDto = equipmentMapper.entityListToDtoList(equipmentList);
+        boolean isLast = equipments.isLast();
+        Long totalCount = equipments.getTotalElements();
+        return new AdvertisementPageDto(equipmentListDto, isLast, totalCount);
     }
 
     private Equipment findEquipmentById(Long equipmentId) {
