@@ -10,10 +10,7 @@ import kg.neobis.smarttailor.dtos.OrganizationDto;
 import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.enums.Role;
-import kg.neobis.smarttailor.exception.InvalidJsonException;
-import kg.neobis.smarttailor.exception.NoPermissionException;
-import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
-import kg.neobis.smarttailor.exception.ResourceNotFoundException;
+import kg.neobis.smarttailor.exception.*;
 import kg.neobis.smarttailor.mapper.OrganizationMapper;
 import kg.neobis.smarttailor.repository.OrganizationRepository;
 import kg.neobis.smarttailor.service.*;
@@ -115,12 +112,8 @@ public class OrganizationServiceImpl implements OrganizationService {
 
     @Override
     public Organization findOrganizationByDirectorOrEmployee(String email) {
-        try {
-            return organizationRepository.findByDirectorEmail(email)
-                    .orElse(organizationEmployeeService.findByEmployeeEmail(email).getOrganization());
-        } catch (Exception e) {
-            throw new ResourceNotFoundException("Organization not found");
-        }
+        return organizationRepository.findByDirectorEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("Organization not found"));
     }
 
     @Override
@@ -144,7 +137,8 @@ public class OrganizationServiceImpl implements OrganizationService {
     public String sendInvitation(String request, Authentication authentication) throws MessagingException {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
+                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization "));
         EmployeeInvitationRequest employeeInvitationRequest = parseAndValidateEmployeeInvitationRequest(request);
         Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.INVITE_EMPLOYEE, user.getEmail());
         Boolean isUserExists = appUserService.existsUserByEmail(employeeInvitationRequest.email());
