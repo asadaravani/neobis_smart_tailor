@@ -10,6 +10,7 @@ import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.exception.InvalidJsonException;
 import kg.neobis.smarttailor.exception.NoPermissionException;
 import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
+import kg.neobis.smarttailor.exception.UserNotInOrganizationException;
 import kg.neobis.smarttailor.mapper.PositionMapper;
 import kg.neobis.smarttailor.repository.PositionRepository;
 import kg.neobis.smarttailor.service.AppUserService;
@@ -43,8 +44,9 @@ public class PositionServiceImpl implements PositionService {
 
         PositionDto positionRequestDto = parseAndValidatePositionDto(positionDto);
         AppUser user = appUserService.getUserFromAuthentication(authentication);
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
+                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
         Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.CREATE_POSITION, user.getEmail());
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
 
         if (hasRights) {
             if (positionRepository.existsPositionByNameAndOrganization(positionRequestDto.positionName(), organizationEmployee.getOrganization())) {
@@ -61,7 +63,8 @@ public class PositionServiceImpl implements PositionService {
     @Override
     public List<PositionDto> getAllPositionsExceptDirector(Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
+                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
         List<Position> positions = positionRepository.findAllPositionsExceptDirector(organizationEmployee.getOrganization());
 
         return positionMapper.entityListToDtoList(positions);

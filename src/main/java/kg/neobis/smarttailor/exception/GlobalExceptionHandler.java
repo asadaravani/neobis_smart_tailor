@@ -34,6 +34,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(UserNotInOrganizationException.class)
+    public ResponseEntity<ErrorResponse> handleResourceProcessing(UserNotInOrganizationException ex) {
+        log.error("UserNotInOrganizationException: {}", ex.getMessage(), ex);
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
+    }
+
     @ExceptionHandler(OutOfDateException.class)
     public ResponseEntity<ErrorResponse> handleOutOfDateException(OutOfDateException ex) {
         log.error("OutOfDateException: {}", ex.getMessage(), ex);
@@ -74,6 +81,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         log.error("ResourceProcessingErrorException: {}", ex.getMessage(), ex);
         ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
         return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(SelfPurchaseException.class)
+    public ResponseEntity<ErrorResponse> handleResourceProcessing(SelfPurchaseException ex) {
+        log.error("SelfPurchaseException: {}", ex.getMessage(), ex);
+        ErrorResponse errorResponse = new ErrorResponse(ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(UnauthorizedException.class)

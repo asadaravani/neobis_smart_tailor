@@ -28,7 +28,7 @@ public interface OrderService {
 
     AdvertisementPageDto getAllOrders(int pageNumber, int pageSize);
 
-    List<EmployeeStageOrderListDto> getEmployeeOrdersByStage(Long employeeId, String stage, Authentication authentication);
+    EmployeePageDto getEmployeeOrdersByStage(Long employeeId, String stage, int pageNumber, int pageSize, Authentication authentication);
 
     AuthorOrderDetailedDto getOrderDetailedForAuthor(Long orderId, Authentication authentication);
 

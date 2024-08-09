@@ -28,6 +28,7 @@ import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -89,8 +90,10 @@ public class OrderServiceImpl implements OrderService {
         AppUser employee = appUserService.findUserById(employeeId);
 
         Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.ASSIGN_EMPLOYEE_TO_ORDER, user.getEmail());
-        OrganizationEmployee authenticatedOrganizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
-        OrganizationEmployee assignedToOrderEmployee = organizationEmployeeService.findByEmployeeEmail(employee.getEmail());
+        OrganizationEmployee authenticatedOrganizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
+                .orElseThrow(() -> new UserNotInOrganizationException("Authenticated user is not a member of any organization"));
+        OrganizationEmployee assignedToOrderEmployee = organizationEmployeeService.findByEmployeeEmail(employee.getEmail())
+                .orElseThrow(() -> new UserNotInOrganizationException("Employee is not a member of any organization"));
 
         if (hasRights) {
             if (authenticatedOrganizationEmployee.getOrganization().getId()
@@ -125,7 +128,8 @@ public class OrderServiceImpl implements OrderService {
             throw new ResourceNotFoundException("Customer hasn't chosen an executor to order");
         }
         Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.COMPLETE_ORDER, user.getEmail());
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
+                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
 
         if (hasRights) {
             if (organizationEmployee.getOrganization().getId().
@@ -186,25 +190,36 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<EmployeeStageOrderListDto> getEmployeeOrdersByStage(Long employeeId, String stage, Authentication authentication) {
+    public EmployeePageDto getEmployeeOrdersByStage(Long employeeId, String stage, int pageNumber, int pageSize, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        Organization organization = organizationEmployeeService.findByEmployeeEmail(user.getEmail()).getOrganization();
+        OrganizationEmployee authenticatedOrganizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
+                .orElseThrow(() -> new UserNotInOrganizationException("Authenticated user is not a member of any organization"));
+        Organization organization = authenticatedOrganizationEmployee.getOrganization();
         AppUser employee = appUserService.findUserById(employeeId);
 
         Boolean isEmployeeInOrganization = organizationEmployeeService.existsByOrganizationAndEmployeeEmail(organization, employee.getEmail());
         if (!isEmployeeInOrganization) {
-            throw new NoPermissionException("Employee is not a member of your organization");
+            throw new UserNotInOrganizationException("Employee is not a member of authenticated user organization");
         }
-        List<Order> employeeOrders;
+        Pageable pageable;
+        Page<Order> employeeOrders;
         if (stage.equals("current")) {
-            employeeOrders = orderRepository.findCurrentEmployeeOrders(employee);
+            pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "dateOfStart"));
+            employeeOrders = orderRepository.findCurrentEmployeeOrders(employee, pageable);
         } else if (stage.equals("completed")) {
-            employeeOrders = orderRepository.findCompletedEmployeeOrders(employee);
+            pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "dateOfCompletion"));
+            employeeOrders = orderRepository.findCompletedEmployeeOrders(employee, pageable);
         } else {
-            throw new ResourceNotFoundException("Invalid state.\nValid states: completed, current");
+            throw new ResourceNotFoundException("Invalid stage.\nValid states: completed, current");
         }
-        return orderMapper.entityListToEmployeeStageOrderListDto(employeeOrders, stage);
+        List<EmployeeStageOrderListDto> orderListDto = orderMapper.entityListToEmployeeStageOrderListDto(employeeOrders, stage);
+        boolean isLast = employeeOrders.isLast();
+        Long totalCount = employeeOrders.getTotalElements();
+        String employeeFullName = employee.getSurname().concat(" ")
+                .concat(employee.getName()).concat(" ")
+                .concat(employee.getPatronymic());
+        return new EmployeePageDto(employee.getId(), employeeFullName, orderListDto, isLast, totalCount);
     }
 
     @Override
@@ -221,7 +236,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Order findOrderById(Long id){
+    public Order findOrderById(Long id) {
         return orderRepository.findById(id).
                 orElseThrow(() -> new ResourceNotFoundException("Order not found"));
     }
@@ -284,7 +299,8 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = findOrderById(orderId);
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
+                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
         Organization usersOrganization = organizationEmployee.getOrganization();
 
         if (order.getAuthor().equals(user)) {
@@ -310,24 +326,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void changeOrderStatus(Long orderId, PlusMinus plusMinus, String email){
+    public void changeOrderStatus(Long orderId, PlusMinus plusMinus, String email) {
         AppUser user = appUserService.findUserByEmail(email);
         Order order = findOrderById(orderId);
         OrderStatus[] statusArray = OrderStatus.values();
         Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
-        if(!order.getOrganizationExecutor().getId().equals(organization.getId()) || !order.getOrderEmployees().contains(user)){
+        if (!order.getOrganizationExecutor().getId().equals(organization.getId()) || !order.getOrderEmployees().contains(user)) {
             throw new NoPermissionException("You do NOT have permission to change the status of this Order");
         }
-        if ((plusMinus == PlusMinus.MINUS && order.getStatus() == OrderStatus.WAITING )
-                || (plusMinus == PlusMinus.PLUS && order.getStatus() == OrderStatus.ARRIVED)){
+        if ((plusMinus == PlusMinus.MINUS && order.getStatus() == OrderStatus.WAITING)
+                || (plusMinus == PlusMinus.PLUS && order.getStatus() == OrderStatus.ARRIVED)) {
             throw new InvalidRequestException("Invalid Request");
         }
         Arrays.stream(statusArray).forEach(status -> {
-            if(status == order.getStatus()){
-                if(plusMinus == PlusMinus.PLUS){
+            if (status == order.getStatus()) {
+                if (plusMinus == PlusMinus.PLUS) {
                     order.setStatus(statusArray[Arrays.asList(statusArray).indexOf(status) + 1]);
-                }
-                else{
+                } else {
                     order.setStatus(statusArray[Arrays.asList(statusArray).indexOf(status) - 1]);
                 }
             }
