@@ -25,8 +25,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     List<Order> findByOrderEmployee(@Param("user") AppUser user);
 
     @Query("SELECT o FROM orders o JOIN o.orderEmployees e WHERE e = :user AND o.dateOfCompletion IS NULL")
-    List<Order> findCurrentEmployeeOrders(@Param("user") AppUser user);
+    Page<Order> findCurrentEmployeeOrders(@Param("user") AppUser user, Pageable pageable);
 
     @Query("SELECT o FROM orders o JOIN o.orderEmployees e WHERE e = :user AND o.dateOfCompletion IS NOT NULL")
-    List<Order> findCompletedEmployeeOrders(@Param("user") AppUser user);
+    Page<Order> findCompletedEmployeeOrders(@Param("user") AppUser user, Pageable pageable);
 }

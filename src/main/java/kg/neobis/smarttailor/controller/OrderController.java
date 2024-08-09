@@ -4,7 +4,12 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
-import kg.neobis.smarttailor.dtos.*;
+import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
+import kg.neobis.smarttailor.dtos.AuthorOrderDetailedDto;
+import kg.neobis.smarttailor.dtos.CurrentOrganizationOrders;
+import kg.neobis.smarttailor.dtos.EmployeePageDto;
+import kg.neobis.smarttailor.dtos.OrderDetailed;
+import kg.neobis.smarttailor.dtos.OrganizationOrders;
 import kg.neobis.smarttailor.enums.PlusMinus;
 import kg.neobis.smarttailor.service.OrderService;
 import lombok.AccessLevel;
@@ -14,8 +19,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
 import java.util.List;
 
@@ -151,12 +165,18 @@ public class OrderController {
                     @ApiResponse(responseCode = "200", description = "List of employee's orders received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "404", description = "Employee not found with specified email | Invalid stage"),
+                    @ApiResponse(responseCode = "409", description = "Authenticated user is not a member of any organization | Employee is not a member of authenticated user organization"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @GetMapping("/get-employee-orders-by-stage/{employeeId}")
-    public ResponseEntity<List<EmployeeStageOrderListDto>> getEmployeeOrderByStage(@PathVariable Long employeeId, @RequestParam String stage, Authentication authentication) {
-        return ResponseEntity.ok(orderService.getEmployeeOrdersByStage(employeeId, stage, authentication));
+    public ResponseEntity<EmployeePageDto> getEmployeeOrderByStage(@PathVariable Long employeeId,
+                                                                   @RequestParam String stage,
+                                                                   @RequestParam int pageNumber,
+                                                                   @RequestParam int pageSize,
+                                                                   Authentication authentication) {
+        return ResponseEntity.ok(orderService.getEmployeeOrdersByStage(employeeId, stage, pageNumber, pageSize, authentication));
     }
 
     @Operation(
@@ -254,7 +274,7 @@ public class OrderController {
             }
     )
     @PutMapping("/change-status/{orderId}/{plusMinus}")
-    public void changeOrderStatus(@PathVariable Long orderId, @PathVariable PlusMinus plusMinus, Authentication authentication){
+    public void changeOrderStatus(@PathVariable Long orderId, @PathVariable PlusMinus plusMinus, Authentication authentication) {
         orderService.changeOrderStatus(orderId, plusMinus, authentication.getName());
     }
 }

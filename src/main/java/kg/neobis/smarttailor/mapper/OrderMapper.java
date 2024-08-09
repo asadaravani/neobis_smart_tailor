@@ -1,13 +1,22 @@
 package kg.neobis.smarttailor.mapper;
 
-import kg.neobis.smarttailor.dtos.*;
+import kg.neobis.smarttailor.dtos.AuthorOrderDetailedDto;
+import kg.neobis.smarttailor.dtos.EmployeeStageOrderListDto;
+import kg.neobis.smarttailor.dtos.MyAdvertisement;
+import kg.neobis.smarttailor.dtos.OrderCard;
+import kg.neobis.smarttailor.dtos.OrderDetailed;
+import kg.neobis.smarttailor.dtos.OrderItemDto;
+import kg.neobis.smarttailor.dtos.OrderListDto;
+import kg.neobis.smarttailor.dtos.OrderRequestDto;
+import kg.neobis.smarttailor.dtos.OrganizationDto;
+import kg.neobis.smarttailor.dtos.OrganizationOrders;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.entity.Order;
 import kg.neobis.smarttailor.entity.OrderItem;
-
 import kg.neobis.smarttailor.enums.AdvertType;
 import kg.neobis.smarttailor.enums.OrderStatus;
+import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -53,7 +62,7 @@ public class OrderMapper {
         )).collect(Collectors.toList());
     }
 
-    public List<EmployeeStageOrderListDto> entityListToEmployeeStageOrderListDto(List<Order> orders, String stage) {
+    public List<EmployeeStageOrderListDto> entityListToEmployeeStageOrderListDto(Page<Order> orders, String stage) {
         return orders.stream().map(order -> EmployeeStageOrderListDto.builder()
                         .id(order.getId())
                         .name(order.getName())
@@ -115,7 +124,6 @@ public class OrderMapper {
                 candidates
         );
     }
-
 
     public MyAdvertisement toMyAdvertisement(Order order) {
         return MyAdvertisement.builder()

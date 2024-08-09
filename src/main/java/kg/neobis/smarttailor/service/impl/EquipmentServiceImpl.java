@@ -16,7 +16,6 @@ import kg.neobis.smarttailor.mapper.EquipmentMapper;
 import kg.neobis.smarttailor.repository.EquipmentRepository;
 import kg.neobis.smarttailor.service.AppUserService;
 import kg.neobis.smarttailor.service.CloudinaryService;
-import kg.neobis.smarttailor.service.EmailService;
 import kg.neobis.smarttailor.service.EquipmentService;
 import kg.neobis.smarttailor.service.NotificationService;
 import lombok.AccessLevel;
@@ -46,7 +45,6 @@ public class EquipmentServiceImpl implements EquipmentService {
 
     AppUserService appUserService;
     CloudinaryService cloudinaryService;
-    EmailService emailService;
     EquipmentMapper equipmentMapper;
     EquipmentRepository equipmentRepository;
     NotificationService notificationService;
@@ -84,34 +82,6 @@ public class EquipmentServiceImpl implements EquipmentService {
 
         return "You have successfully purchased the equipment. Receipt sent to the email. Please check your email";
     }
-
-    private Equipment findEquipmentById(Long equipmentId) {
-        return equipmentRepository.findById(equipmentId)
-                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
-    }
-
-    private void validatePurchase(Equipment equipment, AppUser user) {
-        if (isOwner(equipment, user)) {
-            throw new NoPermissionException("Users can't buy their own equipment");
-        }
-        if (isOutOfStock(equipment)) {
-            throw new OutOfStockException("This equipment is out of stock");
-        }
-    }
-
-    private boolean isOwner(Equipment equipment, AppUser user) {
-        return equipment.getAuthor().getId().equals(user.getId());
-    }
-
-    private boolean isOutOfStock(Equipment equipment) {
-        return equipment.getQuantity() == null || equipment.getQuantity() <= 0;
-    }
-
-    private void updateEquipmentStock(Equipment equipment) {
-        equipment.setQuantity(equipment.getQuantity() - 1);
-        equipmentRepository.save(equipment);
-    }
-
 
     @Override
     @Transactional
@@ -180,7 +150,18 @@ public class EquipmentServiceImpl implements EquipmentService {
         return equipmentMapper.entityListToDtoList(equipmentList);
     }
 
+    private Equipment findEquipmentById(Long equipmentId) {
+        return equipmentRepository.findById(equipmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
+    }
 
+    private boolean isOutOfStock(Equipment equipment) {
+        return equipment.getQuantity() == null || equipment.getQuantity() <= 0;
+    }
+
+    private boolean isOwner(Equipment equipment, AppUser user) {
+        return equipment.getAuthor().getId().equals(user.getId());
+    }
 
     private EquipmentRequestDto parseAndValidateRecipeDto(String equipmentDto) {
         try {
@@ -211,4 +192,19 @@ public class EquipmentServiceImpl implements EquipmentService {
             throw new InvalidJsonException(e.getMessage());
         }
     }
+
+    private void updateEquipmentStock(Equipment equipment) {
+        equipment.setQuantity(equipment.getQuantity() - 1);
+        equipmentRepository.save(equipment);
+    }
+
+    private void validatePurchase(Equipment equipment, AppUser user) {
+        if (isOwner(equipment, user)) {
+            throw new SelfPurchaseException("Users can't buy their own equipment");
+        }
+        if (isOutOfStock(equipment)) {
+            throw new OutOfStockException("This equipment is out of stock");
+        }
+    }
+
 }

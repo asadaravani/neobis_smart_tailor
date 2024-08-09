@@ -5,6 +5,7 @@ import kg.neobis.smarttailor.entity.OrganizationEmployee;
 import kg.neobis.smarttailor.enums.AccessRight;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface OrganizationEmployeeService {
 
@@ -16,7 +17,7 @@ public interface OrganizationEmployeeService {
 
     List<OrganizationEmployee> findAllByOrganization(Organization organization);
 
-    OrganizationEmployee findByEmployeeEmail(String email);
+    Optional<OrganizationEmployee> findByEmployeeEmail(String email);
 
     Boolean existsByOrganizationAndEmployeeEmail(Organization organization, String employeeEmail);
 }
