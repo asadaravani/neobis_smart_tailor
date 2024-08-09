@@ -3,6 +3,7 @@ package kg.neobis.smarttailor.service;
 import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Order;
+import kg.neobis.smarttailor.enums.PlusMinus;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -33,6 +34,8 @@ public interface OrderService {
 
     List<Long> getOrderIdsByEmployee(AppUser employee);
 
+    Order findOrderById(Long id);
+
     OrderDetailed getOrderById(Long orderId);
 
     String hideOrder(Long orderId, Authentication authentication);
@@ -42,4 +45,6 @@ public interface OrderService {
     List<OrganizationOrders> getOrdersOfOrganization(String email);
 
     CurrentOrganizationOrders getCurrentOrdersOfOrganization(String email);
+
+    void changeOrderStatus(Long orderId, PlusMinus plusMinus, String email);
 }
