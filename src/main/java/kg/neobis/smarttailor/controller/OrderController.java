@@ -9,7 +9,8 @@ import kg.neobis.smarttailor.dtos.AuthorOrderDetailedDto;
 import kg.neobis.smarttailor.dtos.CurrentOrganizationOrders;
 import kg.neobis.smarttailor.dtos.EmployeePageDto;
 import kg.neobis.smarttailor.dtos.OrderDetailed;
-import kg.neobis.smarttailor.dtos.OrganizationOrders;
+import kg.neobis.smarttailor.dtos.OrganizationOrdersDto;
+import kg.neobis.smarttailor.dtos.OrganizationPageDto;
 import kg.neobis.smarttailor.enums.PlusMinus;
 import kg.neobis.smarttailor.service.OrderService;
 import lombok.AccessLevel;
@@ -95,6 +96,24 @@ public class OrderController {
     }
 
     @Operation(
+            summary = "SEND REQUEST TO CHANGE STATUS",
+            description = "Accepts order id, CUSTOM enum +/- ,  and user's information from jwt to leave a request to execute order",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Order's status is changed"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present | User has no permission to send request to execute order"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "404", description = "Order not found | User is not a member of any organization"),
+                    @ApiResponse(responseCode = "409", description = "User can't respond to his/her own order | Order is already taken by another user"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
+    @PutMapping("/change-status/{orderId}/{plusMinus}")
+    public void changeOrderStatus(@PathVariable Long orderId, @PathVariable PlusMinus plusMinus, Authentication authentication) {
+        orderService.changeOrderStatus(orderId, plusMinus, authentication.getName());
+    }
+
+    @Operation(
             summary = "COMPLETE ORDER",
             description = "Accepts order's id and changes order status to completed",
             responses = {
@@ -153,7 +172,7 @@ public class OrderController {
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
-    @GetMapping("/organization-current-orders")
+    @GetMapping("/organization-current-orders-monitoring")
     public ResponseEntity<CurrentOrganizationOrders> getCurrentOrders(Authentication authentication) {
         return ResponseEntity.ok(orderService.getCurrentOrdersOfOrganization(authentication.getName()));
     }
@@ -221,8 +240,28 @@ public class OrderController {
             }
     )
     @GetMapping("/organization-orders")
-    public ResponseEntity<List<OrganizationOrders>> getOrdersOfOrganization(Authentication authentication) {
+    public ResponseEntity<List<OrganizationOrdersDto>> getOrdersOfOrganization(Authentication authentication) {
         return ResponseEntity.ok(orderService.getOrdersOfOrganization(authentication.getName()));
+    }
+
+    @Operation(
+            summary = "GET ORGANIZATION'S ORDERS BY STAGE",
+            description = "Returns list of organization's orders by stage (completed / current)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "List of organization's orders received"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "404", description = "Invalid stage"),
+                    @ApiResponse(responseCode = "409", description = "User is not a member of any organization"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            }
+    )
+    @GetMapping("/get-organization-orders-by-stage")
+    public ResponseEntity<OrganizationPageDto> getOrganizationOrderByStage(@RequestParam int pageNumber,
+                                                                            @RequestParam int pageSize,
+                                                                            @RequestParam String stage,
+                                                                            Authentication authentication) {
+        return ResponseEntity.ok(orderService.getOrganizationOrdersByStage(stage, pageNumber, pageSize, authentication));
     }
 
     @Operation(
@@ -258,23 +297,5 @@ public class OrderController {
     @PostMapping("/send-request-to-execute-order/{orderId}")
     public ResponseEntity<String> sendRequestToExecuteOrder(@PathVariable Long orderId, Authentication authentication) {
         return ResponseEntity.status(HttpStatus.OK).body(orderService.sendRequestToExecuteOrder(orderId, authentication));
-    }
-
-    @Operation(
-            summary = "SEND REQUEST TO CHANGE STATUS",
-            description = "Accepts order id, CUSTOM enum +/- ,  and user's information from jwt to leave a request to execute order",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Order's status is changed"),
-                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present | User has no permission to send request to execute order"),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
-                    @ApiResponse(responseCode = "404", description = "Order not found | User is not a member of any organization"),
-                    @ApiResponse(responseCode = "409", description = "User can't respond to his/her own order | Order is already taken by another user"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
-            }
-    )
-    @PutMapping("/change-status/{orderId}/{plusMinus}")
-    public void changeOrderStatus(@PathVariable Long orderId, @PathVariable PlusMinus plusMinus, Authentication authentication) {
-        orderService.changeOrderStatus(orderId, plusMinus, authentication.getName());
     }
 }

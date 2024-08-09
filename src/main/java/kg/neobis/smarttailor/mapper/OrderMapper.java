@@ -9,7 +9,7 @@ import kg.neobis.smarttailor.dtos.OrderItemDto;
 import kg.neobis.smarttailor.dtos.OrderListDto;
 import kg.neobis.smarttailor.dtos.OrderRequestDto;
 import kg.neobis.smarttailor.dtos.OrganizationDto;
-import kg.neobis.smarttailor.dtos.OrganizationOrders;
+import kg.neobis.smarttailor.dtos.OrganizationOrdersDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.entity.Order;
@@ -79,24 +79,15 @@ public class OrderMapper {
                 .collect(Collectors.toList());
     }
 
-    public OrderDetailed entityToDto(Order order) {
-
-        List<OrderItemDto> items = order.getItems().stream()
-                .map(orderItem -> new OrderItemDto(orderItem.getSize(), orderItem.getQuantity()))
-                .toList();
-
-        return new OrderDetailed(
-                order.getId(),
-                order.getName(),
-                order.getDescription(),
-                order.getPrice(),
-                order.getContactInfo(),
-                order.getAuthorImageUrl(order),
-                order.getFullName(order),
-                order.getImages().stream().map(Image::getUrl).collect(Collectors.toList()),
-                order.getDateOfExecution(),
-                items
-        );
+    public List<OrganizationOrdersDto> entityListToOrganizationOrderListDto(List<Order> orders) {
+        return orders.stream().map(order -> OrganizationOrdersDto.builder()
+                        .id(order.getId())
+                        .name(order.getName())
+                        .description(order.getDescription())
+                        .price(order.getPrice())
+                        .imageUrl(order.getImages().get(0).getUrl())
+                        .build())
+                .collect(Collectors.toList());
     }
 
     public AuthorOrderDetailedDto entityToAuthorOrderDetailedDto(Order order) {
@@ -125,6 +116,26 @@ public class OrderMapper {
         );
     }
 
+    public OrderDetailed entityToDto(Order order) {
+
+        List<OrderItemDto> items = order.getItems().stream()
+                .map(orderItem -> new OrderItemDto(orderItem.getSize(), orderItem.getQuantity()))
+                .toList();
+
+        return new OrderDetailed(
+                order.getId(),
+                order.getName(),
+                order.getDescription(),
+                order.getPrice(),
+                order.getContactInfo(),
+                order.getAuthorImageUrl(order),
+                order.getFullName(order),
+                order.getImages().stream().map(Image::getUrl).collect(Collectors.toList()),
+                order.getDateOfExecution(),
+                items
+        );
+    }
+
     public MyAdvertisement toMyAdvertisement(Order order) {
         return MyAdvertisement.builder()
                 .id(order.getId())
@@ -144,8 +155,8 @@ public class OrderMapper {
         );
     }
 
-    public OrganizationOrders toOrganizationOrders(Order order) {
-        return new OrganizationOrders(
+    public OrganizationOrdersDto toOrganizationOrders(Order order) {
+        return new OrganizationOrdersDto(
                 order.getId(),
                 order.getName(),
                 order.getDescription(),
