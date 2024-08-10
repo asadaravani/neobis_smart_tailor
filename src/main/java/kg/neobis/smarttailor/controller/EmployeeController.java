@@ -9,6 +9,7 @@ import kg.neobis.smarttailor.service.EmployeeService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
@@ -39,6 +40,7 @@ public class EmployeeController {
             }
     )
     @GetMapping("/get-all-employees")
+    @Cacheable(value = "employees", key = "#authentication.name")
     public ResponseEntity<List<EmployeeListDto>> getAllEmployees(Authentication authentication) {
         return ResponseEntity.ok(employeeService.getAllEmployees(authentication));
     }

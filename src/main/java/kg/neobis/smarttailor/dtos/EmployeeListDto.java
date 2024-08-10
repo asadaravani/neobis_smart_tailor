@@ -2,6 +2,7 @@ package kg.neobis.smarttailor.dtos;
 
 import lombok.Builder;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Builder
@@ -11,4 +12,4 @@ public record EmployeeListDto(
         String email,
         List<Long> orders,
         String position
-) {}
+) implements Serializable {}
