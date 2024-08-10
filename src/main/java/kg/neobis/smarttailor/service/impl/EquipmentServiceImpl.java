@@ -21,6 +21,7 @@ import kg.neobis.smarttailor.service.NotificationService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -108,6 +109,7 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
+    @Cacheable(value = "equipmentsCache", key = "'page_' + #pageNumber + '_size_' + #pageSize")
     public AdvertisementPageDto getAllEquipments(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Equipment> equipments = equipmentRepository.findByIsVisibleAndQuantityGreaterThan(true, 0, pageable);

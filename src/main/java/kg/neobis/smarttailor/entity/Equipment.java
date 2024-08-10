@@ -14,6 +14,7 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +25,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Equipment extends Advertisement {
+public class Equipment extends Advertisement implements Serializable {
 
     Integer quantity;
 
