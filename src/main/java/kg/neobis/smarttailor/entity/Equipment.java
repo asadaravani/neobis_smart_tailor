@@ -25,7 +25,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Equipment extends Advertisement implements Serializable {
+public class Equipment extends Advertisement {
 
     Integer quantity;
 
