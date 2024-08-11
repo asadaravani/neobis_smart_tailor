@@ -39,7 +39,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         return organizationEmployees.stream().map(orgEmp -> {
             List<Long> orderNumbers = orderService.getOrderIdsByEmployee(organizationEmployee.getEmployee());
-            return appUserMapper.entityListToListDto(organizationEmployee, orderNumbers);
+            return appUserMapper.entityListToListDto(orgEmp, orderNumbers);
         }).collect(Collectors.toList());
     }
 }
