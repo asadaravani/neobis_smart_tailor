@@ -3,6 +3,7 @@ package kg.neobis.smarttailor.service.impl;
 import com.cloudinary.utils.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.exception.*;
@@ -46,6 +47,7 @@ public class EquipmentServiceImpl implements EquipmentService {
     NotificationService notificationService;
     ObjectMapper objectMapper;
     Validator validator;
+    EntityManager entityManager;
 
     @Override
     @Transactional
