@@ -15,6 +15,8 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
+import java.io.Serializable;
+
 @Entity
 @Getter
 @Setter
@@ -22,7 +24,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Organization extends BaseEntity {
+public class Organization extends BaseEntity implements Serializable {
 
     @OneToOne(orphanRemoval = true, cascade = CascadeType.PERSIST)
     Image image;

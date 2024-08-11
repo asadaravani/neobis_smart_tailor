@@ -17,6 +17,7 @@ import kg.neobis.smarttailor.service.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -111,12 +112,14 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
+    @Cacheable(value = "orgByEmp", key = "#email")
     public Organization findOrganizationByDirectorOrEmployee(String email) {
         return organizationRepository.findByDirectorEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Organization not found"));
     }
 
     @Override
+    @Cacheable(value = "getOrg", key = "#authentication.name")
     public OrganizationDetailed getOrganization(Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         return organizationMapper.toOrganizationDetailed(findOrganizationByDirectorOrEmployee(user.getEmail()));
@@ -129,6 +132,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
+    @Cacheable(value = "orgByName", key = "#organizationName")
     public Organization getOrganizationByDirectorEmail(String email) {
         return organizationRepository.getByDirectorEmail(email);
     }
