@@ -371,7 +371,7 @@ public class OrderServiceImpl implements OrderService {
         Organization usersOrganization = organizationEmployee.getOrganization();
 
         if (order.getAuthor().equals(user)) {
-            throw new ResourceAlreadyExistsException("User can't execute to his/her own order");
+            throw new SelfPurchaseException("User can't execute to his/her own order");
         }
         if (order.getOrganizationCandidates().stream()
                 .anyMatch(org -> org.getId().equals(usersOrganization.getId()))) {

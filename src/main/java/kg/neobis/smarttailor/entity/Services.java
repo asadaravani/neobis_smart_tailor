@@ -33,4 +33,13 @@ public class Services extends Advertisement {
             inverseJoinColumns = @JoinColumn(name = "image_id")
     )
     List<Image> images = new ArrayList<>();
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "service_applicants",
+            joinColumns = @JoinColumn(name = "service_id"),
+            inverseJoinColumns = @JoinColumn(name = "service_applicant_id")
+    )
+    List<AppUser> serviceApplicants = new ArrayList<>();
+
 }

@@ -1,6 +1,7 @@
 package kg.neobis.smarttailor.service;
 
 import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
+import kg.neobis.smarttailor.dtos.AuthorEquipmentDetailedDto;
 import kg.neobis.smarttailor.dtos.EquipmentDetailed;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Equipment;
@@ -25,6 +26,8 @@ public interface EquipmentService {
     AdvertisementPageDto getAllEquipments(int pageNumber, int pageSize);
 
     EquipmentDetailed getEquipmentById(Long equipmentId);
+
+    AuthorEquipmentDetailedDto getEquipmentDetailedForAuthor(Long equipmentId, Authentication authentication);
 
     AdvertisementPageDto getUserEquipments(int pageNumber, int pageSize, Authentication authentication);
 
