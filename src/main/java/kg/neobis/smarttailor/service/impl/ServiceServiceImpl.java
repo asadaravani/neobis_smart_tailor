@@ -3,13 +3,8 @@ package kg.neobis.smarttailor.service.impl;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kg.neobis.smarttailor.dtos.*;
-import kg.neobis.smarttailor.entity.AppUser;
-import kg.neobis.smarttailor.entity.Image;
-import kg.neobis.smarttailor.entity.Services;
-import kg.neobis.smarttailor.exception.InvalidJsonException;
-import kg.neobis.smarttailor.exception.NoPermissionException;
-import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
-import kg.neobis.smarttailor.exception.ResourceNotFoundException;
+import kg.neobis.smarttailor.entity.*;
+import kg.neobis.smarttailor.exception.*;
 import kg.neobis.smarttailor.mapper.ServiceMapper;
 import kg.neobis.smarttailor.repository.ServicesRepository;
 import kg.neobis.smarttailor.service.AppUserService;
@@ -106,6 +101,18 @@ public class ServiceServiceImpl implements ServicesService {
     }
 
     @Override
+    public AuthorServiceDetailedDto getServiceDetailedForAuthor(Long serviceId, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Services service = serviceRepository.findById(serviceId).
+                orElseThrow(() -> new ResourceNotFoundException("Service not found"));
+        if (!service.getAuthor().getId().equals(user.getId())) {
+            throw new NoPermissionException("User is not an author of this order");
+        }
+        return serviceMapper.entityToAuthorServiceDetailedDto(service);
+    }
+
+    @Override
     public AdvertisementPageDto getUserServices(int pageNumber, int pageSize, Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
@@ -139,6 +146,24 @@ public class ServiceServiceImpl implements ServicesService {
         serviceRepository.save(service);
 
         return "Service is now invisible in marketplace";
+    }
+
+    @Override
+    public String sendRequestToService(Long serviceId, Authentication authentication) {
+
+        Services service = findServiceById(serviceId);
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+
+        if (service.getAuthor().equals(user)) {
+            throw new SelfPurchaseException("User can't respond to his/her own ad");
+        }
+        if (service.getServiceApplicants().contains(user)) {
+            throw new ResourceAlreadyExistsException("User has been sent the request to this service already");
+        }
+        service.getServiceApplicants().add(user);
+        serviceRepository.save(service);
+
+        return "User has left a request to service";
     }
 
     private ServiceRequestDto parseAndValidateServiceRequestDto(String serviceDto) {

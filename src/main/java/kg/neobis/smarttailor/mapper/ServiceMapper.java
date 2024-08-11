@@ -1,9 +1,6 @@
 package kg.neobis.smarttailor.mapper;
 
-import kg.neobis.smarttailor.dtos.MyAdvertisement;
-import kg.neobis.smarttailor.dtos.ServiceDetailed;
-import kg.neobis.smarttailor.dtos.ServiceListDto;
-import kg.neobis.smarttailor.dtos.ServiceRequestDto;
+import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.entity.Services;
@@ -38,6 +35,28 @@ public class ServiceMapper {
                 service.getFullName(service),
                 service.getAuthorImageUrl(service)
         )).collect(Collectors.toList());
+    }
+
+    public AuthorServiceDetailedDto entityToAuthorServiceDetailedDto(Services service) {
+
+        List<UserDto> applicants = service.getServiceApplicants().stream()
+                .map(buyer -> new UserDto(
+                        buyer.getSurname().concat(" ").concat(buyer.getName()),
+                        buyer.getEmail(),
+                        buyer.getPhoneNumber()))
+                .toList();
+
+        return new AuthorServiceDetailedDto(
+                service.getId(),
+                service.getName(),
+                service.getDescription(),
+                service.getPrice(),
+                service.getContactInfo(),
+                service.getAuthorImageUrl(service),
+                service.getFullName(service),
+                service.getImages().stream().map(Image::getUrl).collect(Collectors.toList()),
+                applicants
+        );
     }
 
     public ServiceDetailed entityToDto(Services service) {

@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
 import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
+import kg.neobis.smarttailor.dtos.AuthorServiceDetailedDto;
 import kg.neobis.smarttailor.dtos.ServiceDetailed;
 import kg.neobis.smarttailor.service.ServicesService;
 import lombok.AccessLevel;
@@ -102,6 +103,22 @@ public class ServiceController {
     }
 
     @Operation(
+            summary = "GET SERVICE DETAILED FOR AUTHOR",
+            description = "Accepts service's id, and returns service's detailed information",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Service information received"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | User is not an author of this service"),
+                    @ApiResponse(responseCode = "404", description = "Service not found with specified id"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
+    @GetMapping("/get-service-detailed-for-author/{serviceId}")
+    public ResponseEntity<AuthorServiceDetailedDto> getServiceDetailedForAuthor(@PathVariable Long serviceId, Authentication authentication) {
+        return ResponseEntity.ok(servicesService.getServiceDetailedForAuthor(serviceId, authentication));
+    }
+
+    @Operation(
             summary = "USER'S SERVICES",
             description = "Returns list of user's services",
             responses = {
@@ -133,5 +150,23 @@ public class ServiceController {
     @GetMapping("/hide/{serviceId}")
     public ResponseEntity<String> hideService(@PathVariable Long serviceId, Authentication authentication) {
         return ResponseEntity.ok(servicesService.hideService(serviceId, authentication));
+    }
+
+    @Operation(
+            summary = "SEND REQUEST TO SERVICE",
+            description = "Accepts service id and user's information from jwt to leave a request to service",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "User has left a request to service"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "404", description = "Service not found"),
+                    @ApiResponse(responseCode = "409", description = "User can't respond to his/her own ad | User has been sent the request to this service already"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
+    @PostMapping("/send-request-to-service/{serviceId}")
+    public ResponseEntity<String> sendRequestToService(@PathVariable Long serviceId, Authentication authentication) {
+        return ResponseEntity.ok(servicesService.sendRequestToService(serviceId, authentication));
     }
 }

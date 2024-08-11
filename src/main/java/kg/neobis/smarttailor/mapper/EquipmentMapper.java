@@ -1,9 +1,6 @@
 package kg.neobis.smarttailor.mapper;
 
-import kg.neobis.smarttailor.dtos.EquipmentDetailed;
-import kg.neobis.smarttailor.dtos.EquipmentListDto;
-import kg.neobis.smarttailor.dtos.EquipmentRequestDto;
-import kg.neobis.smarttailor.dtos.MyAdvertisement;
+import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Equipment;
 import kg.neobis.smarttailor.entity.Image;
@@ -39,6 +36,28 @@ public class EquipmentMapper {
                 equipment.getFullName(equipment),
                 equipment.getAuthorImageUrl(equipment)
         )).collect(Collectors.toList());
+    }
+
+    public AuthorEquipmentDetailedDto entityToAuthorEquipmentDetailedDto(Equipment equipment) {
+
+        List<UserDto> buyers = equipment.getEquipmentBuyers().stream()
+                .map(buyer -> new UserDto(
+                        buyer.getSurname().concat(" ").concat(buyer.getName()),
+                        buyer.getEmail(),
+                        buyer.getPhoneNumber()))
+                .toList();
+
+        return new AuthorEquipmentDetailedDto(
+                equipment.getId(),
+                equipment.getName(),
+                equipment.getDescription(),
+                equipment.getPrice(),
+                equipment.getContactInfo(),
+                equipment.getAuthorImageUrl(equipment),
+                equipment.getFullName(equipment),
+                equipment.getImages().stream().map(Image::getUrl).collect(Collectors.toList()),
+                buyers
+        );
     }
 
     public EquipmentDetailed entityToDto(Equipment equipment) {

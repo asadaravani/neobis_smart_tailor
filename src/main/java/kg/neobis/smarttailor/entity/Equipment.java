@@ -1,11 +1,6 @@
 package kg.neobis.smarttailor.entity;
 
-import jakarta.persistence.CascadeType;
-import jakarta.persistence.Entity;
-import jakarta.persistence.FetchType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.AllArgsConstructor;
@@ -14,7 +9,6 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,4 +30,12 @@ public class Equipment extends Advertisement {
             inverseJoinColumns = @JoinColumn(name = "image_id")
     )
     List<Image> images = new ArrayList<>();
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @JoinTable(
+            name = "equipment_buyers",
+            joinColumns = @JoinColumn(name = "equipment_id"),
+            inverseJoinColumns = @JoinColumn(name = "equipment_buyer_id")
+    )
+    List<AppUser> equipmentBuyers = new ArrayList<>();
 }

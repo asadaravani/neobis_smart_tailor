@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
 import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
+import kg.neobis.smarttailor.dtos.AuthorEquipmentDetailedDto;
 import kg.neobis.smarttailor.dtos.EquipmentDetailed;
 import kg.neobis.smarttailor.service.EquipmentService;
 import lombok.AccessLevel;
@@ -114,6 +115,22 @@ public class EquipmentController {
     @GetMapping("/get-equipment-detailed/{equipmentId}")
     public ResponseEntity<EquipmentDetailed> getEquipmentDetailed(@PathVariable Long equipmentId) {
         return ResponseEntity.ok(equipmentService.getEquipmentById(equipmentId));
+    }
+
+    @Operation(
+            summary = "GET EQUIPMENT DETAILED FOR AUTHOR",
+            description = "Accepts equipment's id, and returns equipment's detailed information",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Equipment information received"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | User is not an author of this equipment"),
+                    @ApiResponse(responseCode = "404", description = "Equipment not found with specified id"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
+    @GetMapping("/get-equipment-detailed-for-author/{equipmentID}")
+    public ResponseEntity<AuthorEquipmentDetailedDto> getEquipmentDetailedForAuthor(@PathVariable Long equipmentID, Authentication authentication) {
+        return ResponseEntity.ok(equipmentService.getEquipmentDetailedForAuthor(equipmentID, authentication));
     }
 
     @Operation(

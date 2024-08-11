@@ -4,9 +4,7 @@ import com.cloudinary.utils.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kg.neobis.smarttailor.dtos.*;
-import kg.neobis.smarttailor.entity.AppUser;
-import kg.neobis.smarttailor.entity.Equipment;
-import kg.neobis.smarttailor.entity.Image;
+import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.exception.*;
 import kg.neobis.smarttailor.mapper.EquipmentMapper;
 import kg.neobis.smarttailor.repository.EquipmentRepository;
@@ -72,11 +70,15 @@ public class EquipmentServiceImpl implements EquipmentService {
 
         updateEquipmentStock(equipment);
 
+        if (!equipment.getEquipmentBuyers().contains(user)) {
+            equipment.getEquipmentBuyers().add(user);
+        }
+        equipmentRepository.save(equipment);
+
         notificationService.sendNotification(
                 new NotificationDto("Equipment has been sold!", equipment.getName() + " has been bought by user " + user.getName(), LocalDateTime.now()),
                 new NotificationPdfDto(user.getName() + " " + user.getSurname(), user.getEmail(), equipment.getName(), equipment.getPrice())
         );
-
 
         return "You have successfully purchased the equipment. Receipt sent to the email. Please check your email";
     }
@@ -122,6 +124,18 @@ public class EquipmentServiceImpl implements EquipmentService {
         Equipment equipment = equipmentRepository.findById(equipmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
         return equipmentMapper.entityToDto(equipment);
+    }
+
+    @Override
+    public AuthorEquipmentDetailedDto getEquipmentDetailedForAuthor(Long equipmentId, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Equipment equipment = equipmentRepository.findById(equipmentId).
+                orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
+        if (!equipment.getAuthor().getId().equals(user.getId())) {
+            throw new NoPermissionException("User is not an author of this order");
+        }
+        return equipmentMapper.entityToAuthorEquipmentDetailedDto(equipment);
     }
 
     @Override
