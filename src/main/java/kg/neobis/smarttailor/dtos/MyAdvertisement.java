@@ -13,5 +13,4 @@ public record MyAdvertisement(
         String name,
         String description,
         LocalDateTime createdAt
-) implements Serializable {
-}
+) implements Serializable {}

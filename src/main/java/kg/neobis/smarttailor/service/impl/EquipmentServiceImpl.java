@@ -1,16 +1,12 @@
 package kg.neobis.smarttailor.service.impl;
+
 import com.cloudinary.utils.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
-import kg.neobis.smarttailor.dtos.NotificationDto;
-import kg.neobis.smarttailor.dtos.NotificationPdfDto;
+import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Equipment;
 import kg.neobis.smarttailor.entity.Image;
-import kg.neobis.smarttailor.dtos.EquipmentDetailed;
-import kg.neobis.smarttailor.dtos.EquipmentListDto;
-import kg.neobis.smarttailor.dtos.EquipmentRequestDto;
 import kg.neobis.smarttailor.exception.*;
 import kg.neobis.smarttailor.mapper.EquipmentMapper;
 import kg.neobis.smarttailor.repository.EquipmentRepository;
@@ -37,6 +33,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -104,8 +101,8 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
-    public List<Equipment> findAllByUser(AppUser user) {
-        return equipmentRepository.findAllByAuthor(user);
+    public Page<Equipment> findAllByUser(AppUser user, Pageable pageable) {
+        return equipmentRepository.findAllByAuthor(user, pageable);
     }
 
     @Override
@@ -125,6 +122,23 @@ public class EquipmentServiceImpl implements EquipmentService {
         Equipment equipment = equipmentRepository.findById(equipmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
         return equipmentMapper.entityToDto(equipment);
+    }
+
+    @Override
+    public AdvertisementPageDto getUserEquipments(int pageNumber, int pageSize, Authentication authentication) {
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<Equipment> equipments = equipmentRepository.findAllByAuthor(user, pageable);
+        List<MyAdvertisement> equipmentList = new ArrayList<>();
+
+        equipments.getContent().forEach(service -> equipmentList.add(equipmentMapper.toMyAdvertisement(service)));
+
+        boolean isLast = equipments.isLast();
+        Long totalCount = equipments.getTotalElements();
+
+        return new AdvertisementPageDto(equipmentList, isLast, totalCount);
     }
 
     @Override

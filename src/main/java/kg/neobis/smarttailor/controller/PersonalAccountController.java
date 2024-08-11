@@ -5,9 +5,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import kg.neobis.smarttailor.constants.EndpointConstants;
+import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.dtos.UserProfileDto;
 import kg.neobis.smarttailor.dtos.UserProfileEditRequest;
-import kg.neobis.smarttailor.dtos.MyAdvertisement;
 import kg.neobis.smarttailor.service.PersonalAccountService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -24,8 +24,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
-
-import java.util.List;
 
 @Validated
 @RestController
@@ -79,9 +77,9 @@ public class PersonalAccountController {
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             })
     @GetMapping("/my-advertisements")
-    public ResponseEntity<List<MyAdvertisement>> getMyAdvertisements(@RequestParam int pageNumber,
-                                                                     @RequestParam int pageSize,
-                                                                     Authentication authentication) {
+    public ResponseEntity<AdvertisementPageDto> getMyAdvertisements(@RequestParam int pageNumber,
+                                                                    @RequestParam int pageSize,
+                                                                    Authentication authentication) {
         return ResponseEntity.ok(personalAccountService.getUserAdvertisements(pageNumber, pageSize, authentication));
     }
 

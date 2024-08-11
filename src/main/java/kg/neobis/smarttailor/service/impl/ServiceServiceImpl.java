@@ -2,10 +2,7 @@ package kg.neobis.smarttailor.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
-import kg.neobis.smarttailor.dtos.ServiceListDto;
-import kg.neobis.smarttailor.dtos.ServiceRequestDto;
-import kg.neobis.smarttailor.dtos.ServiceDetailed;
+import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.entity.Services;
@@ -34,6 +31,7 @@ import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -79,8 +77,8 @@ public class ServiceServiceImpl implements ServicesService {
     }
 
     @Override
-    public List<Services> findAllByUser(AppUser user) {
-        return serviceRepository.findAllByAuthor(user);
+    public Page<Services> findAllByUser(AppUser user, Pageable pageable) {
+        return serviceRepository.findAllByAuthor(user, pageable);
     }
 
     @Override
@@ -105,6 +103,23 @@ public class ServiceServiceImpl implements ServicesService {
         Services service = serviceRepository.findById(serviceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found"));
         return serviceMapper.entityToDto(service);
+    }
+
+    @Override
+    public AdvertisementPageDto getUserServices(int pageNumber, int pageSize, Authentication authentication) {
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<Services> services = serviceRepository.findAllByAuthor(user, pageable);
+        List<MyAdvertisement> serviceList = new ArrayList<>();
+
+        services.getContent().forEach(service -> serviceList.add(serviceMapper.toMyAdvertisement(service)));
+
+        boolean isLast = services.isLast();
+        Long totalCount = services.getTotalElements();
+
+        return new AdvertisementPageDto(serviceList, isLast, totalCount);
     }
 
     @Override

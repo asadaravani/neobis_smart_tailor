@@ -1,10 +1,7 @@
 package kg.neobis.smarttailor.service.impl;
 
-import kg.neobis.smarttailor.dtos.UserProfileDto;
-import kg.neobis.smarttailor.dtos.UserProfileEditRequest;
-import kg.neobis.smarttailor.dtos.MyAdvertisement;
+import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.*;
-import kg.neobis.smarttailor.exception.ResourceProcessingErrorException;
 import kg.neobis.smarttailor.mapper.AppUserMapper;
 import kg.neobis.smarttailor.mapper.EquipmentMapper;
 import kg.neobis.smarttailor.mapper.OrderMapper;
@@ -13,6 +10,10 @@ import kg.neobis.smarttailor.service.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -20,7 +21,6 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -48,6 +48,33 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
         appUserService.save(user);
 
         return "User's data has been changed";
+    }
+
+    @Override
+    public AdvertisementPageDto getUserAdvertisements(int pageNumber, int pageSize, Authentication authentication) {
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<Services> servicesPage = servicesService.findAllByUser(user, pageable);
+        Page<Order> ordersPage = orderService.findAllByUser(user, pageable);
+        Page<Equipment> equipmentPage = equipmentService.findAllByUser(user, pageable);
+
+        List<MyAdvertisement> allAdvertisements = new ArrayList<>();
+        servicesPage.getContent().forEach(service -> allAdvertisements.add(serviceMapper.toMyAdvertisement(service)));
+        ordersPage.getContent().forEach(order -> allAdvertisements.add(orderMapper.toMyAdvertisement(order)));
+        equipmentPage.getContent().forEach(equipment -> allAdvertisements.add(equipmentMapper.toMyAdvertisement(equipment)));
+
+        allAdvertisements.sort((dto1, dto2) -> dto2.createdAt().compareTo(dto1.createdAt()));
+
+        int start = (int) pageable.getOffset();
+        int end = Math.min(start + pageable.getPageSize(), allAdvertisements.size());
+        List<MyAdvertisement> paginatedList = allAdvertisements.subList(start, end);
+
+        boolean isLast = end >= allAdvertisements.size();
+        long totalCount = allAdvertisements.size();
+
+        return new AdvertisementPageDto(paginatedList, isLast, totalCount);
     }
 
     @Override
@@ -79,26 +106,5 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
         appUserService.save(user);
 
         return "Profile image has been uploaded";
-    }
-
-    @Override
-    public List<MyAdvertisement> getUserAdvertisements(int pageNumber, int pageSize, Authentication authentication) {
-        AppUser user = appUserService.getUserFromAuthentication(authentication);
-        try {
-            List<MyAdvertisement> dto = new ArrayList<>();
-            List<Services> services = servicesService.findAllByUser(user);
-            List<Order> orders = orderService.findAllByUser(user);
-            List<Equipment> equipments = equipmentService.findAllByUser(user);
-            services.forEach(service -> dto.add(serviceMapper.toMyAdvertisement(service)));
-            orders.forEach(order -> dto.add(orderMapper.toMyAdvertisement(order)));
-            equipments.forEach(equipment -> dto.add(equipmentMapper.toMyAdvertisement(equipment)));
-            return dto.stream()
-                    .sorted((dto1, dto2) -> dto2.createdAt().compareTo(dto1.createdAt()))
-                    .skip((long) pageNumber * pageSize)
-                    .limit(pageSize)
-                    .collect(Collectors.toList());
-        } catch (Exception e) {
-            throw new ResourceProcessingErrorException("Error while returning resources");
-        }
     }
 }
