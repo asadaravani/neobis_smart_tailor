@@ -6,11 +6,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import java.util.List;
-
 public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
 
-    List<Equipment> findAllByAuthor(AppUser user);
+    Page<Equipment> findAllByAuthor(AppUser user, Pageable pageable);
 
     Page<Equipment> findByIsVisibleAndQuantityGreaterThan(boolean isVisible, int quantity, Pageable pageable);
 

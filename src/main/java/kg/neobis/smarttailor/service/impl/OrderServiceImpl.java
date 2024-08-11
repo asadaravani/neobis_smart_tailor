@@ -194,8 +194,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Order> findAllByUser(AppUser user) {
-        return orderRepository.findAllByAuthor(user);
+    public Page<Order> findAllByUser(AppUser user, Pageable pageable) {
+        return orderRepository.findAllByAuthor(user, pageable);
     }
 
     @Override
@@ -324,6 +324,23 @@ public class OrderServiceImpl implements OrderService {
         return orders.stream().map(
                 orderMapper::toOrganizationOrders
         ).toList();
+    }
+
+    @Override
+    public AdvertisementPageDto getUserOrders(int pageNumber, int pageSize, Authentication authentication) {
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+
+        Page<Order> orders = orderRepository.findAllByAuthor(user, pageable);
+        List<MyAdvertisement> orderList = new ArrayList<>();
+
+        orders.getContent().forEach(service -> orderList.add(orderMapper.toMyAdvertisement(service)));
+
+        boolean isLast = orders.isLast();
+        Long totalCount = orders.getTotalElements();
+
+        return new AdvertisementPageDto(orderList, isLast, totalCount);
     }
 
     @Override

@@ -265,6 +265,23 @@ public class OrderController {
     }
 
     @Operation(
+            summary = "USER'S ORDERS",
+            description = "Returns list of user's orders",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Order list received"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            }
+    )
+    @GetMapping("/my-orders")
+    public ResponseEntity<AdvertisementPageDto> getUserOrders(@RequestParam int pageNumber,
+                                                                @RequestParam int pageSize,
+                                                                Authentication authentication) {
+        return ResponseEntity.ok(orderService.getUserOrders(pageNumber, pageSize, authentication));
+    }
+
+    @Operation(
             summary = "HIDE ORDER",
             description = "Accepts order's id and then makes ad invisible in marketplace",
             responses = {

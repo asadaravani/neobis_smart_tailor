@@ -117,6 +117,23 @@ public class EquipmentController {
     }
 
     @Operation(
+            summary = "USER'S EQUIPMENT",
+            description = "Returns list of user's equipments",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Equipment list received"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            }
+    )
+    @GetMapping("/my-equipments")
+    public ResponseEntity<AdvertisementPageDto> getUserEquipments(@RequestParam int pageNumber,
+                                                              @RequestParam int pageSize,
+                                                              Authentication authentication) {
+        return ResponseEntity.ok(equipmentService.getUserEquipments(pageNumber, pageSize, authentication));
+    }
+
+    @Operation(
             summary = "HIDE EQUIPMENT",
             description = "Accepts equipment's id and then makes ad invisible in marketplace",
             responses = {
