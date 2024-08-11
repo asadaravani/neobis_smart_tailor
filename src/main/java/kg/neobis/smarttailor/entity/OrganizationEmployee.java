@@ -25,7 +25,7 @@ import java.io.Serializable;
 @Table(name = "organization_employee",
         uniqueConstraints = @UniqueConstraint(columnNames = {"organization_id", "employee_id", "position_id"}))
 
-public class OrganizationEmployee extends BaseEntity implements Serializable {
+public class OrganizationEmployee extends BaseEntity {
 
     @ManyToOne
     @JoinColumn

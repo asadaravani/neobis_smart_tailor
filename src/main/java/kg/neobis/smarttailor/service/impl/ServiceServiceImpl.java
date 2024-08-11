@@ -84,7 +84,6 @@ public class ServiceServiceImpl implements ServicesService {
     }
 
     @Override
-    @Cacheable(value = "allServices", key = "{#pageNumber, #pageSize}")
     public AdvertisementPageDto getAllServices(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Services> services = serviceRepository.findByIsVisible(true, pageable);
@@ -96,7 +95,6 @@ public class ServiceServiceImpl implements ServicesService {
     }
 
     @Override
-    @Cacheable(value = "serviceDetails", key = "#serviceId")
     public ServiceDetailed getServiceById(Long serviceId) {
         Services service = serviceRepository.findById(serviceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found"));
@@ -116,7 +114,6 @@ public class ServiceServiceImpl implements ServicesService {
     }
 
     @Override
-    @Cacheable(value = "userServices", key = "{#authentication.name, #pageNumber, #pageSize}")
     public AdvertisementPageDto getUserServices(int pageNumber, int pageSize, Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 

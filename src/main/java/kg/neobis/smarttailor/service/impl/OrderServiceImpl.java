@@ -211,7 +211,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Cacheable(value = "allOrders", key = "#pageNumber + '_' + #pageSize")
     public AdvertisementPageDto getAllOrders(int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Order> orders = orderRepository.findByIsVisible(true, pageable);
@@ -223,7 +222,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Cacheable(value = "currentOrgOrders", key = "#email")
     public CurrentOrganizationOrders getCurrentOrdersOfOrganization(String email) {
         Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
         List<Order> orders = orderRepository.findAllByOrganizationExecutor(organization);
@@ -237,7 +235,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Cacheable(value = "empOrdersByStage", key = "#employeeId + '_' + #stage + '_' + #pageNumber + '_' + #pageSize")
     public EmployeePageDto getEmployeeOrdersByStage(Long employeeId, String stage, int pageNumber, int pageSize, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
@@ -271,7 +268,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Cacheable(value = "orgOrdersByStage", key = "#stage + '_' + #pageNumber + '_' + #pageSize + '_' + #authentication.name")
     public OrganizationPageDto getOrganizationOrdersByStage(String stage, int pageNumber, int pageSize, Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
@@ -297,14 +293,12 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Cacheable(value = "orderDetailed", key = "#orderId")
     public OrderDetailed getOrderById(Long orderId) {
         Order order = findOrderById(orderId);
         return orderMapper.entityToDto(order);
     }
 
     @Override
-    @Cacheable(value = "authorOrder", key = "#orderId  + '_' + #authentication.name")
     public AuthorOrderDetailedDto getOrderDetailedForAuthor(Long orderId, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
@@ -325,7 +319,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Cacheable(value = "orgOrders", key = "#email")
     public List<OrganizationOrdersDto> getOrdersOfOrganization(String email) {
         Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
         List<Order> orders = orderRepository.findAllByOrganizationExecutor(organization);
@@ -335,7 +328,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    @Cacheable(value = "userOrders", key = "#pageNumber + '_' + #pageSize + '_' + #authentication.name")
     public AdvertisementPageDto getUserOrders(int pageNumber, int pageSize, Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 

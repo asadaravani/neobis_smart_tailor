@@ -52,7 +52,6 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
     }
 
     @Override
-    @Cacheable(value = "userAds", key = "#authentication.name + '_' + #pageNumber + '_' + #pageSize")
     public AdvertisementPageDto getUserAdvertisements(int pageNumber, int pageSize, Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
@@ -80,7 +79,6 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
     }
 
     @Override
-    @Cacheable(value = "userProfile", key = "#authentication.name")
     public UserProfileDto getUserProfile(Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         Boolean inOrganization = organizationEmployeeService.existsByEmployeeEmail(user.getEmail());
