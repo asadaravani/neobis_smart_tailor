@@ -40,7 +40,6 @@ public class EmployeeController {
             }
     )
     @GetMapping("/get-all-employees")
-    @Cacheable(value = "employees", key = "#authentication.name")
     public ResponseEntity<List<EmployeeListDto>> getAllEmployees(Authentication authentication) {
         return ResponseEntity.ok(employeeService.getAllEmployees(authentication));
     }

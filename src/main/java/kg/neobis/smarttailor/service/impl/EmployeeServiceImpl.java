@@ -13,6 +13,7 @@ import kg.neobis.smarttailor.service.OrganizationEmployeeService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -30,6 +31,7 @@ public class EmployeeServiceImpl implements EmployeeService {
     OrganizationEmployeeService organizationEmployeeService;
 
     @Override
+    @Cacheable(value = "employees", key = "#authentication.name")
     public List<EmployeeListDto> getAllEmployees(Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
