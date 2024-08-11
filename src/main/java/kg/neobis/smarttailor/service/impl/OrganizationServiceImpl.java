@@ -112,14 +112,12 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    @Cacheable(value = "orgByEmp", key = "#email")
     public Organization findOrganizationByDirectorOrEmployee(String email) {
         return organizationRepository.findByDirectorEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Organization not found"));
     }
 
     @Override
-    @Cacheable(value = "getOrg", key = "#authentication.name")
     public OrganizationDetailed getOrganization(Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         return organizationMapper.toOrganizationDetailed(findOrganizationByDirectorOrEmployee(user.getEmail()));
@@ -132,7 +130,6 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    @Cacheable(value = "orgByName", key = "#organizationName")
     public Organization getOrganizationByDirectorEmail(String email) {
         return organizationRepository.getByDirectorEmail(email);
     }

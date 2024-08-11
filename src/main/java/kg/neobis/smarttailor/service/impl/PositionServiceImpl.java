@@ -62,7 +62,6 @@ public class PositionServiceImpl implements PositionService {
     }
 
     @Override
-    @Cacheable(value = "allPositions", key = "#authentication.name")
     public List<PositionDto> getAllPositionsExceptDirector(Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())

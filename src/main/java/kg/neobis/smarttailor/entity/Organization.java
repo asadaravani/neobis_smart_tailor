@@ -24,7 +24,7 @@ import java.io.Serializable;
 @NoArgsConstructor
 @AllArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class Organization extends BaseEntity implements Serializable {
+public class Organization extends BaseEntity {
 
     @OneToOne(orphanRemoval = true, cascade = CascadeType.PERSIST)
     Image image;

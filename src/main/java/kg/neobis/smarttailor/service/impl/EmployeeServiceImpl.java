@@ -31,7 +31,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     OrganizationEmployeeService organizationEmployeeService;
 
     @Override
-    @Cacheable(value = "employees", key = "#authentication.name")
     public List<EmployeeListDto> getAllEmployees(Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())

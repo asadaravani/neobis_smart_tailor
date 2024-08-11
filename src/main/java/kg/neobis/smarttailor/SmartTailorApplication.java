@@ -9,7 +9,6 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableScheduling
 @EnableRabbit
-@EnableCaching
 public class SmartTailorApplication {
 
     public static void main(String[] args) {
