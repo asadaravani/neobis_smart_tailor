@@ -13,6 +13,8 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
+import java.io.Serializable;
+
 @Entity
 @Getter
 @Setter
@@ -23,7 +25,7 @@ import lombok.experimental.SuperBuilder;
 @Table(name = "organization_employee",
         uniqueConstraints = @UniqueConstraint(columnNames = {"organization_id", "employee_id", "position_id"}))
 
-public class OrganizationEmployee extends BaseEntity {
+public class OrganizationEmployee extends BaseEntity implements Serializable {
 
     @ManyToOne
     @JoinColumn

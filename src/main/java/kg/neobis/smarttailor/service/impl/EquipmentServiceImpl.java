@@ -120,6 +120,7 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
+    @Cacheable(value = "equipmentDet", key = "#equipmentId")
     public EquipmentDetailed getEquipmentById(Long equipmentId) {
         Equipment equipment = equipmentRepository.findById(equipmentId)
                 .orElseThrow(() -> new ResourceNotFoundException("Equipment not found"));
@@ -127,6 +128,7 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
+    @Cacheable(value = "authEquipment", key = "#equipmentId + '_' + #authentication.name")
     public AuthorEquipmentDetailedDto getEquipmentDetailedForAuthor(Long equipmentId, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
@@ -139,6 +141,7 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
+    @Cacheable(value = "userEquipment", key = "#pageNumber + '_' + #pageSize + '_' + #authentication.name")
     public AdvertisementPageDto getUserEquipments(int pageNumber, int pageSize, Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
@@ -175,6 +178,7 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
+    @Cacheable(value = "searchEquipment", key = "#name + '_' + #pageNumber + '_' + #pageSize")
     public AdvertisementPageDto searchEquipments(String name, int pageNumber, int pageSize) {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Equipment> equipments = equipmentRepository.findEquipmentByNameContainingIgnoreCase(name, pageable);

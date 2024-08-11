@@ -19,6 +19,7 @@ import kg.neobis.smarttailor.service.PositionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BeanPropertyBindingResult;
@@ -61,6 +62,7 @@ public class PositionServiceImpl implements PositionService {
     }
 
     @Override
+    @Cacheable(value = "allPositions", key = "#authentication.name")
     public List<PositionDto> getAllPositionsExceptDirector(Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())

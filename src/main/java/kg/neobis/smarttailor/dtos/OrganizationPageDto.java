@@ -1,5 +1,6 @@
 package kg.neobis.smarttailor.dtos;
 
+import java.io.Serializable;
 import java.util.List;
 
 public record OrganizationPageDto(
@@ -9,4 +10,4 @@ public record OrganizationPageDto(
         List<?> orders,
         boolean isLast,
         Long totalCount
-) {}
+) implements Serializable {}
