@@ -2,6 +2,7 @@ package kg.neobis.smarttailor.service.impl;
 
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
+import jakarta.persistence.EntityManager;
 import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.exception.OutOfDateException;
 import kg.neobis.smarttailor.exception.UnauthorizedException;
@@ -22,6 +23,7 @@ import java.time.LocalDateTime;
 public class AppUserServiceImpl implements AppUserService {
 
     AppUserRepository appUserRepository;
+    EntityManager entityManager;
     EmailService emailService;
     OrganizationEmployeeService organizationEmployeeService;
     SubscriptionTokenService subscriptionTokenService;
@@ -63,7 +65,7 @@ public class AppUserServiceImpl implements AppUserService {
         if (authentication != null && authentication.isAuthenticated()) {
             Object principal = authentication.getPrincipal();
             if (principal instanceof AppUser appUser) {
-                return appUser;
+                return entityManager.find(AppUser.class, appUser.getId());
             } else {
                 throw new IllegalArgumentException("Principal is not an instance of AppUser");
             }
