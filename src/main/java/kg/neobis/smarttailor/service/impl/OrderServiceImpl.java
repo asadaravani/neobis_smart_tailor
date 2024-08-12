@@ -291,7 +291,7 @@ public class OrderServiceImpl implements OrderService {
         boolean isLast = organizationOrders.isLast();
         Long totalCount = organizationOrders.getTotalElements();
         return new OrganizationPageDto(organization.getId(), organization.getName(),
-                                        organization.getDescription(),orderListDto, isLast, totalCount);
+                                        organization.getDescription(), orderListDto, isLast, totalCount);
     }
 
     @Override
@@ -337,10 +337,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<Long> getOrderIdsByEmployee(AppUser employee) {
+    public List<String> getOrderNamesByEmployee(AppUser employee) {
         return findAllByEmployee(employee)
                 .stream()
-                .map(Order::getId)
+                .map(Order::getName)
                 .collect(Collectors.toList());
     }
 

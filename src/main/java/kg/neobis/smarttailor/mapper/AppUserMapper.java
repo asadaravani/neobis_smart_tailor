@@ -44,13 +44,13 @@ public class AppUserMapper {
         );
     }
 
-    public EmployeeListDto entityListToListDto(OrganizationEmployee organizationEmployee, List<Long> orderNumbers) {
+    public EmployeeListDto entityListToListDto(OrganizationEmployee organizationEmployee, List<String> orderNames) {
         AppUser employee = organizationEmployee.getEmployee();
         return new EmployeeListDto(
                 employee.getId(),
                 String.format("%s %s %s", employee.getSurname(), employee.getName(), employee.getPatronymic()),
                 employee.getEmail(),
-                orderNumbers,
+                orderNames,
                 organizationEmployee.getPosition().getName()
         );
     }
