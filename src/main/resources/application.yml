@@ -45,3 +45,6 @@ cloudinary:
 
 rabbitmq:
   host: 46.101.135.225
+
+app:
+  firebase-configuration-file : "firebase/smarttailorfirebase-firebase-adminsdk-bm52t-751b36d6eb.json"

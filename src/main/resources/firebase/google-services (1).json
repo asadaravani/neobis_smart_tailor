@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1093751900916",
+    "project_id": "smarttailorfirebase",
+    "storage_bucket": "smarttailorfirebase.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1093751900916:android:75fe1633ab018c02322ca1",
+        "android_client_info": {
+          "package_name": "com.akzhol.smarttailor"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQf_fp48olxu6FbDIodq2M910ncl6ETq0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
