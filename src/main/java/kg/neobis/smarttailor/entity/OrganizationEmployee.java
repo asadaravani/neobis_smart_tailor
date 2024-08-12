@@ -13,8 +13,6 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 import lombok.experimental.SuperBuilder;
 
-import java.io.Serializable;
-
 @Entity
 @Getter
 @Setter

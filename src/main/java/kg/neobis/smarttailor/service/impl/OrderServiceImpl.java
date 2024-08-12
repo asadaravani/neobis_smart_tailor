@@ -18,7 +18,6 @@ import kg.neobis.smarttailor.service.*;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -189,6 +188,9 @@ public class OrderServiceImpl implements OrderService {
         for (Image image : order.getImages()) {
             cloudinaryService.deleteImage(image.getUrl());
         }
+        order.setOrganizationCandidates(null);
+        order.setOrderEmployees(null);
+        order.setOrganizationExecutor(null);
         orderRepository.delete(order);
 
         return "Order has been deleted";
