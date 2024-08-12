@@ -231,6 +231,22 @@ public class OrderController {
     }
 
     @Operation(
+            summary = "GET ORDERS ASSIGNED TO USER",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Returns a list of orders"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "404", description = "User is not a member of any organization"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
+    @GetMapping("/orders-assigned-to-user")
+    public ResponseEntity<AdvertisementPageDto> getOrdersOfOrganization(@RequestParam int pageNumber,
+                                                                        @RequestParam int pageSize,
+                                                                        Authentication authentication) {
+        return ResponseEntity.ok(orderService.getOrdersAssignedToUser(pageNumber, pageSize, authentication));
+    }
+
+    @Operation(
             summary = "GET ORDERS OF ORGANIZATION",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Returns a list of orders"),

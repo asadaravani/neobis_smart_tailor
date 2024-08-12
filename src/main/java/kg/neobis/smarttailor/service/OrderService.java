@@ -44,6 +44,8 @@ public interface OrderService {
 
     List<Long> getOrderIdsByEmployee(AppUser employee);
 
+    AdvertisementPageDto getOrdersAssignedToUser(int pageNumber, int pageSize, Authentication authentication);
+
     List<OrganizationOrdersDto> getOrdersOfOrganization(String email);
 
     AdvertisementPageDto getUserOrders(int pageNumber, int pageSize, Authentication authentication);
