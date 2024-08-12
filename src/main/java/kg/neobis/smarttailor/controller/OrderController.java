@@ -281,6 +281,26 @@ public class OrderController {
     }
 
     @Operation(
+            summary = "GET USER'S ORDER HISTORY BY STAGE",
+            description = "Returns list of user's order history by stage (completed / current)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "List of user's orders received"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "404", description = "Invalid stage"),
+                    @ApiResponse(responseCode = "409", description = "User is not a member of any organization"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            }
+    )
+    @GetMapping("/order-history-for-user")
+    public ResponseEntity<AdvertisementPageDto> getUserOrderHistoryByStage(@RequestParam int pageNumber,
+                                                                           @RequestParam int pageSize,
+                                                                           @RequestParam String stage,
+                                                                           Authentication authentication) {
+        return ResponseEntity.ok(orderService.getUserOrderHistoryByStage(stage, pageNumber, pageSize, authentication));
+    }
+
+    @Operation(
             summary = "USER'S ORDERS",
             description = "Returns list of user's orders",
             responses = {

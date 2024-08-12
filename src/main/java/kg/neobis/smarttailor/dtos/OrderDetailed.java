@@ -1,5 +1,7 @@
 package kg.neobis.smarttailor.dtos;
 
+import kg.neobis.smarttailor.enums.OrderStatus;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -11,6 +13,7 @@ public record OrderDetailed(
         String description,
         BigDecimal price,
         String contactInfo,
+        OrderStatus status,
         String authorImage,
         String authorFullName,
         List<String> orderImages,

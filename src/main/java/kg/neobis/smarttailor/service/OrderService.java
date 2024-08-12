@@ -48,6 +48,8 @@ public interface OrderService {
 
     List<OrganizationOrdersDto> getOrdersOfOrganization(String email);
 
+    AdvertisementPageDto getUserOrderHistoryByStage(String stage, int pageNumber, int pageSize, Authentication authentication);
+
     AdvertisementPageDto getUserOrders(int pageNumber, int pageSize, Authentication authentication);
 
     Order findOrderById(Long id);

@@ -313,6 +313,30 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public AdvertisementPageDto getUserOrderHistoryByStage(String stage, int pageNumber, int pageSize, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        organizationEmployeeService.findByEmployeeEmail(user.getEmail())
+                .orElseThrow(() -> new UserNotInOrganizationException("Authenticated user is not a member of any organization"));
+
+        Pageable pageable;
+        Page<Order> userOrders;
+        if (stage.equals("current")) {
+            pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "dateOfStart"));
+            userOrders = orderRepository.findCurrentEmployeeOrders(user, pageable);
+        } else if (stage.equals("completed")) {
+            pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "dateOfCompletion"));
+            userOrders = orderRepository.findCompletedEmployeeOrders(user, pageable);
+        } else {
+            throw new ResourceNotFoundException("Invalid stage.\nValid states: completed, current");
+        }
+        List<UserOrderHistoryDto> orderListDto = orderMapper.entityListToUserOrderHistoryDto(userOrders, stage);
+        boolean isLast = userOrders.isLast();
+        Long totalCount = userOrders.getTotalElements();
+        return new AdvertisementPageDto(orderListDto, isLast, totalCount);
+    }
+
+    @Override
     public List<Long> getOrderIdsByEmployee(AppUser employee) {
         return findAllByEmployee(employee)
                 .stream()

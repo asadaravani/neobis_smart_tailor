@@ -1,15 +1,6 @@
 package kg.neobis.smarttailor.mapper;
 
-import kg.neobis.smarttailor.dtos.AuthorOrderDetailedDto;
-import kg.neobis.smarttailor.dtos.EmployeeStageOrderListDto;
-import kg.neobis.smarttailor.dtos.MyAdvertisement;
-import kg.neobis.smarttailor.dtos.OrderCard;
-import kg.neobis.smarttailor.dtos.OrderDetailed;
-import kg.neobis.smarttailor.dtos.OrderItemDto;
-import kg.neobis.smarttailor.dtos.OrderListDto;
-import kg.neobis.smarttailor.dtos.OrderRequestDto;
-import kg.neobis.smarttailor.dtos.OrganizationDto;
-import kg.neobis.smarttailor.dtos.OrganizationOrdersDto;
+import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.entity.Order;
@@ -79,6 +70,17 @@ public class OrderMapper {
                 .collect(Collectors.toList());
     }
 
+    public List<UserOrderHistoryDto> entityListToUserOrderHistoryDto(Page<Order> orders, String stage) {
+        return orders.stream().map(order -> UserOrderHistoryDto.builder()
+                        .id(order.getId())
+                        .name(order.getName())
+                        .price(order.getPrice())
+                        .status(order.getStatus())
+                        .date(stage.equals("completed") ? order.getDateOfCompletion() : order.getDateOfStart())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
     public List<OrganizationOrdersDto> entityListToOrganizationOrderListDto(List<Order> orders) {
         return orders.stream().map(order -> OrganizationOrdersDto.builder()
                         .id(order.getId())
@@ -128,6 +130,7 @@ public class OrderMapper {
                 order.getDescription(),
                 order.getPrice(),
                 order.getContactInfo(),
+                order.getStatus(),
                 order.getAuthorImageUrl(order),
                 order.getFullName(order),
                 order.getImages().stream().map(Image::getUrl).collect(Collectors.toList()),
