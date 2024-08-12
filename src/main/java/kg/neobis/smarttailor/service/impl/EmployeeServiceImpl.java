@@ -39,8 +39,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         List<OrganizationEmployee> organizationEmployees = organizationEmployeeService.findAllByOrganization(organization);
 
         return organizationEmployees.stream().map(orgEmp -> {
-            List<Long> orderNumbers = orderService.getOrderIdsByEmployee(organizationEmployee.getEmployee());
-            return appUserMapper.entityListToListDto(orgEmp, orderNumbers);
+            List<String> orderNames = orderService.getOrderNamesByEmployee(organizationEmployee.getEmployee());
+            return appUserMapper.entityListToListDto(orgEmp, orderNames);
         }).collect(Collectors.toList());
     }
 

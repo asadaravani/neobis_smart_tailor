@@ -1,5 +1,6 @@
 package kg.neobis.smarttailor.dtos;
 
+import kg.neobis.smarttailor.enums.OrderStatus;
 import lombok.Builder;
 
 import java.io.Serializable;
@@ -11,5 +12,6 @@ public record OrganizationOrdersDto(
         String name,
         String description,
         BigDecimal price,
-        String imageUrl
+        String imageUrl,
+        OrderStatus status
 ) implements Serializable {}

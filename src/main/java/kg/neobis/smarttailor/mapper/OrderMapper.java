@@ -88,6 +88,7 @@ public class OrderMapper {
                         .description(order.getDescription())
                         .price(order.getPrice())
                         .imageUrl(order.getImages().get(0).getUrl())
+                        .status(order.getStatus())
                         .build())
                 .collect(Collectors.toList());
     }
@@ -164,7 +165,8 @@ public class OrderMapper {
                 order.getName(),
                 order.getDescription(),
                 order.getPrice(),
-                order.getImages().get(0).getUrl()
+                order.getImages().get(0).getUrl(),
+                order.getStatus()
         );
     }
 }

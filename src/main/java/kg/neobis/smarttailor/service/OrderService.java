@@ -42,7 +42,7 @@ public interface OrderService {
 
     AuthorOrderDetailedDto getOrderDetailedForAuthor(Long orderId, Authentication authentication);
 
-    List<Long> getOrderIdsByEmployee(AppUser employee);
+    List<String> getOrderNamesByEmployee(AppUser employee);
 
     AdvertisementPageDto getOrdersAssignedToUser(int pageNumber, int pageSize, Authentication authentication);
 
