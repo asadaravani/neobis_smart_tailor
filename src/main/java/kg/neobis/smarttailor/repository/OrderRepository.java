@@ -22,6 +22,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     Page<Order> findByIsVisible(boolean isVisible, Pageable pageable);
 
     @Query("SELECT o FROM orders o JOIN o.orderEmployees e WHERE e = :user")
+    Page<Order> findAllEmployeeOrders(@Param("user") AppUser user, Pageable pageable);
+
+    @Query("SELECT o FROM orders o JOIN o.orderEmployees e WHERE e = :user")
     List<Order> findByOrderEmployee(@Param("user") AppUser user);
 
     @Query("SELECT o FROM orders o JOIN o.orderEmployees e WHERE e = :user AND o.dateOfCompletion IS NULL")

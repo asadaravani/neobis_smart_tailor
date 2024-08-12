@@ -321,6 +321,20 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public AdvertisementPageDto getOrdersAssignedToUser(int pageNumber, int pageSize, Authentication authentication) {
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+
+        organizationService.findOrganizationByDirectorOrEmployee(user.getEmail());
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Order> orders = orderRepository.findAllEmployeeOrders(user, pageable);
+        List<Order> ordersList = orders.getContent();
+        List<OrderListDto> orderListDto = orderMapper.entityListToDtoList(ordersList);
+        boolean isLast = orders.isLast();
+        Long totalCount = orders.getTotalElements();
+        return new AdvertisementPageDto(orderListDto, isLast, totalCount);
+    }
+
+    @Override
     public List<OrganizationOrdersDto> getOrdersOfOrganization(String email) {
         Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
         List<Order> orders = orderRepository.findAllByOrganizationExecutor(organization);
