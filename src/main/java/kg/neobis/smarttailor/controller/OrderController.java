@@ -258,9 +258,9 @@ public class OrderController {
     )
     @GetMapping("/get-organization-orders-by-stage")
     public ResponseEntity<OrganizationPageDto> getOrganizationOrderByStage(@RequestParam int pageNumber,
-                                                                            @RequestParam int pageSize,
-                                                                            @RequestParam String stage,
-                                                                            Authentication authentication) {
+                                                                           @RequestParam int pageSize,
+                                                                           @RequestParam String stage,
+                                                                           Authentication authentication) {
         return ResponseEntity.ok(orderService.getOrganizationOrdersByStage(stage, pageNumber, pageSize, authentication));
     }
 
@@ -276,8 +276,8 @@ public class OrderController {
     )
     @GetMapping("/my-orders")
     public ResponseEntity<AdvertisementPageDto> getUserOrders(@RequestParam int pageNumber,
-                                                                @RequestParam int pageSize,
-                                                                Authentication authentication) {
+                                                              @RequestParam int pageSize,
+                                                              Authentication authentication) {
         return ResponseEntity.ok(orderService.getUserOrders(pageNumber, pageSize, authentication));
     }
 

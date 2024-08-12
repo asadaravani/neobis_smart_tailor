@@ -3,7 +3,6 @@ package kg.neobis.smarttailor.service.impl;
 import com.cloudinary.utils.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.EntityManager;
 import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.exception.*;
@@ -16,7 +15,6 @@ import kg.neobis.smarttailor.service.NotificationService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -47,7 +45,6 @@ public class EquipmentServiceImpl implements EquipmentService {
     NotificationService notificationService;
     ObjectMapper objectMapper;
     Validator validator;
-    EntityManager entityManager;
 
     @Override
     @Transactional
@@ -99,6 +96,7 @@ public class EquipmentServiceImpl implements EquipmentService {
         for (Image image : equipment.getImages()) {
             cloudinaryService.deleteImage(image.getUrl());
         }
+        equipment.setEquipmentBuyers(null);
         equipmentRepository.delete(equipment);
 
         return "Equipment has been deleted";

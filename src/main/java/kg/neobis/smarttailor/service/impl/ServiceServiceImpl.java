@@ -13,7 +13,6 @@ import kg.neobis.smarttailor.service.ServicesService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -67,6 +66,7 @@ public class ServiceServiceImpl implements ServicesService {
         for (Image image : service.getImages()) {
             cloudinaryService.deleteImage(image.getUrl());
         }
+        service.setServiceApplicants(null);
         serviceRepository.delete(service);
 
         return "Service has been deleted";
