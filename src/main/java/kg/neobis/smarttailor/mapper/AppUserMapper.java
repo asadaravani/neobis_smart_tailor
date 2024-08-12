@@ -1,8 +1,6 @@
 package kg.neobis.smarttailor.mapper;
 
-import kg.neobis.smarttailor.dtos.EmployeeDto;
-import kg.neobis.smarttailor.dtos.EmployeeListDto;
-import kg.neobis.smarttailor.dtos.UserProfileDto;
+import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.OrganizationEmployee;
 import org.springframework.stereotype.Component;
@@ -23,6 +21,19 @@ public class AppUserMapper {
                 user.getPhoneNumber(),
                 user.getHasSubscription(),
                 inOrganization
+        );
+    }
+
+    public EmployeeDetailedDto entityToEmployeeDetailedDto(AppUser user, String positionName) {
+        return new EmployeeDetailedDto(
+                user.getId(),
+                user.getImage().getUrl(),
+                user.getName(),
+                user.getSurname(),
+                user.getPatronymic(),
+                user.getEmail(),
+                user.getPhoneNumber(),
+                positionName
         );
     }
 
