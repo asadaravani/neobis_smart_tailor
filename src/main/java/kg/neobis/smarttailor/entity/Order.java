@@ -56,7 +56,7 @@ public class Order extends Advertisement {
     )
     List<OrderItem> items = new ArrayList<>();
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "order_candidates",
             joinColumns = @JoinColumn(name = "order_id"),
@@ -68,7 +68,7 @@ public class Order extends Advertisement {
     @JoinColumn
     Organization organizationExecutor;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "order_employees",
             joinColumns = @JoinColumn(name = "order_id"),
