@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -23,6 +24,11 @@ public class InvitationTokenServiceImpl implements InvitationTokenService {
     @Override
     public void delete(InvitationToken invitationToken) {
         invitationTokenRepository.delete(invitationToken);
+    }
+
+    @Override
+    public void deleteExpiredTokens() {
+        invitationTokenRepository.deleteByExpirationTimeBefore(LocalDateTime.now());
     }
 
     @Override

@@ -39,8 +39,8 @@ public class OrganizationController {
                     @ApiResponse(responseCode = "201", description = "Organization has been created"),
                     @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | User has no subscription"),
-                    @ApiResponse(responseCode = "409", description = "User already has organization | Organization with specified name already exists "),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "409", description = "User has no subscription | User already has organization | Organization with specified name already exists "),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
@@ -74,13 +74,13 @@ public class OrganizationController {
                     @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "403", description = "Invalid authorization type | User has no permission to invite employee"),
-                    @ApiResponse(responseCode = "404", description = "User has no organization | Specified position not found"),
-                    @ApiResponse(responseCode = "409", description = "Employee has his own organization | Employee is already a member of another organization | Employee is already a member of your organization"),
+                    @ApiResponse(responseCode = "404", description = "Specified position not found"),
+                    @ApiResponse(responseCode = "409", description = "Authenticated user is not a member of any organization | Employee has his own organization | Employee is already a member of another organization | Employee is already a member of your organization | User has no permission to invite employee"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
     @PostMapping("/send-invitation")
     public ResponseEntity<?> sendInvitation(@RequestPart("employee") String request, Authentication authentication) throws MessagingException {
-        return ResponseEntity.status(HttpStatus.OK).body(organizationService.sendInvitation(request, authentication));
+        return ResponseEntity.ok(organizationService.sendInvitation(request, authentication));
     }
 }

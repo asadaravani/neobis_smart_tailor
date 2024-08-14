@@ -38,10 +38,10 @@ public class ServiceController {
 
     @Operation(
             summary = "ADD SERVICE",
-            description = "Accepts service data and images to create the service",
+            description = "Accepts service's data and images to create the service",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Service has been created"),
-                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present | Validation failed"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present |  Entered data has not been validated"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
@@ -60,19 +60,21 @@ public class ServiceController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Service has been deleted"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | Only authors can delete their advertisements"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "404", description = "Service not found with specified id"),
+                    @ApiResponse(responseCode = "409", description = "Only authors can delete their advertisements"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @DeleteMapping("/delete-service/{serviceId}")
-    public ResponseEntity<String> deleteService(@PathVariable Long serviceId, Authentication authentication) throws IOException {
+    public ResponseEntity<String> deleteService(@PathVariable Long serviceId,
+                                                Authentication authentication) throws IOException {
         return ResponseEntity.ok(servicesService.deleteService(serviceId, authentication));
     }
 
     @Operation(
             summary = "GET ALL SERVICES",
-            description = "Returns list of services for marketplace",
+            description = "Returns list of visible services",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Service list received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -81,16 +83,16 @@ public class ServiceController {
             }
     )
     @GetMapping("/get-all-services")
-    public ResponseEntity<AdvertisementPageDto> getAllServices(@RequestParam int pageNumber,
-                                                               @RequestParam int pageSize) {
-        return ResponseEntity.ok(servicesService.getAllServices(pageNumber, pageSize));
+    public ResponseEntity<AdvertisementPageDto> getAllVisibleServices(@RequestParam int pageNumber,
+                                                                      @RequestParam int pageSize) {
+        return ResponseEntity.ok(servicesService.getAllVisibleServices(pageNumber, pageSize));
     }
 
     @Operation(
             summary = "GET SERVICE DETAILED",
             description = "Accepts service's id, and returns service's detailed information",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Service information received"),
+                    @ApiResponse(responseCode = "200", description = "Service's information received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "404", description = "Service not found with specified id"),
@@ -98,8 +100,8 @@ public class ServiceController {
             }
     )
     @GetMapping("/get-service-detailed/{serviceId}")
-    public ServiceDetailed getServiceDetailed(@PathVariable Long serviceId) {
-        return servicesService.getServiceById(serviceId);
+    public ResponseEntity<ServiceDetailed> getServiceDetailed(@PathVariable Long serviceId) {
+        return ResponseEntity.ok(servicesService.getServiceDetailed(serviceId));
     }
 
     @Operation(
@@ -108,13 +110,15 @@ public class ServiceController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Service information received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | User is not an author of this service"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "404", description = "Service not found with specified id"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "409", description = "User is not an author of this service"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @GetMapping("/get-service-detailed-for-author/{serviceId}")
-    public ResponseEntity<AuthorServiceDetailedDto> getServiceDetailedForAuthor(@PathVariable Long serviceId, Authentication authentication) {
+    public ResponseEntity<AuthorServiceDetailedDto> getServiceDetailedForAuthor(@PathVariable Long serviceId,
+                                                                                Authentication authentication) {
         return ResponseEntity.ok(servicesService.getServiceDetailedForAuthor(serviceId, authentication));
     }
 
@@ -141,9 +145,9 @@ public class ServiceController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Service is now invisible in marketplace"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | Only authors can hide their advertisements"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "404", description = "Service not found with specified id"),
-                    @ApiResponse(responseCode = "409", description = "Service is already hidden"),
+                    @ApiResponse(responseCode = "409", description = "Service is already hidden | Only authors can hide their advertisements"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )

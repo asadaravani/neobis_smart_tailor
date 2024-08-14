@@ -10,7 +10,6 @@ import kg.neobis.smarttailor.service.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +40,7 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
 
     @Override
     public String editProfile(UserProfileEditRequest request, Authentication authentication) {
+
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         user.setName(request.name());
         user.setSurname(request.surname());
@@ -80,10 +80,11 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
 
     @Override
     public UserProfileDto getUserProfile(Authentication authentication) {
+
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         Boolean inOrganization = organizationEmployeeService.existsByEmployeeEmail(user.getEmail());
 
-        return appUserMapper.entityToDto(user, inOrganization);
+        return appUserMapper.entityToUserProfileDto(user, inOrganization);
     }
 
     @Override

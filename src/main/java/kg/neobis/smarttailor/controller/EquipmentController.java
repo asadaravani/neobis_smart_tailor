@@ -38,10 +38,10 @@ public class EquipmentController {
 
     @Operation(
             summary = "ADD EQUIPMENT",
-            description = "Accepts equipment data and images to create the equipment",
+            description = "Accepts equipment's data and images to create the equipment",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Equipment has been created"),
-                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present | Validation failed"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present | Entered data has not been validated"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
@@ -75,19 +75,21 @@ public class EquipmentController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Equipment has been deleted"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | Only authors can delete their advertisements"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "404", description = "Equipment not found with specified id"),
+                    @ApiResponse(responseCode = "409", description = "Only authors can delete their advertisements"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @DeleteMapping("/delete-equipment/{equipmentId}")
-    public ResponseEntity<String> deleteEquipment(@PathVariable Long equipmentId, Authentication authentication) throws IOException {
+    public ResponseEntity<String> deleteEquipment(@PathVariable Long equipmentId,
+                                                  Authentication authentication) throws IOException {
         return ResponseEntity.ok(equipmentService.deleteEquipment(equipmentId, authentication));
     }
 
     @Operation(
             summary = "GET ALL EQUIPMENTS",
-            description = "Returns list of equipments for marketplace",
+            description = "Returns list of visible equipments",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Equipment list received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -96,16 +98,16 @@ public class EquipmentController {
             }
     )
     @GetMapping("/get-all-equipments")
-    public ResponseEntity<AdvertisementPageDto> getAllEquipments(@RequestParam int pageNumber,
-                                                                 @RequestParam int pageSize) {
-        return ResponseEntity.ok(equipmentService.getAllEquipments(pageNumber, pageSize));
+    public ResponseEntity<AdvertisementPageDto> getAllVisibleEquipments(@RequestParam int pageNumber,
+                                                                        @RequestParam int pageSize) {
+        return ResponseEntity.ok(equipmentService.getAllVisibleEquipments(pageNumber, pageSize));
     }
 
     @Operation(
             summary = "GET EQUIPMENT DETAILED",
             description = "Accepts equipment's id, and returns equipment's detailed information",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Equipment information received"),
+                    @ApiResponse(responseCode = "200", description = "Equipment's information received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "404", description = "Equipment not found with specified id"),
@@ -114,7 +116,7 @@ public class EquipmentController {
     )
     @GetMapping("/get-equipment-detailed/{equipmentId}")
     public ResponseEntity<EquipmentDetailed> getEquipmentDetailed(@PathVariable Long equipmentId) {
-        return ResponseEntity.ok(equipmentService.getEquipmentById(equipmentId));
+        return ResponseEntity.ok(equipmentService.getEquipmentDetailed(equipmentId));
     }
 
     @Operation(
@@ -123,13 +125,15 @@ public class EquipmentController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Equipment information received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | User is not an author of this equipment"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "404", description = "Equipment not found with specified id"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "409", description = "User is not an author of this equipment"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @GetMapping("/get-equipment-detailed-for-author/{equipmentID}")
-    public ResponseEntity<AuthorEquipmentDetailedDto> getEquipmentDetailedForAuthor(@PathVariable Long equipmentID, Authentication authentication) {
+    public ResponseEntity<AuthorEquipmentDetailedDto> getEquipmentDetailedForAuthor(@PathVariable Long equipmentID,
+                                                                                    Authentication authentication) {
         return ResponseEntity.ok(equipmentService.getEquipmentDetailedForAuthor(equipmentID, authentication));
     }
 
@@ -145,8 +149,8 @@ public class EquipmentController {
     )
     @GetMapping("/my-equipments")
     public ResponseEntity<AdvertisementPageDto> getUserEquipments(@RequestParam int pageNumber,
-                                                              @RequestParam int pageSize,
-                                                              Authentication authentication) {
+                                                                  @RequestParam int pageSize,
+                                                                  Authentication authentication) {
         return ResponseEntity.ok(equipmentService.getUserEquipments(pageNumber, pageSize, authentication));
     }
 
@@ -156,14 +160,14 @@ public class EquipmentController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Equipment is now invisible in marketplace"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | Only authors can hide their advertisements"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "404", description = "Equipment not found with specified id"),
-                    @ApiResponse(responseCode = "409", description = "Equipment is already hidden"),
+                    @ApiResponse(responseCode = "409", description = "Equipment is already hidden | Only authors can hide their advertisements"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @GetMapping("/hide/{equipmentId}")
-    public ResponseEntity<String> hideOrder(@PathVariable Long equipmentId, Authentication authentication) {
+    public ResponseEntity<String> hideEquipment(@PathVariable Long equipmentId, Authentication authentication) {
         return ResponseEntity.ok(equipmentService.hideEquipment(equipmentId, authentication));
     }
 

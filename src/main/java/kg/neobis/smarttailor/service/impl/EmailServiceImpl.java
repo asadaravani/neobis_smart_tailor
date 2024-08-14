@@ -47,6 +47,7 @@ public class EmailServiceImpl implements EmailService {
         helper.setTo(employeeEmail);
         helper.setSubject("Приглашение в организацию");
         helper.setFrom("smart_tailor@gmail.com");
+
         return mimeMessage;
     }
 
@@ -63,6 +64,7 @@ public class EmailServiceImpl implements EmailService {
         helper.setTo(user.getEmail());
         helper.setSubject("КОД ВЕРИФИКАЦИИ");
         helper.setFrom("smart_tailor@gmail.com");
+
         return mimeMessage;
     }
 
@@ -83,6 +85,7 @@ public class EmailServiceImpl implements EmailService {
         helper.setTo("u11se03r@gmail.com");
         helper.setSubject("Запрос на подписку");
         helper.setFrom("smart_tailor@gmail.com");
+
         return mimeMessage;
     }
 
@@ -106,5 +109,4 @@ public class EmailServiceImpl implements EmailService {
         }
         sendEmail(simpleMailMessage);
     }
-
 }

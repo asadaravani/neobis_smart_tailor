@@ -1,16 +1,11 @@
 package kg.neobis.smarttailor.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
-import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
-import kg.neobis.smarttailor.dtos.AuthorOrderDetailedDto;
-import kg.neobis.smarttailor.dtos.CurrentOrganizationOrders;
-import kg.neobis.smarttailor.dtos.EmployeePageDto;
-import kg.neobis.smarttailor.dtos.OrderDetailed;
-import kg.neobis.smarttailor.dtos.OrganizationOrdersDto;
-import kg.neobis.smarttailor.dtos.OrganizationPageDto;
+import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.enums.PlusMinus;
 import kg.neobis.smarttailor.service.OrderService;
 import lombok.AccessLevel;
@@ -46,20 +41,20 @@ public class OrderController {
 
     @Operation(
             summary = "ADD ORDER",
-            description = "Accepts order data and images to create the order",
+            description = "Accepts order's data and images to create the order",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Order has been created"),
-                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present | Validation failed"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present | Entered data has not been validated"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @PostMapping("/add-order")
-    public ResponseEntity<String> addOrder(@RequestPart("order") String orderDto,
+    public ResponseEntity<String> addOrder(@RequestPart("order") String order,
                                            @RequestPart("images") List<MultipartFile> images,
-                                           Authentication authentication) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.addOrder(orderDto, images, authentication));
+                                           Authentication authentication) throws JsonProcessingException {
+        return ResponseEntity.status(HttpStatus.CREATED).body(orderService.addOrder(order, images, authentication));
     }
 
     @Operation(
@@ -85,18 +80,21 @@ public class OrderController {
                     @ApiResponse(responseCode = "200", description = "Order has been assigned to specified organization"),
                     @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "404", description = "Order (or Organization) not found | Organization hasn't sent request | User is not a member of any organization"),
-                    @ApiResponse(responseCode = "409", description = "User can't manage an order that is not his own"),
+                    @ApiResponse(responseCode = "409", description = "User can't manage an order that is not his own | Order is already given to another organization"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
     @PostMapping("/assign-organization-to-order/{orderId}")
-    public ResponseEntity<String> assignOrganizationToOrder(@PathVariable Long orderId, @RequestParam String organizationName, Authentication authentication) {
-        return ResponseEntity.status(HttpStatus.OK).body(orderService.assignOrganizationToOrder(orderId, organizationName, authentication));
+    public ResponseEntity<String> assignOrganizationToOrder(@PathVariable Long orderId,
+                                                            @RequestParam String organizationName,
+                                                            Authentication authentication) {
+        return ResponseEntity.ok(orderService.assignOrganizationToOrder(orderId, organizationName, authentication));
     }
 
     @Operation(
-            summary = "SEND REQUEST TO CHANGE STATUS",
+            summary = "CHANGE ORDER STATUS",
             description = "Accepts order id, CUSTOM enum +/- ,  and user's information from jwt to leave a request to execute order",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Order's status is changed"),
@@ -109,8 +107,10 @@ public class OrderController {
             }
     )
     @PutMapping("/change-status/{orderId}/{plusMinus}")
-    public void changeOrderStatus(@PathVariable Long orderId, @PathVariable PlusMinus plusMinus, Authentication authentication) {
-        orderService.changeOrderStatus(orderId, plusMinus, authentication.getName());
+    public ResponseEntity<String> changeOrderStatus(@PathVariable Long orderId,
+                                                    @PathVariable PlusMinus plusMinus,
+                                                    Authentication authentication) {
+        return ResponseEntity.ok(orderService.changeOrderStatus(orderId, plusMinus, authentication));
     }
 
     @Operation(
@@ -137,19 +137,21 @@ public class OrderController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Order has been deleted"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | Only authors can delete their advertisements"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "404", description = "Order not found with specified id"),
+                    @ApiResponse(responseCode = "409", description = "Only authors can delete their advertisements"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @DeleteMapping("/delete-order/{orderId}")
-    public ResponseEntity<String> deleteOrder(@PathVariable Long orderId, Authentication authentication) throws IOException {
+    public ResponseEntity<String> deleteOrder(@PathVariable Long orderId,
+                                              Authentication authentication) throws IOException {
         return ResponseEntity.ok(orderService.deleteOrder(orderId, authentication));
     }
 
     @Operation(
             summary = "GET ALL ORDERS",
-            description = "Returns list of orders for marketplace",
+            description = "Returns list of visible orders",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Order list received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -158,9 +160,9 @@ public class OrderController {
             }
     )
     @GetMapping("/get-all-orders")
-    public ResponseEntity<AdvertisementPageDto> getAllOrders(@RequestParam int pageNumber,
-                                                             @RequestParam int pageSize) {
-        return ResponseEntity.ok(orderService.getAllOrders(pageNumber, pageSize));
+    public ResponseEntity<AdvertisementPageDto> getAllVisibleOrders(@RequestParam int pageNumber,
+                                                                    @RequestParam int pageSize) {
+        return ResponseEntity.ok(orderService.getAllVisibleOrders(pageNumber, pageSize));
     }
 
     @Operation(
@@ -173,7 +175,7 @@ public class OrderController {
             }
     )
     @GetMapping("/organization-current-orders-monitoring")
-    public ResponseEntity<CurrentOrganizationOrders> getCurrentOrders(Authentication authentication) {
+    public ResponseEntity<CurrentOrganizationOrders> getCurrentOrganizationOrders(Authentication authentication) {
         return ResponseEntity.ok(orderService.getCurrentOrdersOfOrganization(authentication.getName()));
     }
 
@@ -202,16 +204,16 @@ public class OrderController {
             summary = "GET ORDER DETAILED",
             description = "Accepts order's id, and returns order's detailed information",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Order information received"),
+                    @ApiResponse(responseCode = "200", description = "Order's information received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "404", description = "Order not found with specified id"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @GetMapping("/get-order-detailed/{orderId}")
     public ResponseEntity<OrderDetailed> getOrderDetailed(@PathVariable Long orderId) {
-        return ResponseEntity.ok(orderService.getOrderById(orderId));
+        return ResponseEntity.ok(orderService.getOrderDetailed(orderId));
     }
 
     @Operation(
@@ -220,13 +222,15 @@ public class OrderController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Order information received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | User is not an author of this order"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "404", description = "Order not found with specified id"),
+                    @ApiResponse(responseCode = "409", description = "User is not an author of this order"),
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
     @GetMapping("/get-order-detailed-for-author/{orderId}")
-    public ResponseEntity<AuthorOrderDetailedDto> getOrderDetailedForAuthor(@PathVariable Long orderId, Authentication authentication) {
+    public ResponseEntity<AuthorOrderDetailedDto> getOrderDetailedForAuthor(@PathVariable Long orderId,
+                                                                            Authentication authentication) {
         return ResponseEntity.ok(orderService.getOrderDetailedForAuthor(orderId, authentication));
     }
 
@@ -323,9 +327,9 @@ public class OrderController {
             responses = {
                     @ApiResponse(responseCode = "200", description = "Order is now invisible in marketplace"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | Only authors can hide their advertisements"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "404", description = "Order not found with specified id"),
-                    @ApiResponse(responseCode = "409", description = "Service is already hidden"),
+                    @ApiResponse(responseCode = "409", description = "Order is already hidden | Only authors can hide their advertisements"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )

@@ -12,6 +12,10 @@ public interface PositionService {
 
     List<PositionDto> getAllPositionsExceptDirector(Authentication authentication);
 
+    List<PositionDto> getPositionsToInviteEmployee(Authentication authentication);
+
+    List<Integer> getPositionsWithWeightsLessThan(Authentication authentication);
+
     Position getPositionByName(String name);
 
     Position save(Position position);

@@ -7,17 +7,31 @@ import jakarta.mail.internet.MimeMessage;
 import kg.neobis.smarttailor.dtos.EmployeeInvitationRequest;
 import kg.neobis.smarttailor.dtos.OrganizationDetailed;
 import kg.neobis.smarttailor.dtos.OrganizationDto;
-import kg.neobis.smarttailor.entity.*;
+import kg.neobis.smarttailor.entity.AppUser;
+import kg.neobis.smarttailor.entity.Image;
+import kg.neobis.smarttailor.entity.InvitationToken;
+import kg.neobis.smarttailor.entity.Organization;
+import kg.neobis.smarttailor.entity.OrganizationEmployee;
+import kg.neobis.smarttailor.entity.Position;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.enums.Role;
-import kg.neobis.smarttailor.exception.*;
+import kg.neobis.smarttailor.exception.InvalidJsonException;
+import kg.neobis.smarttailor.exception.NoPermissionException;
+import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
+import kg.neobis.smarttailor.exception.ResourceNotFoundException;
+import kg.neobis.smarttailor.exception.UserNotInOrganizationException;
 import kg.neobis.smarttailor.mapper.OrganizationMapper;
 import kg.neobis.smarttailor.repository.OrganizationRepository;
-import kg.neobis.smarttailor.service.*;
+import kg.neobis.smarttailor.service.AppUserService;
+import kg.neobis.smarttailor.service.CloudinaryService;
+import kg.neobis.smarttailor.service.EmailService;
+import kg.neobis.smarttailor.service.InvitationTokenService;
+import kg.neobis.smarttailor.service.OrganizationEmployeeService;
+import kg.neobis.smarttailor.service.OrganizationService;
+import kg.neobis.smarttailor.service.PositionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -63,6 +77,7 @@ public class OrganizationServiceImpl implements OrganizationService {
                     .employee(user)
                     .build();
             organizationEmployeeService.save(organizationEmployee);
+
             return ResponseEntity.ok("You accepted invitation");
         }
         return ResponseEntity.badRequest().body("Token has been expired");
@@ -90,20 +105,15 @@ public class OrganizationServiceImpl implements OrganizationService {
 
         Position directorPosition = Position.builder()
                 .name("Директор")
+                .weight(10)
                 .accessRights(accessRights)
                 .organization(organization)
                 .build();
         positionService.save(directorPosition);
-        Position adminPosition = Position.builder()
-                .name("Администратор")
-                .accessRights(accessRights)
-                .organization(organization)
-                .build();
-        positionService.save(adminPosition);
 
         OrganizationEmployee organizationEmployee = OrganizationEmployee.builder()
                 .organization(organization)
-                .position(adminPosition)
+                .position(directorPosition)
                 .employee(user)
                 .build();
         organizationEmployeeService.save(organizationEmployee);
@@ -112,7 +122,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public Organization findOrganizationByDirectorOrEmployee(String email) {
+    public Organization findOrganizationByDirectorEmail(String email) {
         return organizationRepository.findByDirectorEmail(email)
                 .orElseThrow(() -> new ResourceNotFoundException("Organization not found"));
     }
@@ -120,7 +130,7 @@ public class OrganizationServiceImpl implements OrganizationService {
     @Override
     public OrganizationDetailed getOrganization(Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        return organizationMapper.toOrganizationDetailed(findOrganizationByDirectorOrEmployee(user.getEmail()));
+        return organizationMapper.toOrganizationDetailed(findOrganizationByDirectorEmail(user.getEmail()));
     }
 
     @Override
@@ -130,16 +140,11 @@ public class OrganizationServiceImpl implements OrganizationService {
     }
 
     @Override
-    public Organization getOrganizationByDirectorEmail(String email) {
-        return organizationRepository.getByDirectorEmail(email);
-    }
-
-    @Override
     public String sendInvitation(String request, Authentication authentication) throws MessagingException {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization "));
+                .orElseThrow(() -> new UserNotInOrganizationException("Authenticated user is not a member of any organization "));
         EmployeeInvitationRequest employeeInvitationRequest = parseAndValidateEmployeeInvitationRequest(request);
         Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.INVITE_EMPLOYEE, user.getEmail());
         Boolean isUserExists = appUserService.existsUserByEmail(employeeInvitationRequest.email());

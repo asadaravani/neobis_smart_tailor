@@ -10,17 +10,14 @@ import java.util.List;
 @Component
 public class AppUserMapper {
 
-    public UserProfileDto entityToDto(AppUser user, boolean inOrganization) {
-        return new UserProfileDto(
-                user.getId(),
-                user.getImage().getUrl(),
-                user.getName(),
-                user.getSurname(),
-                user.getPatronymic(),
-                user.getEmail(),
-                user.getPhoneNumber(),
-                user.getHasSubscription(),
-                inOrganization
+    public EmployeeListDto entityListToEmployeeListDto(OrganizationEmployee organizationEmployee, List<EmployeeOrderListDto> orderInfo) {
+        AppUser employee = organizationEmployee.getEmployee();
+        return new EmployeeListDto(
+                employee.getId(),
+                String.format("%s %s %s", employee.getSurname(), employee.getName(), employee.getPatronymic()),
+                employee.getEmail(),
+                orderInfo,
+                organizationEmployee.getPosition().getName()
         );
     }
 
@@ -37,21 +34,25 @@ public class AppUserMapper {
         );
     }
 
-    public static EmployeeDto appUserToEmployeeDto(AppUser appUser) {
+    public static EmployeeDto entityToEmployeeDto(AppUser appUser) {
         return new EmployeeDto(
+                appUser.getId(),
                 String.format("%s %s %s", appUser.getSurname(), appUser.getName(), appUser.getPatronymic()),
                 appUser.getImage() != null ? appUser.getImage().getUrl() : null
         );
     }
 
-    public EmployeeListDto entityListToListDto(OrganizationEmployee organizationEmployee, List<String> orderNames) {
-        AppUser employee = organizationEmployee.getEmployee();
-        return new EmployeeListDto(
-                employee.getId(),
-                String.format("%s %s %s", employee.getSurname(), employee.getName(), employee.getPatronymic()),
-                employee.getEmail(),
-                orderNames,
-                organizationEmployee.getPosition().getName()
+    public UserProfileDto entityToUserProfileDto(AppUser user, boolean inOrganization) {
+        return new UserProfileDto(
+                user.getId(),
+                user.getImage().getUrl(),
+                user.getName(),
+                user.getSurname(),
+                user.getPatronymic(),
+                user.getEmail(),
+                user.getPhoneNumber(),
+                user.getHasSubscription(),
+                inOrganization
         );
     }
 }

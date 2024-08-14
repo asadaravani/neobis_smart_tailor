@@ -1,14 +1,15 @@
 package kg.neobis.smarttailor.repository;
 
-import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.SubscriptionToken;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+
 @Repository
 public interface SubscriptionTokenRepository extends JpaRepository<SubscriptionToken, Long> {
 
-    SubscriptionToken findByToken(String token);
+    void deleteByExpirationTimeBefore(LocalDateTime date);
 
-    SubscriptionToken findByUser(AppUser user);
+    SubscriptionToken findByToken(String token);
 }

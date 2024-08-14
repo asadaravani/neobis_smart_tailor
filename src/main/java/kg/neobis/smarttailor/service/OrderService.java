@@ -1,5 +1,6 @@
 package kg.neobis.smarttailor.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Order;
@@ -14,45 +15,45 @@ import java.util.List;
 
 public interface OrderService {
 
-    String addOrder(String orderRequestDto, List<MultipartFile> images, Authentication authentication);
+    String addOrder(String orderRequestDto, List<MultipartFile> images, Authentication authentication) throws JsonProcessingException;
 
     String assignOrganizationToOrder(Long orderId, String organizationName, Authentication authentication);
 
     String assignEmployeeToOrder(Long orderId, Long employeeId, Authentication authentication);
 
-    void changeOrderStatus(Long orderId, PlusMinus plusMinus, String email);
+    String changeOrderStatus(Long orderId, PlusMinus plusMinus, Authentication authentication);
 
     String completeOrder(Long orderId, Authentication authentication);
 
     String deleteOrder(Long orderId, Authentication authentication) throws IOException;
 
-    Page<Order> findAllByUser(AppUser user, Pageable pageable);
-
     List<Order> findAllByEmployee(AppUser employee);
 
-    AdvertisementPageDto getAllOrders(int pageNumber, int pageSize);
+    Page<Order> findAllByUser(AppUser user, Pageable pageable);
+
+    Order findOrderById(Long id);
+
+    AdvertisementPageDto getAllVisibleOrders(int pageNumber, int pageSize);
 
     CurrentOrganizationOrders getCurrentOrdersOfOrganization(String email);
 
     EmployeePageDto getEmployeeOrdersByStage(Long employeeId, String stage, int pageNumber, int pageSize, Authentication authentication);
 
-    OrganizationPageDto getOrganizationOrdersByStage(String stage, int pageNumber, int pageSize, Authentication authentication);
-
-    OrderDetailed getOrderById(Long orderId);
+    OrderDetailed getOrderDetailed(Long id);
 
     AuthorOrderDetailedDto getOrderDetailedForAuthor(Long orderId, Authentication authentication);
 
-    List<String> getOrderNamesByEmployee(AppUser employee);
+    List<EmployeeOrderListDto> getOrderInfoByEmployee(AppUser employee);
 
     AdvertisementPageDto getOrdersAssignedToUser(int pageNumber, int pageSize, Authentication authentication);
 
     List<OrganizationOrdersDto> getOrdersOfOrganization(String email);
 
+    OrganizationPageDto getOrganizationOrdersByStage(String stage, int pageNumber, int pageSize, Authentication authentication);
+
     AdvertisementPageDto getUserOrderHistoryByStage(String stage, int pageNumber, int pageSize, Authentication authentication);
 
     AdvertisementPageDto getUserOrders(int pageNumber, int pageSize, Authentication authentication);
-
-    Order findOrderById(Long id);
 
     String hideOrder(Long orderId, Authentication authentication);
 

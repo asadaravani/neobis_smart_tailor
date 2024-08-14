@@ -41,7 +41,7 @@ public class ServiceMapper {
 
         List<UserDto> applicants = service.getServiceApplicants().stream()
                 .map(buyer -> new UserDto(
-                        buyer.getSurname().concat(" ").concat(buyer.getName()),
+                        String.format("%s %s %s", buyer.getSurname(), buyer.getName(), buyer.getPatronymic()),
                         buyer.getEmail(),
                         buyer.getPhoneNumber()))
                 .toList();
@@ -59,7 +59,7 @@ public class ServiceMapper {
         );
     }
 
-    public ServiceDetailed entityToDto(Services service) {
+    public ServiceDetailed entityToServiceDetailed(Services service) {
         return new ServiceDetailed(
                 service.getId(),
                 service.getName(),

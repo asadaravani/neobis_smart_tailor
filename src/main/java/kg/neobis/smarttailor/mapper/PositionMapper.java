@@ -14,6 +14,7 @@ public class PositionMapper {
     public Position dtoToEntity(PositionDto dto, Organization organization) {
         return new Position(
                 dto.positionName(),
+                dto.weight(),
                 dto.accessRights(),
                 organization
         );
@@ -23,6 +24,7 @@ public class PositionMapper {
 
         return positions.stream().map(position -> new PositionDto(
                 position.getName(),
+                position.getWeight(),
                 position.getAccessRights()
         )).collect(Collectors.toList());
     }

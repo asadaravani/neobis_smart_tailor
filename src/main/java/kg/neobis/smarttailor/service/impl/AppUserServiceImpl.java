@@ -82,6 +82,7 @@ public class AppUserServiceImpl implements AppUserService {
     public String sendSubscriptionRequest(Authentication authentication) throws MessagingException {
 
         AppUser user = getUserFromAuthentication(authentication);
+
         if (organizationEmployeeService.existsByEmployeeEmail(user.getEmail())) {
             throw new ResourceAlreadyExistsException("User is a member of another organization");
         }

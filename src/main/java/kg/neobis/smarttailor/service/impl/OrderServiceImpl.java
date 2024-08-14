@@ -1,20 +1,33 @@
 package kg.neobis.smarttailor.service.impl;
 
+import com.cloudinary.utils.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import kg.neobis.smarttailor.dtos.*;
-import kg.neobis.smarttailor.dtos.OrderDetailed;
-import kg.neobis.smarttailor.dtos.OrderListDto;
-import kg.neobis.smarttailor.dtos.OrderRequestDto;
-import kg.neobis.smarttailor.entity.*;
+import kg.neobis.smarttailor.entity.AppUser;
+import kg.neobis.smarttailor.entity.Image;
+import kg.neobis.smarttailor.entity.Order;
+import kg.neobis.smarttailor.entity.Organization;
+import kg.neobis.smarttailor.entity.OrganizationEmployee;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.enums.OrderStatus;
 import kg.neobis.smarttailor.enums.PlusMinus;
-import kg.neobis.smarttailor.exception.*;
+import kg.neobis.smarttailor.exception.InvalidJsonException;
+import kg.neobis.smarttailor.exception.InvalidRequestException;
+import kg.neobis.smarttailor.exception.NoPermissionException;
+import kg.neobis.smarttailor.exception.OutOfDateException;
+import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
+import kg.neobis.smarttailor.exception.ResourceNotFoundException;
+import kg.neobis.smarttailor.exception.SelfPurchaseException;
+import kg.neobis.smarttailor.exception.UserNotInOrganizationException;
 import kg.neobis.smarttailor.mapper.OrderMapper;
 import kg.neobis.smarttailor.repository.OrderRepository;
-import kg.neobis.smarttailor.service.*;
+import kg.neobis.smarttailor.service.AppUserService;
+import kg.neobis.smarttailor.service.CloudinaryService;
+import kg.neobis.smarttailor.service.OrderService;
+import kg.neobis.smarttailor.service.OrganizationEmployeeService;
+import kg.neobis.smarttailor.service.OrganizationService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -30,6 +43,7 @@ import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -52,10 +66,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public String addOrder(String orderRequestDto, List<MultipartFile> images, Authentication authentication) {
-        OrderRequestDto requestDto = parseAndValidateOrderRequestDto(orderRequestDto);
+
         AppUser user = appUserService.getUserFromAuthentication(authentication);
+        OrderRequestDto requestDto = parseAndValidateOrderRequestDto(orderRequestDto);
         List<Image> orderImages = cloudinaryService.saveImages(images);
+
         Order order = orderMapper.dtoToEntity(requestDto, orderImages, user);
+
         orderRepository.save(order);
 
         return "Order has been created";
@@ -71,18 +88,23 @@ public class OrderServiceImpl implements OrderService {
         if (!order.getAuthor().getId().equals(user.getId())) {
             throw new NoPermissionException("User cannot manage an order that is not his own");
         }
+        if (order.getOrganizationExecutor() != null) {
+            throw new ResourceAlreadyExistsException("Order is already given to '".concat(organization.getName()).concat("' organization"));
+        }
         if (order.getOrganizationCandidates().stream().noneMatch(org -> org.getId().equals(organization.getId()))) {
             throw new ResourceNotFoundException("Organization \"".concat(organizationName).concat("\" hasn't sent request"));
         }
         order.setOrganizationExecutor(organization);
         order.setDateOfStart(LocalDate.now());
         order.setStatus(OrderStatus.WAITING);
+        order.setOrganizationCandidates(null);
         orderRepository.save(order);
 
         return "Order has been assigned to \"".concat(organizationName).concat("\" organization");
     }
 
     @Override
+    @Transactional
     public String assignEmployeeToOrder(Long orderId, Long employeeId, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
@@ -119,28 +141,44 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public void changeOrderStatus(Long orderId, PlusMinus plusMinus, String email) {
-        AppUser user = appUserService.findUserByEmail(email);
+    public String changeOrderStatus(Long orderId, PlusMinus plusMinus, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
         Order order = findOrderById(orderId);
+
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
+                .orElseThrow(() -> new UserNotInOrganizationException("Authenticated user is not a member of any organization"));
+        Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.CHANGE_ORDER_STATUS, user.getEmail());
+
         OrderStatus[] statusArray = OrderStatus.values();
-        Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
-        if (!order.getOrganizationExecutor().getId().equals(organization.getId()) || !order.getOrderEmployees().contains(user)) {
-            throw new NoPermissionException("You do NOT have permission to change the status of this Order");
-        }
-        if ((plusMinus == PlusMinus.MINUS && order.getStatus() == OrderStatus.WAITING)
-                || (plusMinus == PlusMinus.PLUS && order.getStatus() == OrderStatus.ARRIVED)) {
-            throw new InvalidRequestException("Invalid Request");
-        }
-        Arrays.stream(statusArray).forEach(status -> {
-            if (status == order.getStatus()) {
-                if (plusMinus == PlusMinus.PLUS) {
-                    order.setStatus(statusArray[Arrays.asList(statusArray).indexOf(status) + 1]);
-                } else {
-                    order.setStatus(statusArray[Arrays.asList(statusArray).indexOf(status) - 1]);
-                }
+        int currentIndex = Arrays.asList(statusArray).indexOf(order.getStatus());
+
+        if (hasRights) {
+            if (!order.getOrganizationExecutor().getId()
+                    .equals(organizationEmployee.getOrganization().getId())) {
+                throw new NoPermissionException("Order hasn't been given for authenticated user's organization");
             }
-        });
+            if ((plusMinus == PlusMinus.MINUS && order.getStatus() == OrderStatus.WAITING)
+                    || (plusMinus == PlusMinus.PLUS && order.getStatus() == OrderStatus.ARRIVED)) {
+                throw new InvalidRequestException("Invalid Request");
+            }
+            if (plusMinus == PlusMinus.PLUS && currentIndex < statusArray.length - 1) {
+                order.setStatus(statusArray[currentIndex + 1]);
+            } else if (plusMinus == PlusMinus.MINUS && currentIndex > 0) {
+                order.setStatus(statusArray[currentIndex - 1]);
+            } else {
+                throw new InvalidRequestException("Cannot change status further");
+            }
+        } else {
+            throw new NoPermissionException("User has no permission to change order status");
+        }
         orderRepository.save(order);
+
+        int newStatusIndex;
+        if (plusMinus == PlusMinus.MINUS) newStatusIndex = currentIndex - 1;
+        else newStatusIndex = currentIndex + 1;
+
+        return String.format("Order status has been changed from '%s' to '%s'", statusArray[currentIndex], statusArray[newStatusIndex]);
     }
 
     @Override
@@ -160,10 +198,14 @@ public class OrderServiceImpl implements OrderService {
             if (organizationEmployee.getOrganization().getId().
                     equals(order.getOrganizationExecutor().getId())) {
                 if (order.getDateOfCompletion() == null) {
-                    order.setDateOfCompletion(LocalDate.now());
-                    orderRepository.save(order);
+                    if (order.getStatus() == OrderStatus.ARRIVED) {
+                        order.setDateOfCompletion(LocalDate.now());
+                        orderRepository.save(order);
 
-                    return "Order has been completed";
+                        return "Order has been completed";
+                    } else {
+                        throw new InvalidRequestException("Order can't be completed is status is not 'ARRIVED'");
+                    }
                 } else {
                     throw new ResourceAlreadyExistsException("Order is already completed");
                 }
@@ -197,13 +239,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public Page<Order> findAllByUser(AppUser user, Pageable pageable) {
-        return orderRepository.findAllByAuthor(user, pageable);
+    public List<Order> findAllByEmployee(AppUser employee) {
+        return orderRepository.findByOrderEmployee(employee);
     }
 
     @Override
-    public List<Order> findAllByEmployee(AppUser employee) {
-        return orderRepository.findByOrderEmployee(employee);
+    public Page<Order> findAllByUser(AppUser user, Pageable pageable) {
+        return orderRepository.findAllByAuthor(user, pageable);
     }
 
     @Override
@@ -213,21 +255,29 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public AdvertisementPageDto getAllOrders(int pageNumber, int pageSize) {
+    public AdvertisementPageDto getAllVisibleOrders(int pageNumber, int pageSize) {
+
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+
         Page<Order> orders = orderRepository.findByIsVisible(true, pageable);
         List<Order> ordersList = orders.getContent();
-        List<OrderListDto> orderListDto = orderMapper.entityListToDtoList(ordersList);
         boolean isLast = orders.isLast();
         Long totalCount = orders.getTotalElements();
+
+        List<OrderListDto> orderListDto = orderMapper.entityListToDtoList(ordersList);
+
         return new AdvertisementPageDto(orderListDto, isLast, totalCount);
     }
 
     @Override
     public CurrentOrganizationOrders getCurrentOrdersOfOrganization(String email) {
-        Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
-        List<Order> orders = orderRepository.findAllByOrganizationExecutor(organization);
+
+        Organization organization = organizationService.findOrganizationByDirectorEmail(email);
+        List<Order> orders = orderRepository.findAllByOrganizationExecutorAndDateOfCompletionIsNull(organization);
+        List<Order> notConfirmedOrders = orderRepository.findAllByOrganizationCandidatesIsContaining(organization);
+
         return new CurrentOrganizationOrders(
+                extractOrdersByStatusAndMap(OrderStatus.NOT_CONFIRMED, notConfirmedOrders),
                 extractOrdersByStatusAndMap(OrderStatus.WAITING, orders),
                 extractOrdersByStatusAndMap(OrderStatus.IN_PROGRESS, orders),
                 extractOrdersByStatusAndMap(OrderStatus.CHECKING, orders),
@@ -237,7 +287,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public EmployeePageDto getEmployeeOrdersByStage(Long employeeId, String stage, int pageNumber, int pageSize, Authentication authentication) {
+    public EmployeePageDto getEmployeeOrdersByStage(Long employeeId, String stage, int pageNumber,
+                                                    int pageSize, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         OrganizationEmployee authenticatedOrganizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
@@ -270,7 +321,60 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrganizationPageDto getOrganizationOrdersByStage(String stage, int pageNumber, int pageSize, Authentication authentication) {
+    public OrderDetailed getOrderDetailed(Long id) {
+        Order order = findOrderById(id);
+        return orderMapper.entityToOrderDetailed(order);
+    }
+
+    @Override
+    public AuthorOrderDetailedDto getOrderDetailedForAuthor(Long orderId, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Order order = orderRepository.findById(orderId).
+                orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+
+        if (!order.getAuthor().getId().equals(user.getId())) {
+            throw new NoPermissionException("User is not an author of this order");
+        }
+
+        return orderMapper.entityToAuthorOrderDetailedDto(order);
+    }
+
+    @Override
+    public List<EmployeeOrderListDto> getOrderInfoByEmployee(AppUser employee) {
+        return findAllByEmployee(employee)
+                .stream()
+                .map(order -> new EmployeeOrderListDto(order.getId(), order.getName()))
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public AdvertisementPageDto getOrdersAssignedToUser(int pageNumber, int pageSize, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+
+        organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Order> orders = orderRepository.findAllEmployeeOrders(user, pageable);
+        List<Order> ordersList = orders.getContent();
+        List<OrderListDto> orderListDto = orderMapper.entityListToDtoList(ordersList);
+        boolean isLast = orders.isLast();
+        Long totalCount = orders.getTotalElements();
+        return new AdvertisementPageDto(orderListDto, isLast, totalCount);
+    }
+
+    @Override
+    public List<OrganizationOrdersDto> getOrdersOfOrganization(String email) {
+        Organization organization = organizationService.findOrganizationByDirectorEmail(email);
+        List<Order> orders = orderRepository.findAllByOrganizationExecutor(organization);
+        return orders.stream().map(
+                orderMapper::toOrganizationOrders
+        ).toList();
+    }
+
+    @Override
+    public OrganizationPageDto getOrganizationOrdersByStage(String stage, int pageNumber,
+                                                            int pageSize, Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
                 .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
@@ -291,29 +395,12 @@ public class OrderServiceImpl implements OrderService {
         boolean isLast = organizationOrders.isLast();
         Long totalCount = organizationOrders.getTotalElements();
         return new OrganizationPageDto(organization.getId(), organization.getName(),
-                                        organization.getDescription(), orderListDto, isLast, totalCount);
+                organization.getDescription(), orderListDto, isLast, totalCount);
     }
 
     @Override
-    public OrderDetailed getOrderById(Long orderId) {
-        Order order = findOrderById(orderId);
-        return orderMapper.entityToDto(order);
-    }
-
-    @Override
-    public AuthorOrderDetailedDto getOrderDetailedForAuthor(Long orderId, Authentication authentication) {
-
-        AppUser user = appUserService.getUserFromAuthentication(authentication);
-        Order order = orderRepository.findById(orderId).
-                orElseThrow(() -> new ResourceNotFoundException("Order not found"));
-        if (!order.getAuthor().getId().equals(user.getId())) {
-            throw new NoPermissionException("User is not an author of this order");
-        }
-        return orderMapper.entityToAuthorOrderDetailedDto(order);
-    }
-
-    @Override
-    public AdvertisementPageDto getUserOrderHistoryByStage(String stage, int pageNumber, int pageSize, Authentication authentication) {
+    public AdvertisementPageDto getUserOrderHistoryByStage(String stage, int pageNumber,
+                                                           int pageSize, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         organizationEmployeeService.findByEmployeeEmail(user.getEmail())
@@ -337,38 +424,8 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public List<String> getOrderNamesByEmployee(AppUser employee) {
-        return findAllByEmployee(employee)
-                .stream()
-                .map(Order::getName)
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public AdvertisementPageDto getOrdersAssignedToUser(int pageNumber, int pageSize, Authentication authentication) {
-        AppUser user = appUserService.getUserFromAuthentication(authentication);
-
-        organizationService.findOrganizationByDirectorOrEmployee(user.getEmail());
-        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Order> orders = orderRepository.findAllEmployeeOrders(user, pageable);
-        List<Order> ordersList = orders.getContent();
-        List<OrderListDto> orderListDto = orderMapper.entityListToDtoList(ordersList);
-        boolean isLast = orders.isLast();
-        Long totalCount = orders.getTotalElements();
-        return new AdvertisementPageDto(orderListDto, isLast, totalCount);
-    }
-
-    @Override
-    public List<OrganizationOrdersDto> getOrdersOfOrganization(String email) {
-        Organization organization = organizationService.findOrganizationByDirectorOrEmployee(email);
-        List<Order> orders = orderRepository.findAllByOrganizationExecutor(organization);
-        return orders.stream().map(
-                orderMapper::toOrganizationOrders
-        ).toList();
-    }
-
-    @Override
     public AdvertisementPageDto getUserOrders(int pageNumber, int pageSize, Authentication authentication) {
+
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -448,8 +505,35 @@ public class OrderServiceImpl implements OrderService {
             OrderRequestDto requestDto = objectMapper.readValue(orderDto, OrderRequestDto.class);
             BindingResult bindingResult = new BeanPropertyBindingResult(requestDto, "orderDto");
             validator.validate(orderDto, bindingResult);
+
             if (bindingResult.hasErrors()) {
                 throw new IllegalArgumentException("Invalid input " + bindingResult.getAllErrors());
+            }
+            if (StringUtils.isBlank(requestDto.name())) {
+                throw new InvalidRequestException("Name cannot be empty");
+            } else if (requestDto.name().length() < 5 || requestDto.name().length() > 50) {
+                throw new InvalidRequestException("Name size must be between 2 and 50");
+            }
+            if (StringUtils.isBlank(requestDto.description())) {
+                throw new InvalidRequestException("Description cannot be empty");
+            } else if (requestDto.description().length() < 5 || requestDto.description().length() > 1000) {
+                throw new InvalidRequestException("Description size must be between 2 and 1000");
+            }
+            if (requestDto.price() == null || requestDto.price().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new InvalidRequestException("Price must be greater than zero");
+            }
+            if (StringUtils.isBlank(requestDto.contactInfo())) {
+                throw new InvalidRequestException("Contact info cannot be empty");
+            } else if (requestDto.contactInfo().length() > 320) {
+                throw new InvalidRequestException("Contact info's size cannot be greater than 320");
+            }
+            if (requestDto.dateOfExecution() == null) {
+                throw new InvalidRequestException("Date of execution cannot be empty");
+            } else if (requestDto.dateOfExecution().isBefore(LocalDate.now())) {
+                throw new InvalidRequestException("Date of execution must be after today");
+            }
+            if (requestDto.items().isEmpty()) {
+                throw new InvalidRequestException("Items must not be empty");
             }
             return requestDto;
         } catch (JsonProcessingException e) {

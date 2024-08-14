@@ -64,6 +64,6 @@ public class Advertisement extends BaseEntity {
         String name = author.getName() != null ? author.getName() : "";
         String surname = author.getSurname() != null ? author.getSurname() : "";
         String patronymic = author.getPatronymic() != null ? author.getPatronymic() : "";
-        return (surname + " " + name + " " + patronymic).trim();
+        return String.format("%s %s %s", surname, name, patronymic);
     }
 }
