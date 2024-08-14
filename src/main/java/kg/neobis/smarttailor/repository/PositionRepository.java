@@ -17,5 +17,7 @@ public interface PositionRepository extends JpaRepository<Position, Long> {
     @Query("SELECT p FROM Position p LEFT JOIN FETCH p.accessRights WHERE p.name != 'Директор' AND p.organization = :organization")
     List<Position> findAllPositionsExceptDirector(@Param("organization") Organization organization);
 
+    List<Position> findAllByOrganizationAndWeightIsLessThan(Organization organization, Integer weight);
+
     Position getByName(String positionName);
 }

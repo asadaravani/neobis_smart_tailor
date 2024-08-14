@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Service
@@ -21,6 +22,11 @@ public class SubscriptionTokenServiceImpl implements SubscriptionTokenService {
     @Override
     public void delete(SubscriptionToken subscriptionToken) {
         subscriptionTokenRepository.delete(subscriptionToken);
+    }
+
+    @Override
+    public void deleteExpiredTokens() {
+        subscriptionTokenRepository.deleteByExpirationTimeBefore(LocalDateTime.now());
     }
 
     @Override

@@ -19,14 +19,15 @@ import kg.neobis.smarttailor.service.PositionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.BeanPropertyBindingResult;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -41,23 +42,36 @@ public class PositionServiceImpl implements PositionService {
     PositionRepository positionRepository;
 
     @Override
-    public String addPosition(String positionDto, Authentication authentication) {
+    public String addPosition(String positionRequestDto, Authentication authentication) {
 
-        PositionDto positionRequestDto = parseAndValidatePositionDto(positionDto);
+        PositionDto requestDto = parseAndValidatePositionDto(positionRequestDto);
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
                 .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
         Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.CREATE_POSITION, user.getEmail());
+        Set<AccessRight> authenticatedUserAccessRights = organizationEmployee.getPosition().getAccessRights();
 
         if (hasRights) {
-            if (positionRepository.existsPositionByNameAndOrganization(positionRequestDto.positionName(), organizationEmployee.getOrganization())) {
-                throw new ResourceAlreadyExistsException("Position with name '".concat(positionRequestDto.positionName()).concat("' already exists"));
+            if (!positionRepository.existsPositionByNameAndOrganization(requestDto.positionName(), organizationEmployee.getOrganization())) {
+                if (requestDto.weight() < organizationEmployee.getPosition().getWeight()) {
+                    for (AccessRight accessRight: requestDto.accessRights()) {
+                        if (!authenticatedUserAccessRights.contains(accessRight)) {
+                            throw new NoPermissionException("User can't create position with rights, that he doesn't have");
+                        }
+                    }
+                    Position position = positionMapper.dtoToEntity(requestDto, organizationEmployee.getOrganization());
+                    positionRepository.save(position);
+
+                } else {
+                    throw new NoPermissionException("User can create position only with weight, that smaller than his position's weight");
+                }
+            } else {
+                throw new ResourceAlreadyExistsException("Position with name '".concat(requestDto.positionName()).concat("' already exists"));
             }
-            Position position = positionMapper.dtoToEntity(positionRequestDto, organizationEmployee.getOrganization());
-            positionRepository.save(position);
         } else {
             throw new NoPermissionException("User has no permission to create position");
         }
+
         return "Position has been created";
     }
 
@@ -69,6 +83,32 @@ public class PositionServiceImpl implements PositionService {
         List<Position> positions = positionRepository.findAllPositionsExceptDirector(organizationEmployee.getOrganization());
 
         return positionMapper.entityListToDtoList(positions);
+    }
+
+    @Override
+    public List<PositionDto> getPositionsToInviteEmployee(Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
+                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
+        List<Position> positions = positionRepository.findAllByOrganizationAndWeightIsLessThan(organizationEmployee.getOrganization(), organizationEmployee.getPosition().getWeight());
+
+        return positionMapper.entityListToDtoList(positions);
+    }
+
+    @Override
+    public List<Integer> getPositionsWithWeightsLessThan(Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
+                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
+
+        List<Integer> weights = new ArrayList<>();
+        for (int i = organizationEmployee.getPosition().getWeight()-1; i >= 1; i--) {
+            weights.add(i);
+        }
+
+        return weights;
     }
 
     @Override

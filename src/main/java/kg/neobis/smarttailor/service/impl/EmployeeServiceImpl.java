@@ -2,9 +2,8 @@ package kg.neobis.smarttailor.service.impl;
 
 import kg.neobis.smarttailor.dtos.EmployeeDetailedDto;
 import kg.neobis.smarttailor.dtos.EmployeeListDto;
-import kg.neobis.smarttailor.entity.AppUser;
-import kg.neobis.smarttailor.entity.Organization;
-import kg.neobis.smarttailor.entity.OrganizationEmployee;
+import kg.neobis.smarttailor.dtos.EmployeeOrderListDto;
+import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.exception.UserNotInOrganizationException;
 import kg.neobis.smarttailor.mapper.AppUserMapper;
 import kg.neobis.smarttailor.service.AppUserService;
@@ -32,6 +31,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public List<EmployeeListDto> getAllEmployees(Authentication authentication) {
+
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
                 .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
@@ -39,8 +39,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         List<OrganizationEmployee> organizationEmployees = organizationEmployeeService.findAllByOrganization(organization);
 
         return organizationEmployees.stream().map(orgEmp -> {
-            List<String> orderNames = orderService.getOrderNamesByEmployee(organizationEmployee.getEmployee());
-            return appUserMapper.entityListToListDto(orgEmp, orderNames);
+            List<EmployeeOrderListDto> orderNames = orderService.getOrderInfoByEmployee(organizationEmployee.getEmployee());
+            return appUserMapper.entityListToEmployeeListDto(orgEmp, orderNames);
         }).collect(Collectors.toList());
     }
 

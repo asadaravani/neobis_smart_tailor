@@ -32,9 +32,9 @@ public class EmployeeController {
 
     @Operation(
             summary = "GET ALL EMPLOYEES",
-            description = "Returns list of organization's customers",
+            description = "Returns list of organization's employees",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Customer list received"),
+                    @ApiResponse(responseCode = "200", description = "Employee list received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")

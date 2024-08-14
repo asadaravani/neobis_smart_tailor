@@ -37,25 +37,27 @@ public class AuthenticationController {
             summary = "EMAIL CONFIRMATION",
             description = "Accepts email and confirmation code, and then sends access and refresh tokens",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Access and refresh tokens received successfully"),
-                    @ApiResponse(responseCode = "400", description = "Confirmation code has been expired | Required parameter(s) is not present"),
+                    @ApiResponse(responseCode = "200", description = "Access and refresh tokens have been received"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
                     @ApiResponse(responseCode = "404", description = "Invalid confirmation code | User not found with specified email | Confirmation code not found for user with specified email"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "410", description = "Confirmation code has been expired"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @PostMapping("/confirm-email")
-    public ResponseEntity<LoginResponse> confirmEmail(@RequestParam String email, @RequestParam Integer code) {
+    public ResponseEntity<LoginResponse> confirmEmail(@RequestParam String email,
+                                                      @RequestParam Integer code) {
         return ResponseEntity.ok(authenticationService.confirmEmail(email, code));
     }
 
     @Operation(
             summary = "LOGIN",
-            description = "Accepts email and then sends the confirmation code to the specified email",
+            description = "Accepts email, and then sends the confirmation code to the specified email",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Confirmation code has been sent to the specified email"),
                     @ApiResponse(responseCode = "400", description = "Required parameter 'email' is not present"),
                     @ApiResponse(responseCode = "404", description = "User not found with specified email"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @PostMapping("/login")
@@ -70,7 +72,7 @@ public class AuthenticationController {
                     @ApiResponse(responseCode = "200", description = "Log out completed"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @PostMapping("/log-out")
@@ -80,12 +82,13 @@ public class AuthenticationController {
 
     @Operation(
             summary = "REFRESH TOKEN",
-            description = "Accepts refresh token and generates new access token",
+            description = "Accepts refresh token, and then generates new access token",
             responses = {
-                    @ApiResponse(responseCode = "200", description = "Access token has been generated"),
-                    @ApiResponse(responseCode = "400", description = "Refresh token has been expired"),
+                    @ApiResponse(responseCode = "200", description = "Access token has been generated and received"),
+                    @ApiResponse(responseCode = "400", description = "Required parameter 'refreshToken' is not present"),
                     @ApiResponse(responseCode = "404", description = "Refresh token not found"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "410", description = "Refresh token has been expired"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @PostMapping("/refresh-token")
@@ -95,12 +98,12 @@ public class AuthenticationController {
 
     @Operation(
             summary = "RESEND CONFIRMATION CODE",
-            description = "Accepts email and then sends confirmation code to specified email",
+            description = "Accepts email, and then sends confirmation code to specified email",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Confirmation code has been sent to the specified email"),
                     @ApiResponse(responseCode = "400", description = "Required parameter 'email' is not present"),
                     @ApiResponse(responseCode = "404", description = "User not found with specified email"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @PostMapping("/resend-confirmation-code")
@@ -115,11 +118,12 @@ public class AuthenticationController {
                     @ApiResponse(responseCode = "201", description = "User's data saved in database. Confirmation code has been sent to the specified email"),
                     @ApiResponse(responseCode = "400", description = "Entered data has not been validated"),
                     @ApiResponse(responseCode = "409", description = "User with specified email already exists"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
     @PostMapping("/sign-up")
-    public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest request, BindingResult result) throws MessagingException {
+    public ResponseEntity<?> signUp(@Valid @RequestBody SignUpRequest request,
+                                    BindingResult result) throws MessagingException {
         if (result.hasErrors()) {
             return ResponseEntity.badRequest().body("Validation error: " + result.getAllErrors());
         }

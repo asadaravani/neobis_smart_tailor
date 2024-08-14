@@ -45,17 +45,18 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     @Transactional
-    public LoginResponse confirmEmail(String requestEmail, Integer requestCode) {
+    public LoginResponse confirmEmail(String email, Integer code) {
 
-        AppUser user = appUserService.findUserByEmail(requestEmail);
-        ConfirmationCode confirmationCode = confirmationCodeService.findByUserAndCode(user, requestCode);
+        AppUser user = appUserService.findUserByEmail(email);
+        ConfirmationCode confirmationCode = confirmationCodeService.findByUserAndCode(user, code);
 
         if (confirmationCode.isExpired()) {
             throw new OutOfDateException("Confirmation code has been expired");
         }
-        if (confirmationCode.getCode().equals(requestCode)) {
+        if (confirmationCode.getCode().equals(code)) {
             user.setEnabled(true);
             appUserService.save(user);
+
             confirmationCodeService.delete(confirmationCode);
 
             var jwtToken = jwtUtil.generateToken(user);
@@ -76,6 +77,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public String login(String requestEmail) {
+
         AppUser user = appUserService.findUserByEmail(requestEmail);
         ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
         emailService.sendEmailWithConfirmationCode(confirmationCode, user);
@@ -85,10 +87,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public String logOut(HttpServletRequest request) {
+
         String authHeader = request.getHeader("Authorization");
+
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String jwtToken = authHeader.substring(7);
             blackListTokenService.addTokenToBlacklist(jwtToken);
+
             return "Log out completed";
         } else {
             throw new InvalidRequestException("Invalid authorization header");
@@ -97,6 +102,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public AccessToken refreshToken(String refreshToken) {
+
         if (!refreshTokenService.existsByToken(refreshToken)) {
             throw new ResourceNotFoundException("Refresh token not found");
         }
@@ -114,17 +120,19 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public String resendConfirmationCode(String requestEmail) {
-        AppUser user = appUserService.findUserByEmail(requestEmail);
-        ConfirmationCode confirmationCode = confirmationCodeService.findCodeByUser(user);
+    public String resendConfirmationCode(String email) {
+
+        AppUser user = appUserService.findUserByEmail(email);
+        ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
         emailService.sendEmailWithConfirmationCode(confirmationCode, user);
 
-        return "Confirmation code has been sent to the ".concat(requestEmail);
+        return "Confirmation code has been sent to the ".concat(email);
     }
 
     @Override
     @Transactional
     public String signUp(SignUpRequest request) {
+
         AppUser user;
         if (!appUserService.existsUserByEmail(request.email())) {
             user = AppUser.builder()
@@ -141,10 +149,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             user = appUserService.save(user);
         } else {
             user = appUserService.findUserByEmail(request.email());
+
             if (user.isEnabled()) {
                 throw new ResourceAlreadyExistsException("User with email '".concat(request.email()).concat("' is already exists"));
             } else {
                 ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
+
                 if (confirmationCode != null) {
                     confirmationCodeService.delete(confirmationCode);
                 }
@@ -152,11 +162,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         }
         ConfirmationCode confirmationCode = confirmationCodeService.generateConfirmationCode(user);
         MimeMessage simpleMailMessage;
+
         try {
             simpleMailMessage = emailService.createMailWithConfirmationCode(user, confirmationCode);
         } catch (MessagingException e) {
             throw new IllegalStateException("Failed to send email");
         }
+
         emailService.sendEmail(simpleMailMessage);
 
         return "Confirmation code has been sent to the ".concat(request.email());

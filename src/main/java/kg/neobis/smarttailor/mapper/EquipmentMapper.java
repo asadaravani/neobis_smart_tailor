@@ -42,7 +42,7 @@ public class EquipmentMapper {
 
         List<UserDto> buyers = equipment.getEquipmentBuyers().stream()
                 .map(buyer -> new UserDto(
-                        buyer.getSurname().concat(" ").concat(buyer.getName()),
+                        String.format("%s %s %s", buyer.getSurname(), buyer.getName(), buyer.getPatronymic()),
                         buyer.getEmail(),
                         buyer.getPhoneNumber()))
                 .toList();
@@ -60,7 +60,7 @@ public class EquipmentMapper {
         );
     }
 
-    public EquipmentDetailed entityToDto(Equipment equipment) {
+    public EquipmentDetailed entityToEquipmentDetailed(Equipment equipment) {
         return new EquipmentDetailed(
                 equipment.getId(),
                 equipment.getName(),

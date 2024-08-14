@@ -23,9 +23,9 @@ public interface EquipmentService {
 
     Page<Equipment> findAllByUser(AppUser user, Pageable pageable);
 
-    AdvertisementPageDto getAllEquipments(int pageNumber, int pageSize);
+    AdvertisementPageDto getAllVisibleEquipments(int pageNumber, int pageSize);
 
-    EquipmentDetailed getEquipmentById(Long equipmentId);
+    EquipmentDetailed getEquipmentDetailed(Long id);
 
     AuthorEquipmentDetailedDto getEquipmentDetailedForAuthor(Long equipmentId, Authentication authentication);
 

@@ -9,7 +9,6 @@ import kg.neobis.smarttailor.service.AppUserService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
@@ -43,6 +42,6 @@ public class AppUserController {
     )
     @PostMapping("/send-subscription-request")
     public ResponseEntity<?> sendSubscriptionRequest(Authentication authentication) throws MessagingException {
-        return ResponseEntity.status(HttpStatus.OK).body(appUserService.sendSubscriptionRequest(authentication));
+        return ResponseEntity.ok(appUserService.sendSubscriptionRequest(authentication));
     }
 }

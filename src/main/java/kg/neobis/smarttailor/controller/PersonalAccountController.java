@@ -15,6 +15,7 @@ import lombok.SneakyThrows;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -36,6 +37,27 @@ public class PersonalAccountController {
     PersonalAccountService personalAccountService;
 
     @Operation(
+            summary = "EDIT USER'S INFORMATION",
+            description = "Accepts changed data and saves it",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "User's data has been changed"),
+                    @ApiResponse(responseCode = "400", description = "Entered data has not been validated"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            }
+    )
+    @PutMapping("/profile/edit")
+    public ResponseEntity<?> editProfile(@Valid @RequestBody UserProfileEditRequest request,
+                                         BindingResult result,
+                                         Authentication authentication) {
+        if (result.hasErrors()) {
+            return ResponseEntity.badRequest().body("Validation error: " + result.getAllErrors());
+        }
+        return ResponseEntity.ok(personalAccountService.editProfile(request, authentication));
+    }
+
+    @Operation(
             summary = "USER'S INFORMATION",
             description = "Returns user's personal information",
             responses = {
@@ -48,23 +70,6 @@ public class PersonalAccountController {
     @GetMapping("/profile")
     public ResponseEntity<UserProfileDto> getUserProfile(Authentication authentication) {
         return ResponseEntity.ok(personalAccountService.getUserProfile(authentication));
-    }
-
-    @Operation(
-            summary = "EDIT USER'S INFORMATION",
-            description = "Accepts changed data and saves it",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "User's data has been changed"),
-                    @ApiResponse(responseCode = "400", description = "Invalid request content"),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
-                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
-            }
-    )
-    @PutMapping("/profile/edit")
-    public ResponseEntity<?> editProfile(@Valid @RequestBody UserProfileEditRequest request,
-                                         Authentication authentication) {
-        return ResponseEntity.ok(personalAccountService.editProfile(request, authentication));
     }
 
     @Operation(
@@ -89,7 +94,7 @@ public class PersonalAccountController {
             description = "Sets an image to user, removes previous image from the Cloudinary",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Profile image has been uploaded"),
-                    @ApiResponse(responseCode = "400", description = "Invalid request content"),
+                    @ApiResponse(responseCode = "400", description = "Current request is not a multipart request"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
                     @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")

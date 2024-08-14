@@ -68,7 +68,7 @@ public class Order extends Advertisement {
     @JoinColumn
     Organization organizationExecutor;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "order_employees",
             joinColumns = @JoinColumn(name = "order_id"),

@@ -7,9 +7,9 @@ public interface ConfirmationCodeService {
 
     void delete(ConfirmationCode confirmationCode);
 
-    ConfirmationCode findByUserAndCode(AppUser user, Integer code);
+    void deleteExpiredCodes();
 
-    ConfirmationCode findCodeByUser(AppUser user);
+    ConfirmationCode findByUserAndCode(AppUser user, Integer code);
 
     ConfirmationCode findConfirmationCodeByUser(AppUser user);
 

@@ -10,6 +10,6 @@ public record EmployeeListDto(
         Long id,
         String fullName,
         String email,
-        List<String> orders,
+        List<EmployeeOrderListDto> orders,
         String position
 ) implements Serializable {}

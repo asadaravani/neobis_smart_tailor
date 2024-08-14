@@ -9,6 +9,8 @@ public interface InvitationTokenService {
 
     void delete(InvitationToken invitationToken);
 
+    void deleteExpiredTokens();
+
     InvitationToken findByToken(String token);
 
     InvitationToken findByUser(AppUser user);

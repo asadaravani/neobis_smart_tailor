@@ -23,9 +23,9 @@ public interface ServicesService {
 
     Services findServiceById(Long id);
 
-    AdvertisementPageDto getAllServices(int pageNumber, int pageSize);
+    AdvertisementPageDto getAllVisibleServices(int pageNumber, int pageSize);
 
-    ServiceDetailed getServiceById(Long id);
+    ServiceDetailed getServiceDetailed(Long id);
 
     AuthorServiceDetailedDto getServiceDetailedForAuthor(Long serviceId, Authentication authentication);
 

@@ -1,5 +1,6 @@
 package kg.neobis.smarttailor.service.impl;
 
+import com.cloudinary.utils.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kg.neobis.smarttailor.dtos.*;
@@ -26,6 +27,7 @@ import org.springframework.validation.Validator;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -42,11 +44,15 @@ public class ServiceServiceImpl implements ServicesService {
     Validator validator;
 
     @Override
+    @Transactional
     public String addService(String serviceRequestDto, List<MultipartFile> images, Authentication authentication) {
-        ServiceRequestDto requestDto = parseAndValidateServiceRequestDto(serviceRequestDto);
+
         AppUser user = appUserService.getUserFromAuthentication(authentication);
+        ServiceRequestDto requestDto = parseAndValidateServiceRequestDto(serviceRequestDto);
         List<Image> serviceImages = cloudinaryService.saveImages(images);
+
         Services service = serviceMapper.dtoToEntity(requestDto, serviceImages, user);
+
         serviceRepository.save(service);
 
         return "Service has been created";
@@ -84,21 +90,25 @@ public class ServiceServiceImpl implements ServicesService {
     }
 
     @Override
-    public AdvertisementPageDto getAllServices(int pageNumber, int pageSize) {
+    public AdvertisementPageDto getAllVisibleServices(int pageNumber, int pageSize) {
+
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+
         Page<Services> services = serviceRepository.findByIsVisible(true, pageable);
         List<Services> servicesList = services.getContent();
-        List<ServiceListDto> serviceListDto = serviceMapper.entityListToDtoList(servicesList);
         boolean isLast = services.isLast();
         Long totalCount = services.getTotalElements();
+
+        List<ServiceListDto> serviceListDto = serviceMapper.entityListToDtoList(servicesList);
+
         return new AdvertisementPageDto(serviceListDto, isLast, totalCount);
     }
 
     @Override
-    public ServiceDetailed getServiceById(Long serviceId) {
-        Services service = serviceRepository.findById(serviceId)
+    public ServiceDetailed getServiceDetailed(Long id) {
+        Services service = serviceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found"));
-        return serviceMapper.entityToDto(service);
+        return serviceMapper.entityToServiceDetailed(service);
     }
 
     @Override
@@ -107,14 +117,17 @@ public class ServiceServiceImpl implements ServicesService {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         Services service = serviceRepository.findById(serviceId).
                 orElseThrow(() -> new ResourceNotFoundException("Service not found"));
+
         if (!service.getAuthor().getId().equals(user.getId())) {
             throw new NoPermissionException("User is not an author of this order");
         }
+
         return serviceMapper.entityToAuthorServiceDetailedDto(service);
     }
 
     @Override
     public AdvertisementPageDto getUserServices(int pageNumber, int pageSize, Authentication authentication) {
+
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -174,6 +187,24 @@ public class ServiceServiceImpl implements ServicesService {
             validator.validate(serviceDto, bindingResult);
             if (bindingResult.hasErrors()) {
                 throw new IllegalArgumentException("Invalid input " + bindingResult.getAllErrors());
+            }
+            if (StringUtils.isBlank(requestDto.name())) {
+                throw new InvalidRequestException("Name cannot be empty");
+            } else if (requestDto.name().length() < 5 || requestDto.name().length() > 50) {
+                throw new InvalidRequestException("Name size must be between 2 and 50");
+            }
+            if (StringUtils.isBlank(requestDto.description())) {
+                throw new InvalidRequestException("Description cannot be empty");
+            } else if (requestDto.description().length() < 5 || requestDto.description().length() > 1000) {
+                throw new InvalidRequestException("Description size must be between 2 and 1000");
+            }
+            if (requestDto.price() == null || requestDto.price().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new InvalidRequestException("Price must be greater than zero");
+            }
+            if (StringUtils.isBlank(requestDto.contactInfo())) {
+                throw new InvalidRequestException("Contact info cannot be empty");
+            } else if (requestDto.contactInfo().length() > 320) {
+                throw new InvalidRequestException("Contact info's size cannot be greater than 320");
             }
             return requestDto;
         } catch (JsonProcessingException e) {

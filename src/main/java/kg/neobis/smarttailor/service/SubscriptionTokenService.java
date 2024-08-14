@@ -7,6 +7,8 @@ public interface SubscriptionTokenService {
 
     void delete(SubscriptionToken subscriptionToken);
 
+    void deleteExpiredTokens();
+
     SubscriptionToken findByToken(String token);
 
     SubscriptionToken generateSubscriptionRequestToken(AppUser user);

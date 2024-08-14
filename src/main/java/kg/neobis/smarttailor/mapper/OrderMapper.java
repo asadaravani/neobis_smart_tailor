@@ -5,6 +5,7 @@ import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.entity.Order;
 import kg.neobis.smarttailor.entity.OrderItem;
+import kg.neobis.smarttailor.entity.Organization;
 import kg.neobis.smarttailor.enums.AdvertType;
 import kg.neobis.smarttailor.enums.OrderStatus;
 import org.springframework.data.domain.Page;
@@ -61,7 +62,7 @@ public class OrderMapper {
                         .price(order.getPrice())
                         .date(stage.equals("completed") ? order.getDateOfCompletion() : order.getDateOfStart())
                         .employees(order.getOrderEmployees().stream()
-                                .map(AppUserMapper::appUserToEmployeeDto)
+                                .map(AppUserMapper::entityToEmployeeDto)
                                 .collect(Collectors.toList()))
                         .authorFullName(order.getFullName(order))
                         .authorImage(order.getAuthorImageUrl(order))
@@ -100,9 +101,19 @@ public class OrderMapper {
                 .toList();
 
         List<OrganizationDto> candidates = order.getOrganizationCandidates().stream()
-                .map(organization -> new OrganizationDto(organization.getName(), organization.getDescription()))
+                .map(organization -> new OrganizationDto(organization.getId(), organization.getName(), organization.getDescription()))
                 .toList();
 
+        Organization organizationExecutor = order.getOrganizationExecutor();
+
+        OrganizationDto organization = null;
+        if (order.getOrganizationExecutor() != null) {
+            organization = new OrganizationDto(
+                    organizationExecutor.getId(),
+                    organizationExecutor.getName(),
+                    organizationExecutor.getDescription()
+            );
+        }
         return new AuthorOrderDetailedDto(
                 order.getId(),
                 order.getName(),
@@ -115,11 +126,12 @@ public class OrderMapper {
                 order.getDateOfExecution(),
                 order.getStatus(),
                 items,
-                candidates
+                candidates,
+                organization
         );
     }
 
-    public OrderDetailed entityToDto(Order order) {
+    public OrderDetailed entityToOrderDetailed(Order order) {
 
         List<OrderItemDto> items = order.getItems().stream()
                 .map(orderItem -> new OrderItemDto(orderItem.getSize(), orderItem.getQuantity()))
@@ -154,6 +166,7 @@ public class OrderMapper {
     public OrderCard toOrderCard(Order order) {
         return new OrderCard(
                 order.getId(),
+                order.getName(),
                 order.getDescription(),
                 order.getDateOfStart()
         );

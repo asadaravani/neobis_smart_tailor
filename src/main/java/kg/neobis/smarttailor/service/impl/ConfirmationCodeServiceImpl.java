@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.Random;
 
 @Service
@@ -25,8 +26,8 @@ public class ConfirmationCodeServiceImpl implements ConfirmationCodeService {
     }
 
     @Override
-    public ConfirmationCode findCodeByUser(AppUser user) {
-        return confirmationCodeRepository.findByUser(user);
+    public void deleteExpiredCodes() {
+        confirmationCodeRepository.deleteByExpirationTimeBefore(LocalDateTime.now());
     }
 
     @Override
@@ -42,12 +43,16 @@ public class ConfirmationCodeServiceImpl implements ConfirmationCodeService {
 
     @Override
     public ConfirmationCode generateConfirmationCode(AppUser user) {
-        ConfirmationCode confirmationCode = new ConfirmationCode();
         Random random = new Random();
         Integer code = random.nextInt(1000, 9999);
-        confirmationCode.setCode(code);
-        confirmationCode.setUser(user);
+
+        ConfirmationCode confirmationCode = ConfirmationCode.builder()
+                .code(code)
+                .user(user)
+                .expirationTime(LocalDateTime.now().plusMinutes(10))
+                .build();
         confirmationCodeRepository.save(confirmationCode);
+
         return confirmationCode;
     }
 

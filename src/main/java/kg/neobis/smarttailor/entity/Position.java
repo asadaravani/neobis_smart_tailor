@@ -1,13 +1,6 @@
 package kg.neobis.smarttailor.entity;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.CollectionTable;
-import jakarta.persistence.ElementCollection;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Enumerated;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.*;
 import kg.neobis.smarttailor.enums.AccessRight;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -31,7 +24,10 @@ public class Position extends BaseEntity {
     @Column(nullable = false)
     String name;
 
-    @ElementCollection(targetClass = AccessRight.class)
+    @Column(nullable = false)
+    Integer weight;
+
+    @ElementCollection(targetClass = AccessRight.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "position_access_rights", joinColumns = @JoinColumn(name = "position_id"))
     @Enumerated(EnumType.STRING)
     @Column(name = "access_right")

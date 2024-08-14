@@ -17,7 +17,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     Page<Order> findAllByAuthor(AppUser user, Pageable pageable);
 
+    List<Order> findAllByOrganizationExecutorAndDateOfCompletionIsNull(Organization organization);
+
     List<Order> findAllByOrganizationExecutor(Organization organization);
+
+    List<Order> findAllByOrganizationCandidatesIsContaining(Organization organization);
 
     Page<Order> findByIsVisible(boolean isVisible, Pageable pageable);
 

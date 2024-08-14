@@ -13,11 +13,9 @@ public interface OrganizationService {
 
     String createOrganization(String organizationDto, MultipartFile organizationImage, Authentication authentication);
 
-    Organization findOrganizationByDirectorOrEmployee(String email);
+    Organization findOrganizationByDirectorEmail(String email);
 
     OrganizationDetailed getOrganization(Authentication authentication);
-
-    Organization getOrganizationByDirectorEmail(String email);
 
     Organization getOrganizationByName(String organizationName);
 

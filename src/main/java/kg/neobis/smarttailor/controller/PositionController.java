@@ -32,14 +32,14 @@ public class PositionController {
     PositionService positionService;
 
     @Operation(
-            summary = "CREATE POSITION",
-            description = "Accepts position's name and permissions to create the position in organization",
+            summary = "ADD POSITION",
+            description = "Accepts position's name, weight and permissions to create the position in organization",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Position has been created"),
                     @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid authorization type | User has no permission to create position"),
-                    @ApiResponse(responseCode = "409", description = "Position with specified name already exists"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "409", description = "Position with specified name already exists | User has no permission to create position | User can't create position with rights, that he doesn't have"),
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
@@ -61,5 +61,37 @@ public class PositionController {
     @GetMapping("/get-all-positions")
     public ResponseEntity<List<PositionDto>> getAllPositions(Authentication authentication) {
         return ResponseEntity.ok(positionService.getAllPositionsExceptDirector(authentication));
+    }
+
+    @Operation(
+            summary = "GET ALL POSITIONS TO INVITE EMPLOYEE",
+            description = "Accepts user's data and and displays a list of positions, which weights are less than his position's weight",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Position list has been received"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "401", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "404", description = "User is not a member of any organization"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            }
+    )
+    @GetMapping("/positions-to-invite-employee")
+    public ResponseEntity<List<PositionDto>> getAllPositionsToInviteEmployee(Authentication authentication) {
+        return ResponseEntity.ok(positionService.getPositionsToInviteEmployee(authentication));
+    }
+
+    @Operation(
+            summary = "GET POSITION WEIGHTS LESS THAN AUTHENTICATED USER'S",
+            description = "Accepts user's data, gets user's position weight and displays weights more than his",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Position weights has been received"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "404", description = "User is not a member of any organization"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            }
+    )
+    @GetMapping("/positions-weights")
+    public ResponseEntity<List<Integer>> getPositionsWithWeightsLessThan(Authentication authentication) {
+        return ResponseEntity.ok(positionService.getPositionsWithWeightsLessThan(authentication));
     }
 }
