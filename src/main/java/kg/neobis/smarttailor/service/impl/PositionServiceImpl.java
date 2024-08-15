@@ -48,6 +48,7 @@ public class PositionServiceImpl implements PositionService {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
                 .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
+
         Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.CREATE_POSITION, user.getEmail());
         Set<AccessRight> authenticatedUserAccessRights = organizationEmployee.getPosition().getAccessRights();
 
@@ -86,7 +87,7 @@ public class PositionServiceImpl implements PositionService {
     }
 
     @Override
-    public List<PositionDto> getPositionsToInviteEmployee(Authentication authentication) {
+    public List<PositionDto> getAvailablePositionsForInvitation(Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
@@ -109,6 +110,17 @@ public class PositionServiceImpl implements PositionService {
         }
 
         return weights;
+    }
+
+    @Override
+    public Set<AccessRight> getAvailableAccessRights(Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
+                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
+
+        return organizationEmployee.getPosition().getAccessRights();
     }
 
     @Override

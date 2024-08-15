@@ -66,9 +66,11 @@ public class OrganizationServiceImpl implements OrganizationService {
         InvitationToken token = invitationTokenService.findByToken(invitationToken);
 
         if (LocalDateTime.now().isBefore(token.getExpirationTime())) {
+
             AppUser user = token.getUser();
             user.setEnabled(true);
             appUserService.save(user);
+
             invitationTokenService.delete(token);
 
             OrganizationEmployee organizationEmployee = OrganizationEmployee.builder()
@@ -91,21 +93,25 @@ public class OrganizationServiceImpl implements OrganizationService {
         if (!user.getHasSubscription()) {
             throw new NoPermissionException("User has no subscription");
         }
+
         if (organizationRepository.existsOrganizationByDirector(user)) {
             throw new ResourceAlreadyExistsException("User already has an organization");
         }
+
         OrganizationDto requestDto = parseAndValidateOrganizationDto(organizationRequestDto);
         if (organizationRepository.existsOrganizationByName(requestDto.name())) {
             throw new ResourceAlreadyExistsException("Organization with name \"".concat(requestDto.name().concat("\" already exists")));
         }
+
         Image image = cloudinaryService.saveImage(organizationImage);
         Organization organization = organizationMapper.dtoToEntity(requestDto, image, user);
         organizationRepository.save(organization);
+
         Set<AccessRight> accessRights = EnumSet.allOf(AccessRight.class);
 
         Position directorPosition = Position.builder()
                 .name("Директор")
-                .weight(10)
+                .weight(5)
                 .accessRights(accessRights)
                 .organization(organization)
                 .build();

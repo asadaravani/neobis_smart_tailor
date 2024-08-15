@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
 import kg.neobis.smarttailor.dtos.PositionDto;
+import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.service.PositionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
 
 @Validated
 @RestController
@@ -64,8 +66,24 @@ public class PositionController {
     }
 
     @Operation(
-            summary = "GET ALL POSITIONS TO INVITE EMPLOYEE",
-            description = "Accepts user's data and and displays a list of positions, which weights are less than his position's weight",
+            summary = "GET ACCESS RIGHTS TO CREATE POSITION",
+            description = "Accepts user's data, gets access rights, which are available to give for position",
+            responses = {
+                    @ApiResponse(responseCode = "201", description = "Access rights have been received"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "404", description = "User is not a member of any organization"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            }
+    )
+    @GetMapping("/available-access-rights")
+    public ResponseEntity<Set<AccessRight>> getAvailableAccessRights(Authentication authentication) {
+        return ResponseEntity.ok(positionService.getAvailableAccessRights(authentication));
+    }
+
+    @Operation(
+            summary = "GET POSITIONS TO INVITE EMPLOYEE",
+            description = "Accepts user's data, gets positions, which are available to give for employee",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Position list has been received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
@@ -74,14 +92,14 @@ public class PositionController {
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
-    @GetMapping("/positions-to-invite-employee")
-    public ResponseEntity<List<PositionDto>> getAllPositionsToInviteEmployee(Authentication authentication) {
-        return ResponseEntity.ok(positionService.getPositionsToInviteEmployee(authentication));
+    @GetMapping("/available-positions")
+    public ResponseEntity<List<PositionDto>> getAllAvailablePositions(Authentication authentication) {
+        return ResponseEntity.ok(positionService.getAvailablePositionsForInvitation(authentication));
     }
 
     @Operation(
-            summary = "GET POSITION WEIGHTS LESS THAN AUTHENTICATED USER'S",
-            description = "Accepts user's data, gets user's position weight and displays weights more than his",
+            summary = "GET POSITIONS' WEIGHTS TO CREATE POSITION",
+            description = "Accepts user's data, gets user's position weight and displays weights less than his",
             responses = {
                     @ApiResponse(responseCode = "201", description = "Position weights has been received"),
                     @ApiResponse(responseCode = "401", description = "Unauthorized"),
