@@ -8,6 +8,8 @@ public interface AppUserService {
 
     String confirmSubscriptionRequest(String subscriptionConfirmationToken);
 
+    void deleteNotEnabledUsers();
+
     Boolean existsUserByEmail(String email);
 
     AppUser findUserByEmail(String email);

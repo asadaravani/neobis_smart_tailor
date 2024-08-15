@@ -1,5 +1,7 @@
 package kg.neobis.smarttailor.jobs;
 
+import kg.neobis.smarttailor.service.AppUserService;
+import kg.neobis.smarttailor.service.BlackListTokenService;
 import kg.neobis.smarttailor.service.ConfirmationCodeService;
 import kg.neobis.smarttailor.service.InvitationTokenService;
 import kg.neobis.smarttailor.service.RefreshTokenService;
@@ -15,10 +17,17 @@ import org.springframework.stereotype.Component;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class TokenCleanupScheduler {
 
+    AppUserService appUserService;
+    BlackListTokenService blackListTokenService;
     ConfirmationCodeService confirmationCodeService;
     InvitationTokenService invitationTokenService;
     RefreshTokenService refreshTokenService;
     SubscriptionTokenService subscriptionTokenService;
+
+    @Scheduled(cron = "0 0 0 1 * ?")
+    public void cleanupBlackList() {
+        blackListTokenService.deleteAll();
+    }
 
     @Scheduled(cron = "0 0 0 * * ?")
     public void cleanupExpiredConfirmationCodes() {
@@ -38,5 +47,10 @@ public class TokenCleanupScheduler {
     @Scheduled(cron = "0 0 0 * * ?")
     public void cleanupExpiredSubscriptionTokens() {
         subscriptionTokenService.deleteExpiredTokens();
+    }
+
+    @Scheduled(cron = "0 0 0 * * ?")
+    public void cleanupNotEnabledUsers() {
+        appUserService.deleteNotEnabledUsers();
     }
 }
