@@ -1,12 +1,24 @@
 package kg.neobis.smarttailor.service.impl;
 
-import kg.neobis.smarttailor.dtos.*;
-import kg.neobis.smarttailor.entity.*;
+import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
+import kg.neobis.smarttailor.dtos.MyAdvertisement;
+import kg.neobis.smarttailor.dtos.UserProfileDto;
+import kg.neobis.smarttailor.dtos.UserProfileEditRequest;
+import kg.neobis.smarttailor.entity.AppUser;
+import kg.neobis.smarttailor.entity.Equipment;
+import kg.neobis.smarttailor.entity.Order;
+import kg.neobis.smarttailor.entity.Services;
 import kg.neobis.smarttailor.mapper.AppUserMapper;
 import kg.neobis.smarttailor.mapper.EquipmentMapper;
 import kg.neobis.smarttailor.mapper.OrderMapper;
 import kg.neobis.smarttailor.mapper.ServiceMapper;
-import kg.neobis.smarttailor.service.*;
+import kg.neobis.smarttailor.service.AppUserService;
+import kg.neobis.smarttailor.service.CloudinaryService;
+import kg.neobis.smarttailor.service.EquipmentService;
+import kg.neobis.smarttailor.service.OrderService;
+import kg.neobis.smarttailor.service.OrganizationEmployeeService;
+import kg.neobis.smarttailor.service.PersonalAccountService;
+import kg.neobis.smarttailor.service.ServicesService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -53,6 +65,7 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
 
     @Override
     public AdvertisementPageDto getUserAdvertisements(int pageNumber, int pageSize, Authentication authentication) {
+
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -92,11 +105,13 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         String imageUrl;
+
         try {
             imageUrl = cloudinaryService.uploadImage(file);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
         if (!user.getImage().getUrl().isEmpty()) {
             try {
                 cloudinaryService.deleteImage(user.getImage().getUrl());
@@ -104,6 +119,7 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
                 throw new RuntimeException(e);
             }
         }
+
         user.getImage().setUrl(imageUrl);
         appUserService.save(user);
 
