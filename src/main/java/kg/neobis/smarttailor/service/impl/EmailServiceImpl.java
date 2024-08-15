@@ -62,8 +62,7 @@ public class EmailServiceImpl implements EmailService {
         MimeMessageHelper helper = new MimeMessageHelper(mimeMessage, "utf-8");
         helper.setText(emailBody, true);
         helper.setTo(user.getEmail());
-        helper.setSubject("КОД ВЕРИФИКАЦИИ");
-        helper.setFrom("smart_tailor@gmail.com");
+        helper.setSubject("Код подтверждения");
 
         return mimeMessage;
     }
@@ -101,12 +100,14 @@ public class EmailServiceImpl implements EmailService {
             confirmationCodeService.delete(confirmationCode);
         }
         confirmationCode = confirmationCodeService.generateConfirmationCode(user);
+
         MimeMessage simpleMailMessage;
         try {
             simpleMailMessage = createMailWithConfirmationCode(user, confirmationCode);
         } catch (MessagingException e) {
             throw new IllegalStateException("Failed to send email");
         }
+
         sendEmail(simpleMailMessage);
     }
 }

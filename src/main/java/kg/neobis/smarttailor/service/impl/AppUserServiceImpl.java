@@ -3,13 +3,17 @@ package kg.neobis.smarttailor.service.impl;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.persistence.EntityManager;
-import kg.neobis.smarttailor.entity.*;
+import kg.neobis.smarttailor.entity.AppUser;
+import kg.neobis.smarttailor.entity.SubscriptionToken;
 import kg.neobis.smarttailor.exception.OutOfDateException;
 import kg.neobis.smarttailor.exception.UnauthorizedException;
 import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
 import kg.neobis.smarttailor.exception.ResourceNotFoundException;
 import kg.neobis.smarttailor.repository.AppUserRepository;
-import kg.neobis.smarttailor.service.*;
+import kg.neobis.smarttailor.service.AppUserService;
+import kg.neobis.smarttailor.service.EmailService;
+import kg.neobis.smarttailor.service.OrganizationEmployeeService;
+import kg.neobis.smarttailor.service.SubscriptionTokenService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -41,6 +45,12 @@ public class AppUserServiceImpl implements AppUserService {
         } else {
             throw new OutOfDateException("Token has been expired");
         }
+    }
+
+    @Override
+    public void deleteNotEnabledUsers() {
+        LocalDateTime cutoffDate = LocalDateTime.now().minusDays(7);
+        appUserRepository.deleteNotEnabledUsers(cutoffDate);
     }
 
     @Override

@@ -13,10 +13,10 @@ import kg.neobis.smarttailor.entity.ConfirmationCode;
 import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.entity.RefreshToken;
 import kg.neobis.smarttailor.enums.Role;
-import kg.neobis.smarttailor.exception.InvalidRequestException;
-import kg.neobis.smarttailor.exception.OutOfDateException;
-import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
 import kg.neobis.smarttailor.exception.ResourceNotFoundException;
+import kg.neobis.smarttailor.exception.OutOfDateException;
+import kg.neobis.smarttailor.exception.InvalidRequestException;
+import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
 import kg.neobis.smarttailor.service.AppUserService;
 import kg.neobis.smarttailor.service.AuthenticationService;
 import kg.neobis.smarttailor.service.BlackListTokenService;
@@ -53,6 +53,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (confirmationCode.isExpired()) {
             throw new OutOfDateException("Confirmation code has been expired");
         }
+
         if (confirmationCode.getCode().equals(code)) {
             user.setEnabled(true);
             appUserService.save(user);
@@ -106,10 +107,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         if (!refreshTokenService.existsByToken(refreshToken)) {
             throw new ResourceNotFoundException("Refresh token not found");
         }
+
         if (jwtUtil.isRefreshTokenExpired(refreshToken)) {
             refreshTokenService.deleteExpiredTokens();
             throw new OutOfDateException("Refresh token has been expired");
         }
+
         String username = jwtUtil.extractUsername(refreshToken);
         UserDetails userDetails = userDetailsService.loadUserByUsername(username);
         String newAccessToken = jwtUtil.generateToken(userDetails);
@@ -134,7 +137,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public String signUp(SignUpRequest request) {
 
         AppUser user;
+
         if (!appUserService.existsUserByEmail(request.email())) {
+
             user = AppUser.builder()
                     .surname(request.surname())
                     .name(request.name())
@@ -147,7 +152,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .hasSubscription(false)
                     .build();
             user = appUserService.save(user);
+
         } else {
+
             user = appUserService.findUserByEmail(request.email());
 
             if (user.isEnabled()) {
@@ -161,8 +168,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             }
         }
         ConfirmationCode confirmationCode = confirmationCodeService.generateConfirmationCode(user);
-        MimeMessage simpleMailMessage;
 
+        MimeMessage simpleMailMessage;
         try {
             simpleMailMessage = emailService.createMailWithConfirmationCode(user, confirmationCode);
         } catch (MessagingException e) {
