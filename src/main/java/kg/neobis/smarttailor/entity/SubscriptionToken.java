@@ -29,6 +29,6 @@ public class SubscriptionToken extends BaseEntity {
     AppUser user;
 
     public SubscriptionToken() {
-        this.expirationTime = LocalDateTime.now().plusMinutes(15);
+        this.expirationTime = LocalDateTime.now().plusDays(1);
     }
 }

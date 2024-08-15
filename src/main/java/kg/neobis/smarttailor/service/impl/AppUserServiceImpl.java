@@ -36,11 +36,15 @@ public class AppUserServiceImpl implements AppUserService {
     public String confirmSubscriptionRequest(String subscriptionConfirmationToken) {
 
         SubscriptionToken token = subscriptionTokenService.findByToken(subscriptionConfirmationToken);
+
         if (LocalDateTime.now().isBefore(token.getExpirationTime())) {
+
             AppUser user = findUserByEmail(token.getUser().getEmail());
             user.setHasSubscription(true);
             appUserRepository.save(user);
+
             subscriptionTokenService.delete(token);
+
             return "Subscription for the user \"".concat(user.getEmail()).concat("\" has been activated");
         } else {
             throw new OutOfDateException("Token has been expired");
@@ -72,8 +76,10 @@ public class AppUserServiceImpl implements AppUserService {
 
     @Override
     public AppUser getUserFromAuthentication(Authentication authentication) {
+
         if (authentication != null && authentication.isAuthenticated()) {
             Object principal = authentication.getPrincipal();
+
             if (principal instanceof AppUser appUser) {
                 return entityManager.find(AppUser.class, appUser.getId());
             } else {
@@ -99,6 +105,7 @@ public class AppUserServiceImpl implements AppUserService {
         if (user.getHasSubscription()) {
             throw new ResourceAlreadyExistsException("User already has a subscription");
         }
+
         SubscriptionToken subscriptionToken = subscriptionTokenService.generateSubscriptionRequestToken(user);
         MimeMessage message = emailService.createSubscriptionRequestMail(user, subscriptionToken);
         emailService.sendEmail(message);
