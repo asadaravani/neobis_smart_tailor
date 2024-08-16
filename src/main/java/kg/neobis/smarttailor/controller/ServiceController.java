@@ -36,6 +36,10 @@ public class ServiceController {
 
     ServicesService servicesService;
 
+
+
+    // COMPLETED
+
     @Operation(
             summary = "ADD SERVICE",
             description = "Accepts service's data and images to create the service",
@@ -53,6 +57,10 @@ public class ServiceController {
                                              Authentication authentication) {
         return ResponseEntity.status(HttpStatus.CREATED).body(servicesService.addService(serviceDto, images, authentication));
     }
+
+
+
+    // COMPLETED
 
     @Operation(
             summary = "DELETE SERVICE",
@@ -72,6 +80,10 @@ public class ServiceController {
         return ResponseEntity.ok(servicesService.deleteService(serviceId, authentication));
     }
 
+
+
+    // COMPLETED
+
     @Operation(
             summary = "GET ALL SERVICES",
             description = "Returns list of visible services",
@@ -88,6 +100,10 @@ public class ServiceController {
         return ResponseEntity.ok(servicesService.getAllVisibleServices(pageNumber, pageSize));
     }
 
+
+
+    // COMPLETED
+
     @Operation(
             summary = "GET SERVICE DETAILED",
             description = "Accepts service's id, and returns service's detailed information",
@@ -103,6 +119,10 @@ public class ServiceController {
     public ResponseEntity<ServiceDetailed> getServiceDetailed(@PathVariable Long serviceId) {
         return ResponseEntity.ok(servicesService.getServiceDetailed(serviceId));
     }
+
+
+
+    // COMPLETED
 
     @Operation(
             summary = "GET SERVICE DETAILED FOR AUTHOR",
@@ -122,6 +142,10 @@ public class ServiceController {
         return ResponseEntity.ok(servicesService.getServiceDetailedForAuthor(serviceId, authentication));
     }
 
+
+
+    // COMPLETED
+
     @Operation(
             summary = "USER'S SERVICES",
             description = "Returns list of user's services",
@@ -139,6 +163,10 @@ public class ServiceController {
         return ResponseEntity.ok(servicesService.getUserServices(pageNumber, pageSize, authentication));
     }
 
+
+
+    // COMPLETED
+
     @Operation(
             summary = "HIDE SERVICE",
             description = "Accepts service's id and then makes ad invisible in marketplace",
@@ -155,6 +183,10 @@ public class ServiceController {
     public ResponseEntity<String> hideService(@PathVariable Long serviceId, Authentication authentication) {
         return ResponseEntity.ok(servicesService.hideService(serviceId, authentication));
     }
+
+
+
+    // COMPLETED
 
     @Operation(
             summary = "SEND REQUEST TO SERVICE",

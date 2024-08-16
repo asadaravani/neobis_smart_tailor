@@ -5,8 +5,6 @@ import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Order;
 import kg.neobis.smarttailor.enums.PlusMinus;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,7 +15,7 @@ public interface OrderService {
 
     String addOrder(String orderRequestDto, List<MultipartFile> images, Authentication authentication) throws JsonProcessingException;
 
-    String assignOrganizationToOrder(Long orderId, String organizationName, Authentication authentication);
+    String assignExecutorToOrder(Long orderId, Long userId, Authentication authentication);
 
     String assignEmployeeToOrder(Long orderId, Long employeeId, Authentication authentication);
 
@@ -27,15 +25,17 @@ public interface OrderService {
 
     String deleteOrder(Long orderId, Authentication authentication) throws IOException;
 
-    List<Order> findAllByEmployee(AppUser employee);
-
-    Page<Order> findAllByUser(AppUser user, Pageable pageable);
+    List<Order> findAllByUser(AppUser user);
 
     Order findOrderById(Long id);
 
+    List<Order> findUserOrderPurchases(AppUser user);
+
     AdvertisementPageDto getAllVisibleOrders(int pageNumber, int pageSize);
 
-    CurrentOrganizationOrders getCurrentOrdersOfOrganization(String email);
+    CurrentOrderDetailed getCurrentOrderDetailed(Long orderId, Authentication authentication);
+
+    CurrentOrganizationOrders getCurrentOrdersOfOrganization(Authentication authentication);
 
     EmployeePageDto getEmployeeOrdersByStage(Long employeeId, String stage, int pageNumber, int pageSize, Authentication authentication);
 
@@ -44,8 +44,6 @@ public interface OrderService {
     AuthorOrderDetailedDto getOrderDetailedForAuthor(Long orderId, Authentication authentication);
 
     List<EmployeeOrderListDto> getOrderInfoByEmployee(AppUser employee);
-
-    AdvertisementPageDto getOrdersAssignedToUser(int pageNumber, int pageSize, Authentication authentication);
 
     List<OrganizationOrdersDto> getOrdersOfOrganization(String email);
 

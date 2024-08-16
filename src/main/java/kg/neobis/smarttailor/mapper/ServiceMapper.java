@@ -37,6 +37,20 @@ public class ServiceMapper {
         )).collect(Collectors.toList());
     }
 
+    public AdvertisementListDto entityToAdvertisementListDto(Services service) {
+        return new AdvertisementListDto(
+                AdvertType.SERVICE,
+                service.getId(),
+                service.getName(),
+                service.getDescription(),
+                service.getPrice(),
+                service.getFirstImage(service.getImages()),
+                service.getFullName(service),
+                service.getAuthorImageUrl(service),
+                service.getUpdatedAt()
+        );
+    }
+
     public AuthorServiceDetailedDto entityToAuthorServiceDetailedDto(Services service) {
 
         List<UserDto> applicants = service.getServiceApplicants().stream()

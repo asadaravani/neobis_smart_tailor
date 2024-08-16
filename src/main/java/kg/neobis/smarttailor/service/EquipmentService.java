@@ -5,8 +5,6 @@ import kg.neobis.smarttailor.dtos.AuthorEquipmentDetailedDto;
 import kg.neobis.smarttailor.dtos.EquipmentDetailed;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Equipment;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -21,9 +19,11 @@ public interface EquipmentService {
 
     String deleteEquipment(Long equipmentId, Authentication authentication) throws IOException;
 
-    Page<Equipment> findAllByUser(AppUser user, Pageable pageable);
+    List<Equipment> findAllByUser(AppUser user);
 
     AdvertisementPageDto getAllVisibleEquipments(int pageNumber, int pageSize);
+
+    List<Equipment> findUserEquipmentPurchases(AppUser user);
 
     EquipmentDetailed getEquipmentDetailed(Long id);
 

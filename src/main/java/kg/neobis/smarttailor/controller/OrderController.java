@@ -5,13 +5,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
-import kg.neobis.smarttailor.dtos.OrderDetailed;
-import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
-import kg.neobis.smarttailor.dtos.AuthorOrderDetailedDto;
-import kg.neobis.smarttailor.dtos.CurrentOrganizationOrders;
-import kg.neobis.smarttailor.dtos.EmployeePageDto;
-import kg.neobis.smarttailor.dtos.OrganizationOrdersDto;
-import kg.neobis.smarttailor.dtos.OrganizationPageDto;
+import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.enums.PlusMinus;
 import kg.neobis.smarttailor.service.OrderService;
 import lombok.AccessLevel;
@@ -81,7 +75,7 @@ public class OrderController {
 
     @Operation(
             summary = "ASSIGN ORGANIZATION TO ORDER",
-            description = "The method accepts order id and organization's name to assign order to specified organization",
+            description = "Accepts order id and organization's name to assign order to specified organization",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Order has been assigned to specified organization"),
                     @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
@@ -92,11 +86,11 @@ public class OrderController {
                     @ApiResponse(responseCode = "500", description = "Internal server error")
             }
     )
-    @PostMapping("/assign-organization-to-order/{orderId}")
-    public ResponseEntity<String> assignOrganizationToOrder(@PathVariable Long orderId,
-                                                            @RequestParam String organizationName,
-                                                            Authentication authentication) {
-        return ResponseEntity.ok(orderService.assignOrganizationToOrder(orderId, organizationName, authentication));
+    @PostMapping("/assign-executor-to-order/{orderId}")
+    public ResponseEntity<String> assignExecutorToOrder(@PathVariable Long orderId,
+                                                @RequestParam Long executorId,
+                                                Authentication authentication) {
+        return ResponseEntity.ok(orderService.assignExecutorToOrder(orderId, executorId, authentication));
     }
 
     @Operation(
@@ -182,7 +176,23 @@ public class OrderController {
     )
     @GetMapping("/organization-current-orders-monitoring")
     public ResponseEntity<CurrentOrganizationOrders> getCurrentOrganizationOrders(Authentication authentication) {
-        return ResponseEntity.ok(orderService.getCurrentOrdersOfOrganization(authentication.getName()));
+        return ResponseEntity.ok(orderService.getCurrentOrdersOfOrganization(authentication));
+    }
+
+    @Operation(
+            summary = "CURRENT ORDER DETAILED",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Order detailed information has been received"),
+                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
+                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
+                    @ApiResponse(responseCode = "404", description = "Organization not found"),
+                    @ApiResponse(responseCode = "500", description = "Internal server error")
+            }
+    )
+    @GetMapping("/current-order-detailed/{orderId}")
+    public ResponseEntity<CurrentOrderDetailed> getCurrentOrderDetailed(@PathVariable Long orderId,
+                                                                             Authentication authentication) {
+        return ResponseEntity.ok(orderService.getCurrentOrderDetailed(orderId, authentication));
     }
 
     @Operation(
@@ -238,22 +248,6 @@ public class OrderController {
     public ResponseEntity<AuthorOrderDetailedDto> getOrderDetailedForAuthor(@PathVariable Long orderId,
                                                                             Authentication authentication) {
         return ResponseEntity.ok(orderService.getOrderDetailedForAuthor(orderId, authentication));
-    }
-
-    @Operation(
-            summary = "GET ORDERS ASSIGNED TO USER",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Returns a list of orders"),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "404", description = "User is not a member of any organization"),
-                    @ApiResponse(responseCode = "500", description = "Internal server error")
-            }
-    )
-    @GetMapping("/orders-assigned-to-user")
-    public ResponseEntity<AdvertisementPageDto> getOrdersOfOrganization(@RequestParam int pageNumber,
-                                                                        @RequestParam int pageSize,
-                                                                        Authentication authentication) {
-        return ResponseEntity.ok(orderService.getOrdersAssignedToUser(pageNumber, pageSize, authentication));
     }
 
     @Operation(

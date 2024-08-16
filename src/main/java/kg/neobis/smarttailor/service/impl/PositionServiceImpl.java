@@ -10,7 +10,6 @@ import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.exception.InvalidJsonException;
 import kg.neobis.smarttailor.exception.NoPermissionException;
 import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
-import kg.neobis.smarttailor.exception.UserNotInOrganizationException;
 import kg.neobis.smarttailor.mapper.PositionMapper;
 import kg.neobis.smarttailor.repository.PositionRepository;
 import kg.neobis.smarttailor.service.AppUserService;
@@ -46,8 +45,7 @@ public class PositionServiceImpl implements PositionService {
 
         PositionDto requestDto = parseAndValidatePositionDto(positionRequestDto);
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
 
         Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.CREATE_POSITION, user.getEmail());
         Set<AccessRight> authenticatedUserAccessRights = organizationEmployee.getPosition().getAccessRights();
@@ -79,8 +77,7 @@ public class PositionServiceImpl implements PositionService {
     @Override
     public List<PositionDto> getAllPositionsExceptDirector(Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
         List<Position> positions = positionRepository.findAllPositionsExceptDirector(organizationEmployee.getOrganization());
 
         return positionMapper.entityListToDtoList(positions);
@@ -90,8 +87,7 @@ public class PositionServiceImpl implements PositionService {
     public List<PositionDto> getAvailablePositionsForInvitation(Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
         List<Position> positions = positionRepository.findAllByOrganizationAndWeightIsLessThan(organizationEmployee.getOrganization(), organizationEmployee.getPosition().getWeight());
 
         return positionMapper.entityListToDtoList(positions);
@@ -101,8 +97,7 @@ public class PositionServiceImpl implements PositionService {
     public List<Integer> getPositionsWithWeightsLessThan(Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
 
         List<Integer> weights = new ArrayList<>();
         for (int i = organizationEmployee.getPosition().getWeight()-1; i >= 1; i--) {
@@ -117,8 +112,7 @@ public class PositionServiceImpl implements PositionService {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
 
         return organizationEmployee.getPosition().getAccessRights();
     }

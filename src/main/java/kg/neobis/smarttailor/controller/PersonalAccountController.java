@@ -88,6 +88,13 @@ public class PersonalAccountController {
         return ResponseEntity.ok(personalAccountService.getUserAdvertisements(pageNumber, pageSize, authentication));
     }
 
+    @GetMapping("/my-purchases")
+    public ResponseEntity<AdvertisementPageDto> getMyPurchases(@RequestParam int pageNumber,
+                                                               @RequestParam int pageSize,
+                                                               Authentication authentication) {
+        return ResponseEntity.ok(personalAccountService.getUserPurchases(pageNumber, pageSize, authentication));
+    }
+
     @SneakyThrows
     @Operation(
             summary = "UPLOAD PROFILE IMAGE",

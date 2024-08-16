@@ -88,9 +88,7 @@ public class EquipmentServiceImpl implements EquipmentService {
 
         updateEquipmentStock(equipment);
 
-        if (!equipment.getEquipmentBuyers().contains(user)) {
-            equipment.getEquipmentBuyers().add(user);
-        }
+        equipment.getEquipmentBuyers().add(user);
         equipmentRepository.save(equipment);
 
         notificationService.sendNotification(
@@ -122,8 +120,13 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
-    public Page<Equipment> findAllByUser(AppUser user, Pageable pageable) {
-        return equipmentRepository.findAllByAuthor(user, pageable);
+    public List<Equipment> findAllByUser(AppUser user) {
+        return equipmentRepository.findAllByAuthor(user);
+    }
+
+    @Override
+    public List<Equipment> findUserEquipmentPurchases(AppUser user) {
+        return equipmentRepository.findUserEquipmentPurchases(user);
     }
 
     @Override

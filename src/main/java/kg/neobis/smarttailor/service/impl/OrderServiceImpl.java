@@ -4,36 +4,12 @@ import com.cloudinary.utils.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
-import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
-import kg.neobis.smarttailor.dtos.AuthorOrderDetailedDto;
-import kg.neobis.smarttailor.dtos.CurrentOrganizationOrders;
-import kg.neobis.smarttailor.dtos.EmployeeOrderListDto;
-import kg.neobis.smarttailor.dtos.EmployeePageDto;
-import kg.neobis.smarttailor.dtos.EmployeeStageOrderListDto;
-import kg.neobis.smarttailor.dtos.MyAdvertisement;
-import kg.neobis.smarttailor.dtos.OrderCard;
-import kg.neobis.smarttailor.dtos.OrderDetailed;
-import kg.neobis.smarttailor.dtos.OrderListDto;
-import kg.neobis.smarttailor.dtos.OrderRequestDto;
-import kg.neobis.smarttailor.dtos.OrganizationOrdersDto;
-import kg.neobis.smarttailor.dtos.OrganizationPageDto;
-import kg.neobis.smarttailor.dtos.UserOrderHistoryDto;
-import kg.neobis.smarttailor.entity.AppUser;
-import kg.neobis.smarttailor.entity.Image;
-import kg.neobis.smarttailor.entity.Order;
-import kg.neobis.smarttailor.entity.Organization;
-import kg.neobis.smarttailor.entity.OrganizationEmployee;
+import kg.neobis.smarttailor.dtos.*;
+import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.enums.OrderStatus;
 import kg.neobis.smarttailor.enums.PlusMinus;
-import kg.neobis.smarttailor.exception.InvalidJsonException;
-import kg.neobis.smarttailor.exception.InvalidRequestException;
-import kg.neobis.smarttailor.exception.NoPermissionException;
-import kg.neobis.smarttailor.exception.OutOfDateException;
-import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
-import kg.neobis.smarttailor.exception.ResourceNotFoundException;
-import kg.neobis.smarttailor.exception.SelfPurchaseException;
-import kg.neobis.smarttailor.exception.UserNotInOrganizationException;
+import kg.neobis.smarttailor.exception.*;
 import kg.neobis.smarttailor.mapper.OrderMapper;
 import kg.neobis.smarttailor.repository.OrderRepository;
 import kg.neobis.smarttailor.service.AppUserService;
@@ -92,31 +68,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public String assignOrganizationToOrder(Long orderId, String organizationName, Authentication authentication) {
-
-        AppUser user = appUserService.getUserFromAuthentication(authentication);
-        Order order = findOrderById(orderId);
-        Organization organization = organizationService.getOrganizationByName(organizationName);
-
-        if (!order.getAuthor().getId().equals(user.getId())) {
-            throw new NoPermissionException("User cannot manage an order that is not his own");
-        }
-        if (order.getOrganizationExecutor() != null) {
-            throw new ResourceAlreadyExistsException("Order is already given to '".concat(organization.getName()).concat("' organization"));
-        }
-        if (order.getOrganizationCandidates().stream().noneMatch(org -> org.getId().equals(organization.getId()))) {
-            throw new ResourceNotFoundException("Organization \"".concat(organizationName).concat("\" hasn't sent request"));
-        }
-        order.setOrganizationExecutor(organization);
-        order.setDateOfStart(LocalDate.now());
-        order.setStatus(OrderStatus.WAITING);
-        order.setOrganizationCandidates(null);
-        orderRepository.save(order);
-
-        return "Order has been assigned to \"".concat(organizationName).concat("\" organization");
-    }
-
-    @Override
     @Transactional
     public String assignEmployeeToOrder(Long orderId, Long employeeId, Authentication authentication) {
 
@@ -125,10 +76,8 @@ public class OrderServiceImpl implements OrderService {
         AppUser employee = appUserService.findUserById(employeeId);
 
         Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.ASSIGN_EMPLOYEE_TO_ORDER, user.getEmail());
-        OrganizationEmployee authenticatedOrganizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("Authenticated user is not a member of any organization"));
-        OrganizationEmployee assignedToOrderEmployee = organizationEmployeeService.findByEmployeeEmail(employee.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("Employee is not a member of any organization"));
+        OrganizationEmployee authenticatedOrganizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        OrganizationEmployee assignedToOrderEmployee = organizationEmployeeService.findByEmployeeEmail(employee.getEmail());
 
         if (hasRights) {
             if (authenticatedOrganizationEmployee.getOrganization().getId()
@@ -154,13 +103,44 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public String assignExecutorToOrder(Long orderId, Long executorId, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Order order = findOrderById(orderId);
+        AppUser executor = appUserService.findUserById(executorId);
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(executor.getEmail());
+        Organization executorOrganization = organizationEmployee.getOrganization();
+
+        if (!order.getAuthor().getId().equals(user.getId())) {
+            throw new NoPermissionException("User cannot manage an order that is not his own");
+        }
+
+        if (order.getOrganizationExecutor() != null) {
+            throw new ResourceAlreadyExistsException(String.format("Order is already given to '%s' organization", executorOrganization.getName()));
+        }
+
+        if (order.getCandidates().stream().noneMatch(org -> org.getId().equals(executor.getId()))) {
+            throw new ResourceNotFoundException(String.format("User %s hasn't sent request to execute the order", executor.getFullName()));
+        }
+        order.getOrderEmployees().add(executor);
+        order.setOrganizationExecutor(organizationEmployee.getOrganization());
+        order.setMainEmployeeExecutor(executor);
+        order.setDateOfStart(LocalDate.now());
+        order.setStatus(OrderStatus.WAITING);
+        order.setCandidates(null);
+        order.setIsVisible(false);
+        orderRepository.save(order);
+
+        return String.format("Order has been assigned to %s from '%s' organization", user.getFullName(), organizationEmployee.getOrganization().getName());
+    }
+
+    @Override
     public String changeOrderStatus(Long orderId, PlusMinus plusMinus, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         Order order = findOrderById(orderId);
 
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("Authenticated user is not a member of any organization"));
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
         Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.CHANGE_ORDER_STATUS, user.getEmail());
 
         OrderStatus[] statusArray = OrderStatus.values();
@@ -170,6 +150,10 @@ public class OrderServiceImpl implements OrderService {
             if (!order.getOrganizationExecutor().getId()
                     .equals(organizationEmployee.getOrganization().getId())) {
                 throw new NoPermissionException("Order hasn't been given for authenticated user's organization");
+            }
+            if (!order.getMainEmployeeExecutor().getId()
+                    .equals(user.getId())) {
+                throw new NoPermissionException("Only employee that take the order can change it status. Main employee for this order: ".concat(order.getMainEmployeeExecutor().getFullName()));
             }
             if ((plusMinus == PlusMinus.MINUS && order.getStatus() == OrderStatus.WAITING)
                     || (plusMinus == PlusMinus.PLUS && order.getStatus() == OrderStatus.ARRIVED)) {
@@ -201,18 +185,21 @@ public class OrderServiceImpl implements OrderService {
         Order order = findOrderById(orderId);
 
         if (order.getOrganizationExecutor() == null) {
-            throw new ResourceNotFoundException("Customer hasn't chosen an executor to order");
+            throw new ResourceNotFoundException("Customer hasn't chosen an executor to order yet");
         }
         Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.COMPLETE_ORDER, user.getEmail());
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
 
+        if (!order.getMainEmployeeExecutor().getId().equals(user.getId())) {
+            throw new NoPermissionException("Only employee that take the order can complete it. Main employee for this order: ".concat(order.getMainEmployeeExecutor().getFullName()));
+        }
         if (hasRights) {
             if (organizationEmployee.getOrganization().getId().
                     equals(order.getOrganizationExecutor().getId())) {
                 if (order.getDateOfCompletion() == null) {
                     if (order.getStatus() == OrderStatus.ARRIVED) {
                         order.setDateOfCompletion(LocalDate.now());
+                        order.setStatus(OrderStatus.COMPLETED);
                         orderRepository.save(order);
 
                         return "Order has been completed";
@@ -243,28 +230,29 @@ public class OrderServiceImpl implements OrderService {
         for (Image image : order.getImages()) {
             cloudinaryService.deleteImage(image.getUrl());
         }
-        order.setOrganizationCandidates(null);
+        order.setCandidates(null);
         order.setOrderEmployees(null);
         order.setOrganizationExecutor(null);
+        order.setMainEmployeeExecutor(null);
         orderRepository.delete(order);
 
         return "Order has been deleted";
     }
 
     @Override
-    public List<Order> findAllByEmployee(AppUser employee) {
-        return orderRepository.findByOrderEmployee(employee);
-    }
-
-    @Override
-    public Page<Order> findAllByUser(AppUser user, Pageable pageable) {
-        return orderRepository.findAllByAuthor(user, pageable);
+    public List<Order> findAllByUser(AppUser user) {
+        return orderRepository.findAllByAuthor(user);
     }
 
     @Override
     public Order findOrderById(Long id) {
         return orderRepository.findById(id).
                 orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+    }
+
+    @Override
+    public List<Order> findUserOrderPurchases(AppUser user) {
+        return orderRepository.findUserOrderPurchases(user);
     }
 
     @Override
@@ -283,11 +271,13 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public CurrentOrganizationOrders getCurrentOrdersOfOrganization(String email) {
+    public CurrentOrganizationOrders getCurrentOrdersOfOrganization(Authentication authentication) {
 
-        Organization organization = organizationService.findOrganizationByDirectorEmail(email);
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Organization organization = organizationEmployeeService.findByEmployeeEmail(user.getEmail()).getOrganization();
         List<Order> orders = orderRepository.findAllByOrganizationExecutorAndDateOfCompletionIsNull(organization);
-        List<Order> notConfirmedOrders = orderRepository.findAllByOrganizationCandidatesIsContaining(organization);
+        List<AppUser> employees = organizationEmployeeService.findEmployeesByOrganization(organization);
+        List<Order> notConfirmedOrders = orderRepository.findAllByCandidates(employees);
 
         return new CurrentOrganizationOrders(
                 extractOrdersByStatusAndMap(OrderStatus.NOT_CONFIRMED, notConfirmedOrders),
@@ -300,12 +290,24 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public EmployeePageDto getEmployeeOrdersByStage(Long employeeId, String stage, int pageNumber,
-                                                    int pageSize, Authentication authentication) {
+    public CurrentOrderDetailed getCurrentOrderDetailed(Long orderId, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        OrganizationEmployee authenticatedOrganizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("Authenticated user is not a member of any organization"));
+        Order order = findOrderById(orderId);
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+
+        if (!order.getOrganizationExecutor().getId().equals(organizationEmployee.getOrganization().getId())) {
+            throw new UserNotInOrganizationException("User can't get order's detailed information because (s)he is not member of organization executor");
+        }
+
+        return orderMapper.entityToCurrentOrderDetailed(order);
+    }
+
+    @Override
+    public EmployeePageDto getEmployeeOrdersByStage(Long employeeId, String stage, int pageNumber, int pageSize, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        OrganizationEmployee authenticatedOrganizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
         Organization organization = authenticatedOrganizationEmployee.getOrganization();
         AppUser employee = appUserService.findUserById(employeeId);
 
@@ -355,25 +357,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public List<EmployeeOrderListDto> getOrderInfoByEmployee(AppUser employee) {
-        return findAllByEmployee(employee)
+        return orderRepository.findUserOrderPurchases(employee)
                 .stream()
                 .map(order -> new EmployeeOrderListDto(order.getId(), order.getName()))
                 .collect(Collectors.toList());
-    }
-
-    @Override
-    public AdvertisementPageDto getOrdersAssignedToUser(int pageNumber, int pageSize, Authentication authentication) {
-
-        AppUser user = appUserService.getUserFromAuthentication(authentication);
-
-        organizationEmployeeService.findByEmployeeEmail(user.getEmail());
-        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Order> orders = orderRepository.findAllEmployeeOrders(user, pageable);
-        List<Order> ordersList = orders.getContent();
-        List<OrderListDto> orderListDto = orderMapper.entityListToDtoList(ordersList);
-        boolean isLast = orders.isLast();
-        Long totalCount = orders.getTotalElements();
-        return new AdvertisementPageDto(orderListDto, isLast, totalCount);
     }
 
     @Override
@@ -386,38 +373,64 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrganizationPageDto getOrganizationOrdersByStage(String stage, int pageNumber,
-                                                            int pageSize, Authentication authentication) {
+    public OrganizationPageDto getOrganizationOrdersByStage(String stage, int pageNumber, int pageSize, Authentication authentication) {
+
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
         Organization organization = organizationEmployee.getOrganization();
 
         Page<Order> organizationOrders;
         if (stage.equals("current")) {
-            Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.Direction.DESC, "dateOfStart");
-            organizationOrders = orderRepository.findCurrentOrganizationOrders(organization, pageable);
+
+            List<Order> orders = orderRepository.findAllByOrganizationExecutorAndDateOfCompletionIsNull(organization);
+            List<AppUser> employees = organizationEmployeeService.findEmployeesByOrganization(organization);
+            List<Order> notConfirmedOrders = orderRepository.findAllByCandidates(employees);
+
+            List<Order> allOrders = new ArrayList<>();
+            allOrders.addAll(orders);
+            allOrders.addAll(notConfirmedOrders);
+
+            allOrders.sort((dto1, dto2) -> dto2.getCreatedAt().compareTo(dto1.getCreatedAt()));
+
+            int start = pageNumber * pageSize;
+            int end = Math.min(start + pageSize, allOrders.size());
+
+            List<Order> paginatedList;
+            if (start >= allOrders.size()) {
+                paginatedList = new ArrayList<>();
+            } else {
+                paginatedList = allOrders.subList(start, end);
+            }
+
+            boolean isLast = end >= allOrders.size();
+            long totalCount = allOrders.size();
+
+            List<OrganizationOrdersDto> orderListDto = orderMapper.entityListToOrganizationOrderListDto(paginatedList);
+
+            return new OrganizationPageDto(organization.getId(), organization.getName(),
+                    organization.getDescription(), organization.getCreatedAt(), orderListDto, isLast, totalCount);
+
         } else if (stage.equals("completed")) {
             Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.Direction.DESC, "dateOfCompletion");
             organizationOrders = orderRepository.findCompletedOrganizationOrders(organization, pageable);
+
+            List<Order> ordersList = organizationOrders.getContent();
+            List<OrganizationOrdersDto> orderListDto = orderMapper.entityListToOrganizationOrderListDto(ordersList);
+            boolean isLast = organizationOrders.isLast();
+            Long totalCount = organizationOrders.getTotalElements();
+            return new OrganizationPageDto(organization.getId(), organization.getName(),
+                    organization.getDescription(), organization.getCreatedAt(), orderListDto, isLast, totalCount);
+
         } else {
             throw new ResourceNotFoundException("Invalid state.\nValid states: completed, current");
         }
-        List<Order> ordersList = organizationOrders.getContent();
-        List<OrganizationOrdersDto> orderListDto = orderMapper.entityListToOrganizationOrderListDto(ordersList);
-        boolean isLast = organizationOrders.isLast();
-        Long totalCount = organizationOrders.getTotalElements();
-        return new OrganizationPageDto(organization.getId(), organization.getName(),
-                organization.getDescription(), orderListDto, isLast, totalCount);
     }
 
     @Override
-    public AdvertisementPageDto getUserOrderHistoryByStage(String stage, int pageNumber,
-                                                           int pageSize, Authentication authentication) {
+    public AdvertisementPageDto getUserOrderHistoryByStage(String stage, int pageNumber, int pageSize, Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        organizationEmployeeService.findByEmployeeEmail(user.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("Authenticated user is not a member of any organization"));
+        organizationEmployeeService.findByEmployeeEmail(user.getEmail());
 
         Pageable pageable;
         Page<Order> userOrders;
@@ -430,9 +443,11 @@ public class OrderServiceImpl implements OrderService {
         } else {
             throw new ResourceNotFoundException("Invalid stage.\nValid states: completed, current");
         }
+
         List<UserOrderHistoryDto> orderListDto = orderMapper.entityListToUserOrderHistoryDto(userOrders, stage);
         boolean isLast = userOrders.isLast();
         Long totalCount = userOrders.getTotalElements();
+
         return new AdvertisementPageDto(orderListDto, isLast, totalCount);
     }
 
@@ -477,21 +492,22 @@ public class OrderServiceImpl implements OrderService {
 
         Order order = findOrderById(orderId);
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+
         Organization usersOrganization = organizationEmployee.getOrganization();
 
-        if (order.getAuthor().equals(user)) {
+        if (order.getAuthor().getId().equals(user.getId())) {
             throw new SelfPurchaseException("User can't execute to his/her own order");
         }
-        if (order.getOrganizationCandidates().stream()
-                .anyMatch(org -> org.getId().equals(usersOrganization.getId()))) {
-            throw new ResourceAlreadyExistsException("User's organization already sent the request");
+
+        if (order.getAuthor().getId().equals(usersOrganization.getDirector().getId())) {
+            throw new SelfPurchaseException("Order's author is a director of user's organization");
         }
+
         if (order.getOrganizationExecutor() == null) {
             if (organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.SEND_REQUEST_TO_EXECUTE_ORDER, user.getEmail())) {
-                if (!order.getOrganizationCandidates().contains(usersOrganization)) {
-                    order.getOrganizationCandidates().add(usersOrganization);
+                if (!order.getCandidates().contains(user)) {
+                    order.getCandidates().add(user);
                     orderRepository.save(order);
                 }
                 return "User has left a request to execute the order";
@@ -499,7 +515,7 @@ public class OrderServiceImpl implements OrderService {
                 throw new NoPermissionException("User has no permission to send request to execute order");
             }
         } else {
-            throw new ResourceAlreadyExistsException("Order is already taken by another organization");
+            throw new ResourceAlreadyExistsException("Order is already taken");
         }
     }
 

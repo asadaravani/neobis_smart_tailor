@@ -3,12 +3,17 @@ package kg.neobis.smarttailor.mapper;
 import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.OrganizationEmployee;
+import kg.neobis.smarttailor.service.OrganizationEmployeeService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 
 @Component
+@RequiredArgsConstructor
 public class AppUserMapper {
+
+    private final OrganizationEmployeeService organizationEmployeeService;
 
     public EmployeeListDto entityListToEmployeeListDto(OrganizationEmployee organizationEmployee, List<EmployeeOrderListDto> orderInfo) {
         AppUser employee = organizationEmployee.getEmployee();
@@ -34,11 +39,14 @@ public class AppUserMapper {
         );
     }
 
-    public static EmployeeDto entityToEmployeeDto(AppUser appUser) {
+    public EmployeeDto entityToEmployeeDto(AppUser appUser) {
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(appUser.getEmail());
+
         return new EmployeeDto(
                 appUser.getId(),
                 String.format("%s %s %s", appUser.getSurname(), appUser.getName(), appUser.getPatronymic()),
-                appUser.getImage() != null ? appUser.getImage().getUrl() : null
+                appUser.getImage() != null ? appUser.getImage().getUrl() : null,
+                organizationEmployee.getPosition().getName()
         );
     }
 
