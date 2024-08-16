@@ -19,7 +19,7 @@ public record AuthorOrderDetailedDto(
         LocalDate dateOfExecution,
         OrderStatus orderStatus,
         List<OrderItemDto> orderItems,
-        List<OrganizationDto> orderCandidates,
+        List<CandidateDto> orderCandidates,
         OrganizationDto organizationExecutor
 ) implements Serializable {}
 

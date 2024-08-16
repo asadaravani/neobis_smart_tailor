@@ -60,13 +60,17 @@ public class Order extends Advertisement {
     @JoinTable(
             name = "order_candidates",
             joinColumns = @JoinColumn(name = "order_id"),
-            inverseJoinColumns = @JoinColumn(name = "organization_id")
+            inverseJoinColumns = @JoinColumn(name = "app_user_id")
     )
-    List<Organization> organizationCandidates = new ArrayList<>();
+    List<AppUser> candidates = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn
     Organization organizationExecutor;
+
+    @ManyToOne
+    @JoinColumn
+    AppUser mainEmployeeExecutor;
 
     @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(

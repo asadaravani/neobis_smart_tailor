@@ -1,8 +1,10 @@
 package kg.neobis.smarttailor.service.impl;
 
+import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Organization;
 import kg.neobis.smarttailor.entity.OrganizationEmployee;
 import kg.neobis.smarttailor.enums.AccessRight;
+import kg.neobis.smarttailor.exception.UserNotInOrganizationException;
 import kg.neobis.smarttailor.repository.OrganizationEmployeeRepository;
 import kg.neobis.smarttailor.service.OrganizationEmployeeService;
 import lombok.AccessLevel;
@@ -11,7 +13,6 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -41,8 +42,14 @@ public class OrganizationEmployeeServiceImpl implements OrganizationEmployeeServ
     }
 
     @Override
-    public Optional<OrganizationEmployee> findByEmployeeEmail(String email){
-        return organizationEmployeeRepository.findByEmployeeEmail(email);
+    public OrganizationEmployee findByEmployeeEmail(String email){
+        return organizationEmployeeRepository.findByEmployeeEmail(email)
+                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
+    }
+
+    @Override
+    public List<AppUser> findEmployeesByOrganization(Organization organization) {
+        return organizationEmployeeRepository.findEmployeesByOrganization(organization);
     }
 
     @Override

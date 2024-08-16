@@ -38,6 +38,20 @@ public class EquipmentMapper {
         )).collect(Collectors.toList());
     }
 
+    public AdvertisementListDto entityToAdvertisementListDto(Equipment equipment) {
+        return new AdvertisementListDto(
+                AdvertType.EQUIPMENT,
+                equipment.getId(),
+                equipment.getName(),
+                equipment.getDescription(),
+                equipment.getPrice(),
+                equipment.getFirstImage(equipment.getImages()),
+                equipment.getFullName(equipment),
+                equipment.getAuthorImageUrl(equipment),
+                equipment.getUpdatedAt()
+        );
+    }
+
     public AuthorEquipmentDetailedDto entityToAuthorEquipmentDetailedDto(Equipment equipment) {
 
         List<UserDto> buyers = equipment.getEquipmentBuyers().stream()

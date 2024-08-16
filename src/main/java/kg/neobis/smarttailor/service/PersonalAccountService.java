@@ -16,5 +16,7 @@ public interface PersonalAccountService {
 
     UserProfileDto getUserProfile(Authentication authentication);
 
+    AdvertisementPageDto getUserPurchases(int pageNumber, int pageSize, Authentication authentication);
+
     String uploadProfileImage(MultipartFile file, Authentication authentication) throws IOException;
 }

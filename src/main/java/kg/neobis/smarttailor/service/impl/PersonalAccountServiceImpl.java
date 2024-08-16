@@ -1,5 +1,6 @@
 package kg.neobis.smarttailor.service.impl;
 
+import kg.neobis.smarttailor.dtos.AdvertisementListDto;
 import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.dtos.MyAdvertisement;
 import kg.neobis.smarttailor.dtos.UserProfileDto;
@@ -22,10 +23,6 @@ import kg.neobis.smarttailor.service.ServicesService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -68,22 +65,26 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
-        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-
-        Page<Services> servicesPage = servicesService.findAllByUser(user, pageable);
-        Page<Order> ordersPage = orderService.findAllByUser(user, pageable);
-        Page<Equipment> equipmentPage = equipmentService.findAllByUser(user, pageable);
+        List<Services> services = servicesService.findAllByUser(user);
+        List<Order> orders = orderService.findAllByUser(user);
+        List<Equipment> equipments = equipmentService.findAllByUser(user);
 
         List<MyAdvertisement> allAdvertisements = new ArrayList<>();
-        servicesPage.getContent().forEach(service -> allAdvertisements.add(serviceMapper.toMyAdvertisement(service)));
-        ordersPage.getContent().forEach(order -> allAdvertisements.add(orderMapper.toMyAdvertisement(order)));
-        equipmentPage.getContent().forEach(equipment -> allAdvertisements.add(equipmentMapper.toMyAdvertisement(equipment)));
+        services.forEach(service -> allAdvertisements.add(serviceMapper.toMyAdvertisement(service)));
+        orders.forEach(order -> allAdvertisements.add(orderMapper.toMyAdvertisement(order)));
+        equipments.forEach(equipment -> allAdvertisements.add(equipmentMapper.toMyAdvertisement(equipment)));
 
         allAdvertisements.sort((dto1, dto2) -> dto2.createdAt().compareTo(dto1.createdAt()));
 
-        int start = (int) pageable.getOffset();
-        int end = Math.min(start + pageable.getPageSize(), allAdvertisements.size());
-        List<MyAdvertisement> paginatedList = allAdvertisements.subList(start, end);
+        int start = pageNumber * pageSize;
+        int end = Math.min(start + pageSize, allAdvertisements.size());
+
+        List<MyAdvertisement> paginatedList;
+        if (start >= allAdvertisements.size()) {
+            paginatedList = new ArrayList<>();
+        } else {
+            paginatedList = allAdvertisements.subList(start, end);
+        }
 
         boolean isLast = end >= allAdvertisements.size();
         long totalCount = allAdvertisements.size();
@@ -98,6 +99,38 @@ public class PersonalAccountServiceImpl implements PersonalAccountService {
         Boolean inOrganization = organizationEmployeeService.existsByEmployeeEmail(user.getEmail());
 
         return appUserMapper.entityToUserProfileDto(user, inOrganization);
+    }
+
+    @Override
+    public AdvertisementPageDto getUserPurchases(int pageNumber, int pageSize, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+
+        List<Services> servicesPage = servicesService.findUserServicePurchases(user);
+        List<Order> ordersPage = orderService.findUserOrderPurchases(user);
+        List<Equipment> equipmentPage = equipmentService.findUserEquipmentPurchases(user);
+
+        List<AdvertisementListDto> allAdvertisements = new ArrayList<>();
+        servicesPage.forEach(service -> allAdvertisements.add(serviceMapper.entityToAdvertisementListDto(service)));
+        ordersPage.forEach(order -> allAdvertisements.add(orderMapper.entityToAdvertisementListDto(order)));
+        equipmentPage.forEach(equipment -> allAdvertisements.add(equipmentMapper.entityToAdvertisementListDto(equipment)));
+
+        allAdvertisements.sort((dto1, dto2) -> dto2.updatedAt().compareTo(dto1.updatedAt()));
+
+        int start = pageNumber * pageSize;
+        int end = Math.min(start + pageSize, allAdvertisements.size());
+
+        List<AdvertisementListDto> paginatedList;
+        if (start >= allAdvertisements.size()) {
+            paginatedList = new ArrayList<>();
+        } else {
+            paginatedList = allAdvertisements.subList(start, end);
+        }
+
+        boolean isLast = end >= allAdvertisements.size();
+        long totalCount = allAdvertisements.size();
+
+        return new AdvertisementPageDto(paginatedList, isLast, totalCount);
     }
 
     @Override

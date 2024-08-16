@@ -19,7 +19,6 @@ import kg.neobis.smarttailor.exception.InvalidJsonException;
 import kg.neobis.smarttailor.exception.NoPermissionException;
 import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
 import kg.neobis.smarttailor.exception.ResourceNotFoundException;
-import kg.neobis.smarttailor.exception.UserNotInOrganizationException;
 import kg.neobis.smarttailor.mapper.OrganizationMapper;
 import kg.neobis.smarttailor.repository.OrganizationRepository;
 import kg.neobis.smarttailor.service.AppUserService;
@@ -149,8 +148,8 @@ public class OrganizationServiceImpl implements OrganizationService {
     public String sendInvitation(String request, Authentication authentication) throws MessagingException {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("Authenticated user is not a member of any organization "));
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+
         EmployeeInvitationRequest employeeInvitationRequest = parseAndValidateEmployeeInvitationRequest(request);
         Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.INVITE_EMPLOYEE, user.getEmail());
         Boolean isUserExists = appUserService.existsUserByEmail(employeeInvitationRequest.email());

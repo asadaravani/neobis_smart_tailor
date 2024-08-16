@@ -5,8 +5,6 @@ import kg.neobis.smarttailor.dtos.AuthorServiceDetailedDto;
 import kg.neobis.smarttailor.dtos.ServiceDetailed;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Services;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,9 +17,11 @@ public interface ServicesService {
 
     String deleteService(Long serviceId, Authentication authentication) throws IOException;
 
-    Page<Services> findAllByUser(AppUser user, Pageable pageable);
+    List<Services> findAllByUser(AppUser user);
 
     Services findServiceById(Long id);
+
+    List<Services> findUserServicePurchases(AppUser user);
 
     AdvertisementPageDto getAllVisibleServices(int pageNumber, int pageSize);
 

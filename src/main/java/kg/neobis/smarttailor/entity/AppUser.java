@@ -50,6 +50,14 @@ public class AppUser extends BaseEntity implements UserDetails {
         return List.of(new SimpleGrantedAuthority(role.name()));
     }
 
+    public String getFullName() {
+
+        String name = this.name != null ? this.name : "";
+        String surname = this.surname != null ? this.surname : "";
+        String patronymic = this.patronymic != null ? this.patronymic : "";
+        return String.format("%s %s %s", surname, name, patronymic);
+    }
+
     @Override
     public String getPassword() {
         return "";

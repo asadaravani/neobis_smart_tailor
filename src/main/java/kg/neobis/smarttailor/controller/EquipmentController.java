@@ -65,7 +65,8 @@ public class EquipmentController {
             }
     )
     @GetMapping("/buy-equipment/{equipmentId}")
-    public ResponseEntity<String> buyEquipment(@PathVariable Long equipmentId, Authentication authentication) {
+    public ResponseEntity<String> buyEquipment(@PathVariable Long equipmentId,
+                                               Authentication authentication) {
         return ResponseEntity.ok(equipmentService.buyEquipment(equipmentId, authentication));
     }
 

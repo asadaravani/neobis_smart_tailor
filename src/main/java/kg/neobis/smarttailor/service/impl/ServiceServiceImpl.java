@@ -91,8 +91,8 @@ public class ServiceServiceImpl implements ServicesService {
     }
 
     @Override
-    public Page<Services> findAllByUser(AppUser user, Pageable pageable) {
-        return serviceRepository.findAllByAuthor(user, pageable);
+    public List<Services> findAllByUser(AppUser user) {
+        return serviceRepository.findAllByAuthor(user);
     }
 
     @Override
@@ -101,6 +101,10 @@ public class ServiceServiceImpl implements ServicesService {
                 .orElseThrow(() -> new ResourceNotFoundException("Service not found with id: ".concat(String.valueOf(id))));
     }
 
+    @Override
+    public List<Services> findUserServicePurchases(AppUser user) {
+        return serviceRepository.findUserServicePurchases(user);
+    }
     @Override
     public AdvertisementPageDto getAllVisibleServices(int pageNumber, int pageSize) {
 
@@ -186,6 +190,7 @@ public class ServiceServiceImpl implements ServicesService {
         if (service.getServiceApplicants().contains(user)) {
             throw new ResourceAlreadyExistsException("User has been sent the request to this service already");
         }
+
         service.getServiceApplicants().add(user);
         serviceRepository.save(service);
 

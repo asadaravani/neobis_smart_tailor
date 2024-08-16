@@ -33,13 +33,12 @@ public class EmployeeServiceImpl implements EmployeeService {
     public List<EmployeeListDto> getAllEmployees(Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("User is not a member of any organization"));
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
         Organization organization = organizationEmployee.getOrganization();
         List<OrganizationEmployee> organizationEmployees = organizationEmployeeService.findAllByOrganization(organization);
 
         return organizationEmployees.stream().map(orgEmp -> {
-            List<EmployeeOrderListDto> orderNames = orderService.getOrderInfoByEmployee(organizationEmployee.getEmployee());
+            List<EmployeeOrderListDto> orderNames = orderService.getOrderInfoByEmployee(orgEmp.getEmployee());
             return appUserMapper.entityListToEmployeeListDto(orgEmp, orderNames);
         }).collect(Collectors.toList());
     }
@@ -49,8 +48,8 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         AppUser employee = appUserService.findUserById(employeeId);
-        OrganizationEmployee employeeData = organizationEmployeeService.findByEmployeeEmail(employee.getEmail())
-                .orElseThrow(() -> new UserNotInOrganizationException("User is not an employee"));
+        OrganizationEmployee employeeData = organizationEmployeeService.findByEmployeeEmail(employee.getEmail());
+
         Organization employeeOrganization = employeeData.getOrganization();
 
         Boolean isAuthenticatedUserInOrganization = organizationEmployeeService.existsByOrganizationAndEmployeeEmail(employeeOrganization, user.getEmail());
