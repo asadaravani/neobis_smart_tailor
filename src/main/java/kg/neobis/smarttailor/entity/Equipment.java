@@ -31,7 +31,7 @@ public class Equipment extends Advertisement {
     )
     List<Image> images = new ArrayList<>();
 
-    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(
             name = "equipment_buyers",
             joinColumns = @JoinColumn(name = "equipment_id"),
