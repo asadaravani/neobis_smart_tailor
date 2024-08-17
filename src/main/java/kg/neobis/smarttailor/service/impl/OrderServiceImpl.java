@@ -3,6 +3,7 @@ package kg.neobis.smarttailor.service.impl;
 import com.cloudinary.utils.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.*;
@@ -488,6 +489,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public String sendRequestToExecuteOrder(Long orderId, Authentication authentication) {
 
         Order order = findOrderById(orderId);
