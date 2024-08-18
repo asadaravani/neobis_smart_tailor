@@ -1,6 +1,7 @@
 package kg.neobis.smarttailor.service.impl;
 
 import kg.neobis.smarttailor.dtos.EmployeeDetailedDto;
+import kg.neobis.smarttailor.dtos.EmployeeDto;
 import kg.neobis.smarttailor.dtos.EmployeeListDto;
 import kg.neobis.smarttailor.dtos.EmployeeOrderListDto;
 import kg.neobis.smarttailor.entity.*;
@@ -59,5 +60,21 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         return appUserMapper.entityToEmployeeDetailedDto(user, employeeData.getPosition().getName());
+    }
+
+    @Override
+    public List<EmployeeDto> getAvailableEmployees(Long orderId, Authentication authentication) {
+
+        orderService.findOrderById(orderId);
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+
+        List<AppUser> employees = organizationEmployeeService.findEmployeesWithPositionWeightLessThan(
+                organizationEmployee.getPosition().getWeight(),
+                organizationEmployee.getOrganization().getId(),
+                orderId
+        );
+
+        return employees.stream().map(appUserMapper::entityToEmployeeDto).toList();
     }
 }

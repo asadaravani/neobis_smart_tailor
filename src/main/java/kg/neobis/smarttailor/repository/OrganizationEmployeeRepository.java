@@ -26,4 +26,13 @@ public interface OrganizationEmployeeRepository extends JpaRepository<Organizati
     List<OrganizationEmployee> findAllByOrganization(Organization organization);
 
     Optional<OrganizationEmployee> findByEmployeeEmail(String email);
+
+    @Query("SELECT oe.employee FROM OrganizationEmployee oe " +
+            "WHERE oe.position.weight < :weight " +
+            "AND oe.organization.id = :organizationId " +
+            "AND oe.employee NOT IN (SELECT e FROM orders o JOIN o.orderEmployees e WHERE o.id = :orderId)")
+    List<AppUser> findUnassignedEmployeesWithPositionWeightLessThanInOrganization(
+            @Param("organizationId") Long organizationId,
+            @Param("weight") int weight,
+            @Param("orderId") Long orderId);
 }

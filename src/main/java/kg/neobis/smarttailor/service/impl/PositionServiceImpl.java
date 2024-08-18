@@ -7,9 +7,8 @@ import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.OrganizationEmployee;
 import kg.neobis.smarttailor.entity.Position;
 import kg.neobis.smarttailor.enums.AccessRight;
-import kg.neobis.smarttailor.exception.InvalidJsonException;
-import kg.neobis.smarttailor.exception.NoPermissionException;
-import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
+import kg.neobis.smarttailor.enums.PlusMinus;
+import kg.neobis.smarttailor.exception.*;
 import kg.neobis.smarttailor.mapper.PositionMapper;
 import kg.neobis.smarttailor.repository.PositionRepository;
 import kg.neobis.smarttailor.service.AppUserService;
@@ -73,6 +72,46 @@ public class PositionServiceImpl implements PositionService {
 
         return "Position has been created";
     }
+
+    @Override
+    public String changePositionWeight(Long positionId, PlusMinus plusMinus, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Position position = positionRepository.findById(positionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Position not found"));
+
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.CHANGE_POSITION_WEIGHT, user.getEmail());
+
+        Integer positionWeight = position.getWeight();
+
+        if (hasRights) {
+            if (!position.getOrganization().getId()
+                    .equals(organizationEmployee.getOrganization().getId())) {
+                throw new NoPermissionException("Position was created by another organization");
+            }
+            if (plusMinus == PlusMinus.PLUS) {
+                positionWeight++;
+            } else if (plusMinus == PlusMinus.MINUS) {
+                positionWeight--;
+            }
+
+            if (positionWeight > 4 || positionWeight < 0) {
+                throw new InvalidRequestException("Position weight must be between 1 and 4");
+            }
+
+            if (positionWeight >= organizationEmployee.getPosition().getWeight()) {
+                throw new InvalidRequestException("User can't give position weight more than his own");
+            }
+        } else {
+            throw new NoPermissionException("User has no permission to change order status");
+        }
+
+        positionRepository.save(position);
+
+        return String.format("Position weight is '%s'", positionWeight);
+    }
+
 
     @Override
     public List<PositionDto> getAllPositionsExceptDirector(Authentication authentication) {

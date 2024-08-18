@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
 import kg.neobis.smarttailor.dtos.PositionDto;
 import kg.neobis.smarttailor.enums.AccessRight;
+import kg.neobis.smarttailor.enums.PlusMinus;
 import kg.neobis.smarttailor.service.PositionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -14,11 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestPart;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Set;
@@ -63,6 +60,13 @@ public class PositionController {
     @GetMapping("/get-all-positions")
     public ResponseEntity<List<PositionDto>> getAllPositions(Authentication authentication) {
         return ResponseEntity.ok(positionService.getAllPositionsExceptDirector(authentication));
+    }
+
+    @PutMapping("/change-position-weight/{positionId}/{plusMinus}")
+    public ResponseEntity<String> changePositionWeight(@PathVariable Long positionId,
+                                                       @PathVariable PlusMinus plusMinus,
+                                                       Authentication authentication) {
+        return ResponseEntity.ok(positionService.changePositionWeight(positionId, plusMinus, authentication));
     }
 
     @Operation(

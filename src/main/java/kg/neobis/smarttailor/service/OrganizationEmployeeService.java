@@ -15,6 +15,8 @@ public interface OrganizationEmployeeService {
 
     void save(OrganizationEmployee organizationEmployee);
 
+    List<AppUser> findEmployeesWithPositionWeightLessThan(int weight, Long organizationId, Long orderId);
+
     List<OrganizationEmployee> findAllByOrganization(Organization organization);
 
     OrganizationEmployee findByEmployeeEmail(String email);

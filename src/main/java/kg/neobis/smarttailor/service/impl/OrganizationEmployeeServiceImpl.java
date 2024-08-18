@@ -48,6 +48,11 @@ public class OrganizationEmployeeServiceImpl implements OrganizationEmployeeServ
     }
 
     @Override
+    public List<AppUser> findEmployeesWithPositionWeightLessThan(int weight, Long organizationId, Long orderId) {
+        return organizationEmployeeRepository.findUnassignedEmployeesWithPositionWeightLessThanInOrganization(organizationId, weight, orderId);
+    }
+
+    @Override
     public List<AppUser> findEmployeesByOrganization(Organization organization) {
         return organizationEmployeeRepository.findEmployeesByOrganization(organization);
     }
