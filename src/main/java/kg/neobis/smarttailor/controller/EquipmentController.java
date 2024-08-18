@@ -172,20 +172,4 @@ public class EquipmentController {
         return ResponseEntity.ok(equipmentService.hideEquipment(equipmentId, authentication));
     }
 
-    @Operation(
-            summary = "SEARCH EQUIPMENTS",
-            description = "Accepts equipment name and returns list of equipments",
-            responses = {
-                    @ApiResponse(responseCode = "200", description = "Equipment list received"),
-                    @ApiResponse(responseCode = "401", description = "Unauthorized"),
-                    @ApiResponse(responseCode = "403", description = "Invalid authorization type"),
-                    @ApiResponse(responseCode = "404", description = "Equipment not found"),
-            }
-    )
-    @GetMapping("/search-equipment")
-    public ResponseEntity<AdvertisementPageDto> searchEquipments(@RequestParam(name = "query") String query,
-                                                                 @RequestParam int pageNumber,
-                                                                 @RequestParam int pageSize) {
-        return ResponseEntity.ok().body(equipmentService.searchEquipments(query, pageNumber, pageSize));
-    }
 }

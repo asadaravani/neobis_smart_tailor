@@ -21,5 +21,5 @@ public interface EquipmentRepository extends JpaRepository<Equipment, Long> {
 
     Page<Equipment> findByIsVisibleAndQuantityGreaterThan(boolean isVisible, int quantity, Pageable pageable);
 
-    Page<Equipment> findEquipmentByNameContainingIgnoreCase(String name, Pageable pageable);
+    Page<Equipment> findEquipmentByNameContainingIgnoreCaseAndQuantityGreaterThanAndIsVisibleTrue(String name, int quantity, Pageable pageable);
 }

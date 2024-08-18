@@ -39,4 +39,8 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     @Query("SELECT o FROM orders o WHERE o.organizationExecutor = :organization AND o.dateOfCompletion IS NOT NULL")
     Page<Order> findCompletedOrganizationOrders(@Param("organization") Organization organization, Pageable pageable);
+    
+    Page<Order> findByIdAndOrganizationExecutor(Long id, Organization organization, Pageable pageable);
+
+    Page<Order> findByNameContainingIgnoreCaseAndOrganizationExecutor(String query, Organization organization, Pageable pageable);
 }

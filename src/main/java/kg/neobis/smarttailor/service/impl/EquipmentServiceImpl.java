@@ -203,15 +203,19 @@ public class EquipmentServiceImpl implements EquipmentService {
     }
 
     @Override
-    public AdvertisementPageDto searchEquipments(String name, int pageNumber, int pageSize) {
+    public AdvertisementPageDto searchEquipments(String name, int pageNumber, int pageSize, Authentication authentication) {
+        appUserService.getUserFromAuthentication(authentication);
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Equipment> equipments = equipmentRepository.findEquipmentByNameContainingIgnoreCase(name, pageable);
+        Page<Equipment> equipments = equipmentRepository.findEquipmentByNameContainingIgnoreCaseAndQuantityGreaterThanAndIsVisibleTrue(name, 0, pageable);
         List<Equipment> equipmentList = equipments.getContent();
         List<EquipmentListDto> equipmentListDto = equipmentMapper.entityListToDtoList(equipmentList);
         boolean isLast = equipments.isLast();
         Long totalCount = equipments.getTotalElements();
         return new AdvertisementPageDto(equipmentListDto, isLast, totalCount);
     }
+
+
+
 
     private boolean isOutOfStock(Equipment equipment) {
         return equipment.getQuantity() == null || equipment.getQuantity() <= 0;

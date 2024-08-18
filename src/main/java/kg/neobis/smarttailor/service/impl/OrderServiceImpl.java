@@ -523,6 +523,43 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
+    @Override
+    public OrderPageDto searchOrders(String query, int pageNumber, int pageSize, Authentication authentication) {
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        Organization organization = organizationEmployee.getOrganization();
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, "name"));
+        Page<Order> orders = searchOrders(query, organization, pageable);
+        List<Order> orderList = orders.getContent();
+        List<OrderCard> orderCardList = orderList.stream().map(orderMapper::toOrderCard).collect(Collectors.toList());
+        boolean isLast = orders.isLast();
+        Long totalCount = orders.getTotalElements();
+        return new OrderPageDto(orderCardList, isLast, totalCount);
+    }
+
+    private Page<Order> searchOrders(String query, Organization organization, Pageable pageable) {
+
+        if (isNumeric(query)) {
+            Long id = Long.parseLong(query);
+            return orderRepository.findByIdAndOrganizationExecutor(id, organization, pageable);
+        } else {
+            return orderRepository.findByNameContainingIgnoreCaseAndOrganizationExecutor(query, organization, pageable);
+        }
+    }
+
+    private boolean isNumeric(String str) {
+        if (str == null) {
+            return false;
+        }
+        try {
+            Long.parseLong(str);
+            return true;
+        } catch (NumberFormatException e) {
+            return false;
+        }
+    }
+
+
     private List<OrderCard> extractOrdersByStatusAndMap(OrderStatus status, List<Order> orders) {
         List<OrderCard> orderToReturn = new ArrayList<>();
         orders.forEach(order -> {
