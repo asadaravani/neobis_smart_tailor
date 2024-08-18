@@ -39,7 +39,7 @@ public class Order extends Advertisement {
     @Enumerated(EnumType.STRING)
     OrderStatus status;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinTable(
             name = "order_images",
             joinColumns = @JoinColumn(name = "order_id"),
@@ -48,7 +48,7 @@ public class Order extends Advertisement {
     @Size(max = 5, message = "Maximum number of images: 5")
     List<Image> images = new ArrayList<>();
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @JoinTable(
             name = "order_order_item",
             joinColumns = @JoinColumn(name = "order_id"),
@@ -56,7 +56,7 @@ public class Order extends Advertisement {
     )
     List<OrderItem> items = new ArrayList<>();
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "order_candidates",
             joinColumns = @JoinColumn(name = "order_id"),
@@ -72,7 +72,7 @@ public class Order extends Advertisement {
     @JoinColumn
     AppUser mainEmployeeExecutor;
 
-    @ManyToMany(fetch = FetchType.LAZY, cascade = {CascadeType.PERSIST, CascadeType.REFRESH})
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinTable(
             name = "order_employees",
             joinColumns = @JoinColumn(name = "order_id"),

@@ -3,7 +3,6 @@ package kg.neobis.smarttailor.service.impl;
 import com.cloudinary.utils.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
 import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.*;
@@ -498,6 +497,9 @@ public class OrderServiceImpl implements OrderService {
 
         Organization usersOrganization = organizationEmployee.getOrganization();
 
+        if (order.getCandidates().contains(user)) {
+            throw new ResourceAlreadyExistsException("User already sent the request");
+        }
         if (order.getAuthor().getId().equals(user.getId())) {
             throw new SelfPurchaseException("User can't execute to his/her own order");
         }
