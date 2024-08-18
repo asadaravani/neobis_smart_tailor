@@ -22,4 +22,6 @@ public interface ServicesRepository extends JpaRepository<Services, Long> {
     List<Services> findUserServicePurchases(@Param("user") AppUser user);
 
     Page<Services> findByIsVisible(boolean isVisible, Pageable pageable);
+
+    Page<Services> findServicesByNameContainingIgnoreCaseAndIsVisibleTrue(String name, Pageable pageable);
 }

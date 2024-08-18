@@ -34,4 +34,6 @@ public interface ServicesService {
     String hideService(Long serviceId, Authentication authentication);
 
     String sendRequestToService(Long serviceId, Authentication authentication);
+
+    AdvertisementPageDto searchServices(String name, int pageNumber, int pageSize, Authentication authentication);
 }

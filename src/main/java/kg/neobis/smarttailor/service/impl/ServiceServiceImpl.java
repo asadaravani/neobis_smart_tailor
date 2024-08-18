@@ -4,12 +4,14 @@ import com.cloudinary.utils.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
+import kg.neobis.smarttailor.dtos.EquipmentListDto;
 import kg.neobis.smarttailor.dtos.ServiceDetailed;
 import kg.neobis.smarttailor.dtos.AuthorServiceDetailedDto;
 import kg.neobis.smarttailor.dtos.ServiceRequestDto;
 import kg.neobis.smarttailor.dtos.MyAdvertisement;
 import kg.neobis.smarttailor.dtos.ServiceListDto;
 import kg.neobis.smarttailor.entity.AppUser;
+import kg.neobis.smarttailor.entity.Equipment;
 import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.entity.Services;
 import kg.neobis.smarttailor.exception.InvalidJsonException;
@@ -180,7 +182,6 @@ public class ServiceServiceImpl implements ServicesService {
 
     @Override
     public String sendRequestToService(Long serviceId, Authentication authentication) {
-
         Services service = findServiceById(serviceId);
         AppUser user = appUserService.getUserFromAuthentication(authentication);
 
@@ -190,12 +191,24 @@ public class ServiceServiceImpl implements ServicesService {
         if (service.getServiceApplicants().contains(user)) {
             throw new ResourceAlreadyExistsException("User has been sent the request to this service already");
         }
-
         service.getServiceApplicants().add(user);
         serviceRepository.save(service);
 
         return "User has left a request to service";
     }
+
+    @Override
+    public AdvertisementPageDto searchServices(String name, int pageNumber, int pageSize, Authentication authentication) {
+        appUserService.getUserFromAuthentication(authentication);
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Services> services = serviceRepository.findServicesByNameContainingIgnoreCaseAndIsVisibleTrue(name, pageable);
+        List<Services> servicesList = services.getContent();
+        List<ServiceListDto> serviceListDto = serviceMapper.entityListToDtoList(servicesList);
+        boolean isLast = services.isLast();
+        Long totalCount = services.getTotalElements();
+        return new AdvertisementPageDto(serviceListDto, isLast, totalCount);
+    }
+
 
     private ServiceRequestDto parseAndValidateServiceRequestDto(String serviceDto) {
         try {

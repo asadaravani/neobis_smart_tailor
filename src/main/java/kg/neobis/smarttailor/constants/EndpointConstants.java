@@ -25,6 +25,9 @@ public final class EndpointConstants {
     public static final String POSITION_ENDPOINT = API_PREFIX + "/position";
 
     public static final String SERVICE_ENDPOINT = API_PREFIX + "/service";
+    public static final String SEARCH_ENDPOINT = API_PREFIX + "/search";
+
+
 
 
     public static final String[] WHITE_LIST_URL = {
