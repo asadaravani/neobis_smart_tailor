@@ -8,6 +8,6 @@ import java.time.LocalDateTime;
 public record NotificationDto(
         String title,
         String description,
-        LocalDateTime time
+        String time
 ) {
 }

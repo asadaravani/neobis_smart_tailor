@@ -45,9 +45,16 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
-    public void sendNotification(NotificationDto message) throws JsonProcessingException {
-        String notificationJson = convertToJson(message);
+    public void sendNotification(NotificationDto message) {
+
+        try{
+            String notificationJson = convertToJson(message);
             notifyUsers( notificationJson);
+
+        }catch (JsonProcessingException e){
+            throw new InvalidJsonException("Error occurred while processing JSON. "+ e.getMessage());
+        }
+
         }
 
     @Override

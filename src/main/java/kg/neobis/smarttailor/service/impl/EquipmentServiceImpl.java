@@ -45,6 +45,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -91,8 +92,10 @@ public class EquipmentServiceImpl implements EquipmentService {
         equipment.getEquipmentBuyers().add(user);
         equipmentRepository.save(equipment);
 
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
         notificationService.sendNotification(
-                new NotificationDto("Equipment has been sold!", equipment.getName() + " has been bought by user " + user.getName(), LocalDateTime.now()),
+                new NotificationDto("Оборудование продано!", equipment.getName() + " был куплен пользователем " + user.getName(), LocalDateTime.now().format(formatter)),
                 new NotificationPdfDto(user.getName() + " " + user.getSurname(), user.getEmail(), equipment.getName(), equipment.getPrice())
         );
 
