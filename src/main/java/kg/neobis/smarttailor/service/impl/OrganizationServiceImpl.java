@@ -31,6 +31,7 @@ import kg.neobis.smarttailor.service.PositionService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -45,19 +46,22 @@ import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class OrganizationServiceImpl implements OrganizationService {
 
-    AppUserService appUserService;
-    CloudinaryService cloudinaryService;
-    EmailService emailService;
-    InvitationTokenService invitationTokenService;
-    ObjectMapper objectMapper;
-    OrganizationEmployeeService organizationEmployeeService;
-    OrganizationMapper organizationMapper;
-    OrganizationRepository organizationRepository;
-    PositionService positionService;
-    Validator validator;
+    final AppUserService appUserService;
+    final CloudinaryService cloudinaryService;
+    final EmailService emailService;
+    final InvitationTokenService invitationTokenService;
+    final ObjectMapper objectMapper;
+    final OrganizationEmployeeService organizationEmployeeService;
+    final OrganizationMapper organizationMapper;
+    final OrganizationRepository organizationRepository;
+    final PositionService positionService;
+    final Validator validator;
+
+    @Value("${user.default.image}")
+    String userDefaultImage;
 
     @Override
     public ResponseEntity<?> acceptInvitation(String invitationToken) {
@@ -180,7 +184,7 @@ public class OrganizationServiceImpl implements OrganizationService {
                         .email(employeeInvitationRequest.email())
                         .phoneNumber(employeeInvitationRequest.phoneNumber())
                         .role(Role.USER)
-                        .image(new Image("https://t4.ftcdn.net/jpg/03/32/59/65/240_F_332596535_lAdLhf6KzbW6PWXBWeIFTovTii1drkbT.jpg"))
+                        .image(new Image(userDefaultImage))
                         .enabled(false)
                         .hasSubscription(false)
                         .build();
