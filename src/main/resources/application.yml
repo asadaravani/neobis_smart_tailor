@@ -48,3 +48,7 @@ rabbitmq:
 
 app:
   firebase-configuration-file : "firebase/smarttailorfirebase-firebase-adminsdk-bm52t-751b36d6eb.json"
+
+user:
+  default:
+    image: https://t4.ftcdn.net/jpg/03/32/59/65/240_F_332596535_lAdLhf6KzbW6PWXBWeIFTovTii1drkbT.jpg

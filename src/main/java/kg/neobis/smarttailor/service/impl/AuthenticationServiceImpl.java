@@ -26,22 +26,26 @@ import kg.neobis.smarttailor.service.RefreshTokenService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
+@FieldDefaults(level = AccessLevel.PRIVATE)
 public class AuthenticationServiceImpl implements AuthenticationService {
 
-    AppUserService appUserService;
-    BlackListTokenService blackListTokenService;
-    ConfirmationCodeService confirmationCodeService;
-    EmailService emailService;
-    JwtUtil jwtUtil;
-    RefreshTokenService refreshTokenService;
-    UserDetailsService userDetailsService;
+    final AppUserService appUserService;
+    final BlackListTokenService blackListTokenService;
+    final ConfirmationCodeService confirmationCodeService;
+    final EmailService emailService;
+    final JwtUtil jwtUtil;
+    final RefreshTokenService refreshTokenService;
+    final UserDetailsService userDetailsService;
+
+    @Value("${user.default.image}")
+    String userDefaultImage;
 
     @Override
     @Transactional
@@ -147,7 +151,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .email(request.email())
                     .phoneNumber(request.phoneNumber())
                     .role(Role.USER)
-                    .image(new Image("https://t4.ftcdn.net/jpg/03/32/59/65/240_F_332596535_lAdLhf6KzbW6PWXBWeIFTovTii1drkbT.jpg"))
+                    .image(new Image(userDefaultImage))
                     .enabled(false)
                     .hasSubscription(false)
                     .build();
