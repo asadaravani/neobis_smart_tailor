@@ -7,7 +7,7 @@ import kg.neobis.smarttailor.dtos.NotificationPdfDto;
 public interface NotificationService {
     void sendNotification(NotificationDto dto1, NotificationPdfDto dto2);
 
-    void sendNotification(NotificationDto dto1) throws JsonProcessingException;
+    void sendNotification(NotificationDto dto1);
     void notifyUsers(String message);
 
 }

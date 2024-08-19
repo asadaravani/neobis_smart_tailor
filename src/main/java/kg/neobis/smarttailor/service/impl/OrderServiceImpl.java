@@ -14,6 +14,7 @@ import kg.neobis.smarttailor.mapper.OrderMapper;
 import kg.neobis.smarttailor.repository.OrderRepository;
 import kg.neobis.smarttailor.service.AppUserService;
 import kg.neobis.smarttailor.service.CloudinaryService;
+import kg.neobis.smarttailor.service.NotificationService;
 import kg.neobis.smarttailor.service.OrderService;
 import kg.neobis.smarttailor.service.OrganizationEmployeeService;
 import kg.neobis.smarttailor.service.OrganizationService;
@@ -34,6 +35,8 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -52,6 +55,7 @@ public class OrderServiceImpl implements OrderService {
     OrganizationService organizationService;
     OrganizationEmployeeService organizationEmployeeService;
     Validator validator;
+    NotificationService notificationService;
 
     @Override
     public String addOrder(String orderRequestDto, List<MultipartFile> images, Authentication authentication) {
@@ -161,6 +165,7 @@ public class OrderServiceImpl implements OrderService {
             }
             if (plusMinus == PlusMinus.PLUS && currentIndex < statusArray.length - 1) {
                 order.setStatus(statusArray[currentIndex + 1]);
+
             } else if (plusMinus == PlusMinus.MINUS && currentIndex > 0) {
                 order.setStatus(statusArray[currentIndex - 1]);
             } else {
@@ -174,6 +179,14 @@ public class OrderServiceImpl implements OrderService {
         int newStatusIndex;
         if (plusMinus == PlusMinus.MINUS) newStatusIndex = currentIndex - 1;
         else newStatusIndex = currentIndex + 1;
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+        String notificationMessage = String.format("Статус заказа изменен с '%s' на '%s'", statusArray[currentIndex], statusArray[newStatusIndex]);
+
+        notificationService.sendNotification(
+                new NotificationDto("Статус заказа изменено!", notificationMessage, LocalDateTime.now().format(formatter))
+        );
 
         return String.format("Order status has been changed from '%s' to '%s'", statusArray[currentIndex], statusArray[newStatusIndex]);
     }
