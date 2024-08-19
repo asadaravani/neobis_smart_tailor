@@ -17,7 +17,9 @@ public interface EmployeeService {
 
     EmployeeDetailedDto getEmployeeDetailed(Long employeeId, Authentication authentication);
 
-    EmployeesPageDto searchEmployees(String query, int pageNumber, int pageSize, Authentication authentication);
+    String removeEmployee(Long employeeId, Authentication authentication);
 
     AdvertisementPageDto searchAds(String query, int pageNumber, int pageSize, Authentication authentication);
+
+    EmployeesPageDto searchEmployees(String query, int pageNumber, int pageSize, Authentication authentication);
 }

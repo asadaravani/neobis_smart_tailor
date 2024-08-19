@@ -144,14 +144,16 @@ public class OrderMapper {
                 ))
                 .toList();
 
-        Organization organizationExecutor = order.getOrganizationExecutor();
+        AppUser mainExecutor = order.getMainEmployeeExecutor();
 
-        OrganizationDto organization = null;
-        if (order.getOrganizationExecutor() != null) {
-            organization = new OrganizationDto(
-                    organizationExecutor.getId(),
-                    organizationExecutor.getName(),
-                    organizationExecutor.getDescription()
+        CandidateDto executor = null;
+        if (order.getMainEmployeeExecutor() != null) {
+            executor = new CandidateDto(
+                    mainExecutor.getId(),
+                    mainExecutor.getFullName(),
+                    mainExecutor.getEmail(),
+                    mainExecutor.getPhoneNumber(),
+                    order.getOrganizationExecutor().getName()
             );
         }
 
@@ -168,7 +170,7 @@ public class OrderMapper {
                 order.getStatus(),
                 items,
                 candidates,
-                organization
+                executor
         );
     }
 

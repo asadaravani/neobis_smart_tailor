@@ -8,6 +8,9 @@ import kg.neobis.smarttailor.dtos.EmployeeListDto;
 import kg.neobis.smarttailor.dtos.EmployeeOrderListDto;
 import kg.neobis.smarttailor.dtos.EmployeesPageDto;
 import kg.neobis.smarttailor.entity.*;
+import kg.neobis.smarttailor.enums.AccessRight;
+import kg.neobis.smarttailor.exception.InvalidRequestException;
+import kg.neobis.smarttailor.exception.NoPermissionException;
 import kg.neobis.smarttailor.exception.UserNotInOrganizationException;
 import kg.neobis.smarttailor.mapper.AppUserMapper;
 import kg.neobis.smarttailor.service.AppUserService;
@@ -116,5 +119,56 @@ public class EmployeeServiceImpl implements EmployeeService {
         );
 
         return employees.stream().map(appUserMapper::entityToEmployeeDto).toList();
+    }
+
+    public String removeEmployee(Long employeeId, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        AppUser employee = appUserService.findUserById(employeeId);
+
+        OrganizationEmployee userInfo = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        OrganizationEmployee employeeInfo = organizationEmployeeService.findByEmployeeEmail(employee.getEmail());
+
+        Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.REMOVE_EMPLOYEE, user.getEmail());
+
+        Organization userOrganization = userInfo.getOrganization();
+        Organization employeeOrganization = employeeInfo.getOrganization();
+
+        List<Order> employeeOrders = orderService.findCurrentUserOrders(employee);
+
+        if (hasRights) {
+            if (userOrganization.getId().equals(employeeOrganization.getId())) {
+                if (userInfo.getPosition().getWeight() > employeeInfo.getPosition().getWeight()) {
+                    if (employeeOrders == null) {
+                        List<Order> employeeCompletedOrders = orderService.findCompletedUserOrders(employee);
+                        for (Order order: employeeCompletedOrders) {
+                            order.getOrderEmployees().remove(employee);
+                            if (order.getMainEmployeeExecutor().getId().equals(employee.getId())) {
+                                order.setMainEmployeeExecutor(null);
+                            }
+                        }
+                        List<Order> employeeRequests = orderService.findAllByCandidate(employee);
+                        for (Order order: employeeRequests) {
+                            order.getCandidates().remove(employee);
+                        }
+                        employeeInfo.setEmployee(null);
+                        employeeInfo.setPosition(null);
+                        employeeInfo.setOrganization(null);
+
+                        organizationEmployeeService.delete(employeeInfo);
+
+                        return "Employee has been removed from organization";
+                    } else {
+                        throw new InvalidRequestException("User has uncompleted orders");
+                    }
+                } else {
+                    throw new InvalidRequestException("Authenticated user's position is lower than employee's in hierarchy");
+                }
+            } else {
+                throw new UserNotInOrganizationException("Authenticated user and employee are not the members of the same organization");
+            }
+        } else {
+            throw new NoPermissionException("User has no permission to remove employee from organization");
+        }
     }
 }

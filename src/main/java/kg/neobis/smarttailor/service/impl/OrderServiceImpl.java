@@ -240,8 +240,23 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    public List<Order> findAllByCandidate(AppUser user) {
+        return orderRepository.findAllByCandidate(user);
+    }
+
+    @Override
     public List<Order> findAllByUser(AppUser user) {
         return orderRepository.findAllByAuthor(user);
+    }
+
+    @Override
+    public List<Order> findCompletedUserOrders(AppUser user) {
+        return orderRepository.findCompletedEmployeeOrders(user);
+    }
+
+    @Override
+    public List<Order> findCurrentUserOrders(AppUser user) {
+        return orderRepository.findCurrentEmployeeOrders(user);
     }
 
     @Override

@@ -64,4 +64,10 @@ public class EmployeeController {
                                                                    Authentication authentication) {
         return ResponseEntity.ok(employeeService.getAvailableEmployees(orderId, authentication));
     }
+
+    @DeleteMapping("/remove/{employeeId}")
+    public ResponseEntity<String> removeEmployee(@PathVariable Long employeeId,
+                                                 Authentication authentication) {
+        return ResponseEntity.ok(employeeService.removeEmployee(employeeId, authentication));
+    }
 }

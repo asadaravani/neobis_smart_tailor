@@ -20,6 +20,6 @@ public record AuthorOrderDetailedDto(
         OrderStatus orderStatus,
         List<OrderItemDto> orderItems,
         List<CandidateDto> orderCandidates,
-        OrganizationDto organizationExecutor
+        CandidateDto executor
 ) implements Serializable {}
 

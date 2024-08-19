@@ -1,5 +1,6 @@
 package kg.neobis.smarttailor.service.impl;
 
+import jakarta.transaction.Transactional;
 import kg.neobis.smarttailor.dtos.AdvertisementCard;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Equipment;
@@ -28,6 +29,13 @@ import java.util.List;
 public class OrganizationEmployeeServiceImpl implements OrganizationEmployeeService {
 
     OrganizationEmployeeRepository organizationEmployeeRepository;
+
+    @Override
+    @Transactional
+    public void delete(OrganizationEmployee organizationEmployee) {
+        organizationEmployeeRepository.delete(organizationEmployee);
+    }
+
     @Override
     public Boolean existsByAccessRightAndEmployeeEmail(AccessRight accessRight, String employeeEmail) {
         return organizationEmployeeRepository.existsByPosition_AccessRightsIsContainingAndEmployeeEmail(accessRight, employeeEmail);

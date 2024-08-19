@@ -25,7 +25,13 @@ public interface OrderService {
 
     String deleteOrder(Long orderId, Authentication authentication) throws IOException;
 
+    List<Order> findAllByCandidate(AppUser user);
+
     List<Order> findAllByUser(AppUser user);
+
+    List<Order> findCompletedUserOrders(AppUser user);
+
+    List<Order> findCurrentUserOrders(AppUser user);
 
     Order findOrderById(Long id);
 
