@@ -1,6 +1,7 @@
 package kg.neobis.smarttailor.service;
 
 import kg.neobis.smarttailor.dtos.AdvertisementCard;
+import kg.neobis.smarttailor.dtos.MyAdvertisementCard;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Organization;
 import kg.neobis.smarttailor.entity.OrganizationEmployee;
@@ -32,5 +33,5 @@ public interface OrganizationEmployeeService {
 
     void save(OrganizationEmployee organizationEmployee);
 
-    Page<AdvertisementCard> searchAcrossTable(String query, Long userId, Long organizationId, Pageable pageable);
+    Page<MyAdvertisementCard> searchAcrossTable(String query, Long userId, Long organizationId, Pageable pageable);
 }

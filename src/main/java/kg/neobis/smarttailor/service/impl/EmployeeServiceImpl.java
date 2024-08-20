@@ -7,6 +7,7 @@ import kg.neobis.smarttailor.dtos.EmployeeDto;
 import kg.neobis.smarttailor.dtos.EmployeeListDto;
 import kg.neobis.smarttailor.dtos.EmployeeOrderListDto;
 import kg.neobis.smarttailor.dtos.EmployeesPageDto;
+import kg.neobis.smarttailor.dtos.MyAdvertisementCard;
 import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.exception.InvalidRequestException;
@@ -97,8 +98,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
         Organization organization = organizationEmployee.getOrganization();
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, "name"));
-        Page<AdvertisementCard> result = organizationEmployeeService.searchAcrossTable(query, user.getId(), organization.getId(), pageable);
-        List<AdvertisementCard> advertisementCardList = result.getContent();
+        Page<MyAdvertisementCard> result = organizationEmployeeService.searchAcrossTable(query, user.getId(), organization.getId(), pageable);
+        List<MyAdvertisementCard> advertisementCardList = result.getContent();
         boolean isLast = result.isLast();
         Long totalCount = result.getTotalElements();
 
