@@ -2,6 +2,7 @@ package kg.neobis.smarttailor.service.impl;
 
 import jakarta.transaction.Transactional;
 import kg.neobis.smarttailor.dtos.AdvertisementCard;
+import kg.neobis.smarttailor.dtos.MyAdvertisementCard;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Equipment;
 import kg.neobis.smarttailor.entity.Order;
@@ -58,32 +59,32 @@ public class OrganizationEmployeeServiceImpl implements OrganizationEmployeeServ
 
 
     @Override
-    public Page<AdvertisementCard> searchAcrossTable(String query, Long userId, Long organizationId, Pageable pageable) {
+    public Page<MyAdvertisementCard> searchAcrossTable(String query, Long userId, Long organizationId, Pageable pageable) {
 
         List<Services> serviceResults = organizationEmployeeRepository.searchServices(query, userId);
         List<Order> orderResults = organizationEmployeeRepository.searchOrders(query, userId, organizationId);
         List<Equipment> equipmentResults = organizationEmployeeRepository.searchEquipments(query, userId);
 
-        List<AdvertisementCard> advertisementCards = new ArrayList<>();
+        List<MyAdvertisementCard> advertisementCards = new ArrayList<>();
 
         for (Services service : serviceResults) {
-            AdvertisementCard card = new AdvertisementCard(service.getId(), "Услуги", service.getName(), service.getDescription());
+            MyAdvertisementCard card = new MyAdvertisementCard(service.getId(), service.getFirstImage(service.getImages()), "Услуги", service.getName(), service.getDescription());
             advertisementCards.add(card);
         }
 
         for (Order order : orderResults) {
-            AdvertisementCard card = new AdvertisementCard(order.getId(), "Заказ", order.getName(), order.getDescription());
+            MyAdvertisementCard card = new MyAdvertisementCard(order.getId(), order.getFirstImage(order.getImages()),"Заказ", order.getName(), order.getDescription());
             advertisementCards.add(card);
         }
 
         for (Equipment equipment : equipmentResults) {
-            AdvertisementCard card = new AdvertisementCard(equipment.getId(), "Оборудование", equipment.getName(), equipment.getDescription());
+            MyAdvertisementCard card = new MyAdvertisementCard(equipment.getId(), equipment.getFirstImage(equipment.getImages()),"Оборудование", equipment.getName(), equipment.getDescription());
             advertisementCards.add(card);
         }
 
         int start = Math.min((int) pageable.getOffset(), advertisementCards.size());
         int end = Math.min((start + pageable.getPageSize()), advertisementCards.size());
-        List<AdvertisementCard> paginatedList = advertisementCards.subList(start, end);
+        List<MyAdvertisementCard> paginatedList = advertisementCards.subList(start, end);
 
         return new PageImpl<>(paginatedList, pageable, advertisementCards.size());
     }
