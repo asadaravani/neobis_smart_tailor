@@ -4,14 +4,12 @@ import com.cloudinary.utils.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
-import kg.neobis.smarttailor.dtos.EquipmentListDto;
 import kg.neobis.smarttailor.dtos.ServiceDetailed;
 import kg.neobis.smarttailor.dtos.AuthorServiceDetailedDto;
-import kg.neobis.smarttailor.dtos.ServiceRequestDto;
+import kg.neobis.smarttailor.dtos.ads.service.ServiceRequestDto;
 import kg.neobis.smarttailor.dtos.MyAdvertisement;
 import kg.neobis.smarttailor.dtos.ServiceListDto;
 import kg.neobis.smarttailor.entity.AppUser;
-import kg.neobis.smarttailor.entity.Equipment;
 import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.entity.Services;
 import kg.neobis.smarttailor.exception.InvalidJsonException;
@@ -65,7 +63,7 @@ public class ServiceServiceImpl implements ServicesService {
         ServiceRequestDto requestDto = parseAndValidateServiceRequestDto(serviceRequestDto);
         List<Image> serviceImages = cloudinaryService.saveImages(images);
 
-        Services service = serviceMapper.dtoToEntity(requestDto, serviceImages, user);
+        Services service = serviceMapper.serviceRequestDtoToEntity(requestDto, serviceImages, user);
 
         serviceRepository.save(service);
 
@@ -107,6 +105,7 @@ public class ServiceServiceImpl implements ServicesService {
     public List<Services> findUserServicePurchases(AppUser user) {
         return serviceRepository.findUserServicePurchases(user);
     }
+
     @Override
     public AdvertisementPageDto getAllVisibleServices(int pageNumber, int pageSize) {
 
@@ -208,7 +207,6 @@ public class ServiceServiceImpl implements ServicesService {
         Long totalCount = services.getTotalElements();
         return new AdvertisementPageDto(serviceListDto, isLast, totalCount);
     }
-
 
     private ServiceRequestDto parseAndValidateServiceRequestDto(String serviceDto) {
         try {

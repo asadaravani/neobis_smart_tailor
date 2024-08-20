@@ -1,6 +1,7 @@
 package kg.neobis.smarttailor.mapper;
 
 import kg.neobis.smarttailor.dtos.*;
+import kg.neobis.smarttailor.dtos.ads.order.OrderRequestDto;
 import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.enums.AdvertType;
 import kg.neobis.smarttailor.enums.OrderStatus;
@@ -19,7 +20,7 @@ public class OrderMapper {
     private final AppUserMapper appUserMapper;
     private final OrganizationEmployeeService organizationEmployeeService;
 
-    public Order dtoToEntity(OrderRequestDto requestDto, List<Image> orderImages, AppUser user) {
+    public Order orderRequestDtoToEntity(OrderRequestDto requestDto, List<Image> orderImages, AppUser user) {
 
         List<OrderItem> items = requestDto.items().stream()
                 .map(orderItemDto -> new OrderItem(orderItemDto.size(), orderItemDto.quantity()))
@@ -40,6 +41,7 @@ public class OrderMapper {
                 .items(items)
                 .candidates(null)
                 .organizationExecutor(null)
+                .mainEmployeeExecutor(null)
                 .build();
     }
 

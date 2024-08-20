@@ -1,12 +1,11 @@
-package kg.neobis.smarttailor.dtos;
+package kg.neobis.smarttailor.dtos.ads.service;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
 
-public record EquipmentRequestDto(
+public record ServiceRequestDto(
         String name,
         String description,
         BigDecimal price,
-        String contactInfo,
-        Integer quantity
+        String contactInfo
 ) implements Serializable {}

@@ -1,6 +1,7 @@
 package kg.neobis.smarttailor.mapper;
 
 import kg.neobis.smarttailor.dtos.*;
+import kg.neobis.smarttailor.dtos.ads.equipment.EquipmentRequestDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Equipment;
 import kg.neobis.smarttailor.entity.Image;
@@ -13,7 +14,7 @@ import java.util.stream.Collectors;
 @Component
 public class EquipmentMapper {
 
-    public Equipment dtoToEntity(EquipmentRequestDto requestDto, List<Image> equipmentImages, AppUser user) {
+    public Equipment equipmentRequestDtoToEntity(EquipmentRequestDto requestDto, List<Image> equipmentImages, AppUser user) {
         return Equipment.builder()
                 .name(requestDto.name())
                 .description(requestDto.description())
