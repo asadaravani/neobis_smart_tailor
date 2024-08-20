@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import kg.neobis.smarttailor.dtos.*;
+import kg.neobis.smarttailor.dtos.ads.order.OrderRequestDto;
 import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.enums.OrderStatus;
@@ -64,7 +65,7 @@ public class OrderServiceImpl implements OrderService {
         OrderRequestDto requestDto = parseAndValidateOrderRequestDto(orderRequestDto);
         List<Image> orderImages = cloudinaryService.saveImages(images);
 
-        Order order = orderMapper.dtoToEntity(requestDto, orderImages, user);
+        Order order = orderMapper.orderRequestDtoToEntity(requestDto, orderImages, user);
 
         orderRepository.save(order);
 

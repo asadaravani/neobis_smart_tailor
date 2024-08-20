@@ -1,6 +1,7 @@
 package kg.neobis.smarttailor.mapper;
 
 import kg.neobis.smarttailor.dtos.*;
+import kg.neobis.smarttailor.dtos.ads.service.ServiceRequestDto;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Image;
 import kg.neobis.smarttailor.entity.Services;
@@ -13,7 +14,7 @@ import java.util.stream.Collectors;
 @Component
 public class ServiceMapper {
 
-    public Services dtoToEntity(ServiceRequestDto requestDto, List<Image> serviceImages, AppUser user) {
+    public Services serviceRequestDtoToEntity(ServiceRequestDto requestDto, List<Image> serviceImages, AppUser user) {
         return Services.builder()
                 .name(requestDto.name())
                 .description(requestDto.description())

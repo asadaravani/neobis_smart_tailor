@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.dtos.AuthorEquipmentDetailedDto;
 import kg.neobis.smarttailor.dtos.EquipmentDetailed;
-import kg.neobis.smarttailor.dtos.EquipmentRequestDto;
+import kg.neobis.smarttailor.dtos.ads.equipment.EquipmentRequestDto;
 import kg.neobis.smarttailor.dtos.NotificationDto;
 import kg.neobis.smarttailor.dtos.NotificationPdfDto;
 import kg.neobis.smarttailor.dtos.EquipmentListDto;
@@ -70,7 +70,7 @@ public class EquipmentServiceImpl implements EquipmentService {
         EquipmentRequestDto requestDto = parseAndValidateEquipmentRequestDto(equipmentRequestDto);
         List<Image> equipmentImages = cloudinaryService.saveImages(images);
 
-        Equipment equipment = equipmentMapper.dtoToEntity(requestDto, equipmentImages, user);
+        Equipment equipment = equipmentMapper.equipmentRequestDtoToEntity(requestDto, equipmentImages, user);
 
         equipmentRepository.save(equipment);
 
@@ -216,9 +216,6 @@ public class EquipmentServiceImpl implements EquipmentService {
         Long totalCount = equipments.getTotalElements();
         return new AdvertisementPageDto(equipmentListDto, isLast, totalCount);
     }
-
-
-
 
     private boolean isOutOfStock(Equipment equipment) {
         return equipment.getQuantity() == null || equipment.getQuantity() <= 0;
