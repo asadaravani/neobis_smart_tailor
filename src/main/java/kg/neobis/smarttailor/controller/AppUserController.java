@@ -29,6 +29,16 @@ public class AppUserController {
 
     AppUserService appUserService;
 
+    @Operation(
+            summary = "CONFIRM SUBSCRIPTION REQUEST",
+            description = "Activates subscription (changes user's field 'hasSubscription' value to 'true)",
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Subscription has been activated for user"),
+                    @ApiResponse(responseCode = "404", description = "User not found with specified email"),
+                    @ApiResponse(responseCode = "410", description = "Token has been expired"),
+                    @ApiResponse(responseCode = "500", description = "Internal Server Error")
+            }
+    )
     @RequestMapping(value="/confirm-subscription-request", method= {RequestMethod.GET, RequestMethod.POST})
     public ResponseEntity<?> confirmSubscriptionRequest(@RequestParam("token")String subscriptionConfirmationToken) {
         return ResponseEntity.ok(appUserService.confirmSubscriptionRequest(subscriptionConfirmationToken));

@@ -45,7 +45,7 @@ public class AppUserServiceImpl implements AppUserService {
 
             subscriptionTokenService.delete(token);
 
-            return "Subscription for the user \"".concat(user.getEmail()).concat("\" has been activated");
+            return String.format("Subscription for the user '%s' has been activated", user.getEmail());
         } else {
             throw new OutOfDateException("Token has been expired");
         }
@@ -101,8 +101,7 @@ public class AppUserServiceImpl implements AppUserService {
 
         if (organizationEmployeeService.existsByEmployeeEmail(user.getEmail())) {
             throw new ResourceAlreadyExistsException("User is a member of another organization");
-        }
-        if (user.getHasSubscription()) {
+        } else if (user.getHasSubscription()) {
             throw new ResourceAlreadyExistsException("User already has a subscription");
         }
 
