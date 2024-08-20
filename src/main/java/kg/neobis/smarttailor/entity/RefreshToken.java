@@ -24,10 +24,9 @@ import java.time.LocalDateTime;
 public class RefreshToken extends BaseEntity {
 
     String token;
+    LocalDateTime expirationTime;
 
     @ManyToOne
     @JoinColumn
     AppUser user;
-
-    LocalDateTime expirationTime;
 }
