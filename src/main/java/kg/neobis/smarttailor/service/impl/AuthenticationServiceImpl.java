@@ -31,6 +31,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+
 @Service
 @RequiredArgsConstructor
 @FieldDefaults(level = AccessLevel.PRIVATE)
@@ -68,6 +70,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
             var refreshToken = jwtUtil.generateRefreshToken(user);
             RefreshToken refreshTokenToSave = RefreshToken.builder()
                     .token(refreshToken)
+                    .expirationTime(LocalDateTime.now().plusDays(7))
+                    .user(user)
                     .build();
             refreshTokenService.save(refreshTokenToSave);
 
@@ -81,13 +85,13 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     }
 
     @Override
-    public String login(String requestEmail) {
+    public String login(String email) {
 
-        AppUser user = appUserService.findUserByEmail(requestEmail);
+        AppUser user = appUserService.findUserByEmail(email);
         ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
         emailService.sendEmailWithConfirmationCode(confirmationCode, user);
 
-        return "Confirmation code has been sent to the ".concat(requestEmail);
+        return String.format("Confirmation code has been sent to the '%s'", email);
     }
 
     @Override
@@ -133,7 +137,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
         emailService.sendEmailWithConfirmationCode(confirmationCode, user);
 
-        return "Confirmation code has been sent to the ".concat(email);
+        return String.format("Confirmation code has been sent to the '%s'", email);
     }
 
     @Override
@@ -141,9 +145,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     public String signUp(SignUpRequest request) {
 
         AppUser user;
-
         if (!appUserService.existsUserByEmail(request.email())) {
-
             user = AppUser.builder()
                     .surname(request.surname())
                     .name(request.name())
@@ -156,13 +158,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .hasSubscription(false)
                     .build();
             user = appUserService.save(user);
-
         } else {
-
             user = appUserService.findUserByEmail(request.email());
 
             if (user.isEnabled()) {
-                throw new ResourceAlreadyExistsException("User with email '".concat(request.email()).concat("' is already exists"));
+                throw new ResourceAlreadyExistsException(String.format("User with email '%s' is already exists", request.email()));
             } else {
                 ConfirmationCode confirmationCode = confirmationCodeService.findConfirmationCodeByUser(user);
 
@@ -182,6 +182,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
         emailService.sendEmail(simpleMailMessage);
 
-        return "Confirmation code has been sent to the ".concat(request.email());
+        return String.format("Confirmation code has been sent to the '%s'", request.email());
     }
 }
