@@ -29,11 +29,11 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
 
     List<Order> findAllByOrganizationExecutor(Organization organization);
 
-    Page<Order> findByIdAndOrganizationExecutor(Long id, Organization organization, Pageable pageable);
+    Page<Order> findById(Long id, Pageable pageable);
 
     Page<Order> findByIsVisible(boolean isVisible, Pageable pageable);
 
-    Page<Order> findByNameContainingIgnoreCaseAndOrganizationExecutor(String query, Organization organization, Pageable pageable);
+    Page<Order> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
     @Query("SELECT o FROM orders o JOIN o.orderEmployees e WHERE e = :user AND o.dateOfCompletion IS NOT NULL")
     Page<Order> findCompletedEmployeeOrders(@Param("user") AppUser user, Pageable pageable);
