@@ -559,7 +559,7 @@ public class OrderServiceImpl implements OrderService {
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, "name"));
         Page<Order> orders = searchOrders(query, organization, pageable);
         List<Order> orderList = orders.getContent();
-        List<OrderCard> orderCardList = orderList.stream().map(orderMapper::toOrderCard).collect(Collectors.toList());
+        List<OrderListDto> orderCardList = orderMapper.entityListToDtoList(orderList);
         boolean isLast = orders.isLast();
         Long totalCount = orders.getTotalElements();
         return new OrderPageDto(orderCardList, isLast, totalCount);
