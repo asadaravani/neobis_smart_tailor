@@ -552,12 +552,11 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderPageDto searchOrders(String query, int pageNumber, int pageSize, Authentication authentication) {
+    public OrderPageDto searchOrders(String name, int pageNumber, int pageSize, Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
-        Organization organization = organizationEmployee.getOrganization();
+        organizationEmployeeService.findByEmployeeEmail(user.getEmail());
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, "name"));
-        Page<Order> orders = searchOrders(query, organization, pageable);
+        Page<Order> orders = searchOrders(name, pageable);
         List<Order> orderList = orders.getContent();
         List<OrderListDto> orderCardList = orderMapper.entityListToDtoList(orderList);
         boolean isLast = orders.isLast();
@@ -565,13 +564,13 @@ public class OrderServiceImpl implements OrderService {
         return new OrderPageDto(orderCardList, isLast, totalCount);
     }
 
-    private Page<Order> searchOrders(String query, Organization organization, Pageable pageable) {
+    private Page<Order> searchOrders(String name, Pageable pageable) {
 
-        if (isNumeric(query)) {
-            Long id = Long.parseLong(query);
-            return orderRepository.findByIdAndOrganizationExecutor(id, organization, pageable);
+        if (isNumeric(name)) {
+            Long id = Long.parseLong(name);
+            return orderRepository.findById(id, pageable);
         } else {
-            return orderRepository.findByNameContainingIgnoreCaseAndOrganizationExecutor(query, organization, pageable);
+            return orderRepository.findByNameContainingIgnoreCase(name, pageable);
         }
     }
 
