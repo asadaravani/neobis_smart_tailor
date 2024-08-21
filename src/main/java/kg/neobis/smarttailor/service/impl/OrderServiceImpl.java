@@ -16,6 +16,7 @@ import kg.neobis.smarttailor.mapper.OrderMapper;
 import kg.neobis.smarttailor.repository.OrderRepository;
 import kg.neobis.smarttailor.service.AppUserService;
 import kg.neobis.smarttailor.service.CloudinaryService;
+import kg.neobis.smarttailor.service.FCMService;
 import kg.neobis.smarttailor.service.NotificationService;
 import kg.neobis.smarttailor.service.OrderService;
 import kg.neobis.smarttailor.service.OrganizationEmployeeService;
@@ -50,6 +51,7 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
 
     AppUserMapper appUserMapper;
+    FCMService fcmService;
     AppUserService appUserService;
     CloudinaryService cloudinaryService;
     ObjectMapper objectMapper;
@@ -188,6 +190,7 @@ public class OrderServiceImpl implements OrderService {
         notificationService.sendNotification(
                 new NotificationDto("Статус заказа изменено!", notificationMessage, LocalDateTime.now().format(formatter))
         );
+        fcmService.sendMessageToToken(new FirebaseNotificationRequest("Статус заказа изменено!", notificationMessage, "656565ufg"));
 
         return String.format("Order status has been changed from '%s' to '%s'", statusArray[currentIndex], statusArray[newStatusIndex]);
     }
