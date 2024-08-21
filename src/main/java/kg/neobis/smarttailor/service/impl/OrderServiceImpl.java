@@ -554,26 +554,19 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderPageDto searchOrders(String name, int pageNumber, int pageSize, Authentication authentication) {
-        AppUser user = appUserService.getUserFromAuthentication(authentication);
-        organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+    public AdvertisementPageDto searchOrders(String name, int pageNumber, int pageSize, Authentication authentication) {
+        appUserService.getUserFromAuthentication(authentication);
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, "name"));
         Page<Order> orders = searchOrders(name, pageable);
         List<Order> orderList = orders.getContent();
         List<OrderListDto> orderCardList = orderMapper.entityListToDtoList(orderList);
         boolean isLast = orders.isLast();
         Long totalCount = orders.getTotalElements();
-        return new OrderPageDto(orderCardList, isLast, totalCount);
+        return new AdvertisementPageDto(orderCardList, isLast, totalCount);
     }
 
     private Page<Order> searchOrders(String name, Pageable pageable) {
-
-        if (isNumeric(name)) {
-            Long id = Long.parseLong(name);
-            return orderRepository.findById(id, pageable);
-        } else {
             return orderRepository.findByNameContainingIgnoreCase(name, pageable);
-        }
     }
 
     private boolean isNumeric(String str) {

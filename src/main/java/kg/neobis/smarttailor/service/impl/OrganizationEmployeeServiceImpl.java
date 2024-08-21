@@ -59,10 +59,10 @@ public class OrganizationEmployeeServiceImpl implements OrganizationEmployeeServ
 
 
     @Override
-    public Page<MyAdvertisementCard> searchAcrossTable(String query, Long userId, Long organizationId, Pageable pageable) {
+    public Page<MyAdvertisementCard> searchAcrossTable(String query, Long userId, Pageable pageable) {
 
         List<Services> serviceResults = organizationEmployeeRepository.searchServices(query, userId);
-        List<Order> orderResults = organizationEmployeeRepository.searchOrders(query, userId, organizationId);
+        List<Order> orderResults = organizationEmployeeRepository.searchOrders(query, userId);
         List<Equipment> equipmentResults = organizationEmployeeRepository.searchEquipments(query, userId);
 
         List<MyAdvertisementCard> advertisementCards = new ArrayList<>();

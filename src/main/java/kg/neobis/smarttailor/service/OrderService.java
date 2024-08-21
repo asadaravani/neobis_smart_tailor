@@ -68,5 +68,5 @@ public interface OrderService {
     String sendRequestToExecuteOrder(Long orderId, Authentication authentication);
 
 
-    OrderPageDto searchOrders(String query, int pageNumber, int pageSize, Authentication authentication);
+    AdvertisementPageDto searchOrders(String query, int pageNumber, int pageSize, Authentication authentication);
 }
