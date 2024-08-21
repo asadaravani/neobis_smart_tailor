@@ -4,9 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
-import kg.neobis.smarttailor.dtos.EmployeeDetailedDto;
-import kg.neobis.smarttailor.dtos.EmployeeDto;
-import kg.neobis.smarttailor.dtos.EmployeeListDto;
+import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.service.EmployeeService;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -43,6 +41,11 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeService.getAllEmployees(authentication));
     }
 
+
+    @GetMapping("/employees-by-weight-group")
+    public ResponseEntity<OrganizationEmployees> getEmployeesByWeights(Authentication authentication) {
+        return ResponseEntity.ok(employeeService.getOrganizationEmployeesByWeight(authentication));
+    }
     @Operation(
             summary = "EMPLOYEE'S INFORMATION",
             description = "Returns employee's information",

@@ -274,5 +274,4 @@ public class EquipmentServiceImpl implements EquipmentService {
             throw new OutOfStockException("This equipment is out of stock");
         }
     }
-
 }

@@ -13,7 +13,11 @@ import java.util.List;
 
 public interface OrderService {
 
+    AdvertisementPageDto getOrganizationOrderHistory(int pageNumber, int pageSize, Authentication authentication);
+
     String addOrder(String orderRequestDto, List<MultipartFile> images, Authentication authentication) throws JsonProcessingException;
+
+    OrganizationOrderHistoryDetailedDto getOrganizationOrderHistoryDetailed(Long orderId, Authentication authentication);
 
     String assignExecutorToOrder(Long orderId, Long userId, Authentication authentication);
 

@@ -11,6 +11,7 @@ import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.enums.OrderStatus;
 import kg.neobis.smarttailor.enums.PlusMinus;
 import kg.neobis.smarttailor.exception.*;
+import kg.neobis.smarttailor.mapper.AppUserMapper;
 import kg.neobis.smarttailor.mapper.OrderMapper;
 import kg.neobis.smarttailor.repository.OrderRepository;
 import kg.neobis.smarttailor.service.AppUserService;
@@ -48,6 +49,7 @@ import java.util.stream.Collectors;
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class OrderServiceImpl implements OrderService {
 
+    AppUserMapper appUserMapper;
     AppUserService appUserService;
     CloudinaryService cloudinaryService;
     ObjectMapper objectMapper;
@@ -119,11 +121,9 @@ public class OrderServiceImpl implements OrderService {
         if (!order.getAuthor().getId().equals(user.getId())) {
             throw new NoPermissionException("User cannot manage an order that is not his own");
         }
-
         if (order.getOrganizationExecutor() != null) {
             throw new ResourceAlreadyExistsException(String.format("Order is already given to '%s' organization", executorOrganization.getName()));
         }
-
         if (order.getCandidates().stream().noneMatch(org -> org.getId().equals(executor.getId()))) {
             throw new ResourceNotFoundException(String.format("User %s hasn't sent request to execute the order", executor.getFullName()));
         }
@@ -136,7 +136,7 @@ public class OrderServiceImpl implements OrderService {
         order.setIsVisible(false);
         orderRepository.save(order);
 
-        return String.format("Order has been assigned to %s from '%s' organization", user.getFullName(), organizationEmployee.getOrganization().getName());
+        return String.format("Order has been assigned to %s from '%s' organization", executor.getFullName(), organizationEmployee.getOrganization().getName());
     }
 
     @Override
@@ -490,7 +490,7 @@ public class OrderServiceImpl implements OrderService {
         Page<Order> orders = orderRepository.findAllByAuthor(user, pageable);
         List<MyAdvertisement> orderList = new ArrayList<>();
 
-        orders.getContent().forEach(service -> orderList.add(orderMapper.toMyAdvertisement(service)));
+        orders.getContent().forEach(order -> orderList.add(orderMapper.toMyAdvertisement(order)));
 
         boolean isLast = orders.isLast();
         Long totalCount = orders.getTotalElements();
@@ -526,30 +526,28 @@ public class OrderServiceImpl implements OrderService {
 
         Organization usersOrganization = organizationEmployee.getOrganization();
 
-        if (order.getCandidates().contains(user)) {
-            throw new ResourceAlreadyExistsException("User already sent the request");
+        Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.TAKE_ORDER, user.getEmail());
+
+        if (!hasRights) {
+            throw new NoPermissionException("User has no permission to take order");
         }
         if (order.getAuthor().getId().equals(user.getId())) {
-            throw new SelfPurchaseException("User can't execute to his/her own order");
+            throw new SelfPurchaseException("Users can't respond to theirs advertisements");
         }
-
         if (order.getAuthor().getId().equals(usersOrganization.getDirector().getId())) {
             throw new SelfPurchaseException("Order's author is a director of user's organization");
         }
-
-        if (order.getOrganizationExecutor() == null) {
-            if (organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.SEND_REQUEST_TO_EXECUTE_ORDER, user.getEmail())) {
-                if (!order.getCandidates().contains(user)) {
-                    order.getCandidates().add(user);
-                    orderRepository.save(order);
-                }
-                return "User has left a request to execute the order";
-            } else {
-                throw new NoPermissionException("User has no permission to send request to execute order");
-            }
-        } else {
-            throw new ResourceAlreadyExistsException("Order is already taken");
+        if (order.getOrganizationExecutor() != null) {
+            throw new ResourceAlreadyExistsException("Order has been already given to another organization");
         }
+        if (order.getCandidates().stream().
+                anyMatch(candidate -> candidate.getId().equals(user.getId()))) {
+            throw new ResourceAlreadyExistsException("User already sent the request");
+        }
+        order.getCandidates().add(user);
+        orderRepository.save(order);
+
+        return "User has left a request to execute the order";
     }
 
     @Override
@@ -637,5 +635,41 @@ public class OrderServiceImpl implements OrderService {
         } catch (JsonProcessingException e) {
             throw new InvalidJsonException(e.getMessage());
         }
+    }
+
+
+    @Override
+    public AdvertisementPageDto getOrganizationOrderHistory(int pageNumber, int pageSize, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+
+        Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "dateOfCompletion"));
+        Page<Order> organizationCompletedOrders = orderRepository.findCompletedEmployeeOrders(user, pageable);
+
+        List<UserOrderHistoryDto> orderListDto = orderMapper.entityListToUserOrderHistoryDto(organizationCompletedOrders, "completed");
+        boolean isLast = organizationCompletedOrders.isLast();
+        Long totalCount = organizationCompletedOrders.getTotalElements();
+
+        return new AdvertisementPageDto(orderListDto, isLast, totalCount);
+    }
+
+    @Override
+    public OrganizationOrderHistoryDetailedDto getOrganizationOrderHistoryDetailed(Long orderId, Authentication authentication) {
+
+        Order order = findOrderById(orderId);
+
+        return OrganizationOrderHistoryDetailedDto.builder()
+                .id(order.getId())
+                .name(order.getName())
+                .description(order.getDescription())
+                .price(order.getPrice())
+                .dateOfCompletion(order.getDateOfCompletion())
+                .employees(order.getOrderEmployees().stream()
+                        .map(appUserMapper::entityToEmployeeDto)
+                        .collect(Collectors.toList()))
+                .authorFullName(order.getFullName(order))
+                .authorContactInfo(order.getContactInfo())
+                .build();
     }
 }

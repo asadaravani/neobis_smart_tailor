@@ -170,7 +170,8 @@ public class ServiceController {
             }
     )
     @PostMapping("/send-request-to-service/{serviceId}")
-    public ResponseEntity<String> sendRequestToService(@PathVariable Long serviceId, Authentication authentication) {
+    public ResponseEntity<String> sendRequestToService(@PathVariable Long serviceId,
+                                                       Authentication authentication) {
         return ResponseEntity.ok(servicesService.sendRequestToService(serviceId, authentication));
     }
 }

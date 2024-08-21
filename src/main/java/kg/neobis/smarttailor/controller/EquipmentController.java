@@ -171,5 +171,4 @@ public class EquipmentController {
     public ResponseEntity<String> hideEquipment(@PathVariable Long equipmentId, Authentication authentication) {
         return ResponseEntity.ok(equipmentService.hideEquipment(equipmentId, authentication));
     }
-
 }

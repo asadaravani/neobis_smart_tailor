@@ -180,23 +180,6 @@ public class ServiceServiceImpl implements ServicesService {
     }
 
     @Override
-    public String sendRequestToService(Long serviceId, Authentication authentication) {
-        Services service = findServiceById(serviceId);
-        AppUser user = appUserService.getUserFromAuthentication(authentication);
-
-        if (service.getAuthor().equals(user)) {
-            throw new SelfPurchaseException("User can't respond to his/her own ad");
-        }
-        if (service.getServiceApplicants().contains(user)) {
-            throw new ResourceAlreadyExistsException("User has been sent the request to this service already");
-        }
-        service.getServiceApplicants().add(user);
-        serviceRepository.save(service);
-
-        return "User has left a request to service";
-    }
-
-    @Override
     public AdvertisementPageDto searchServices(String name, int pageNumber, int pageSize, Authentication authentication) {
         appUserService.getUserFromAuthentication(authentication);
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -206,6 +189,24 @@ public class ServiceServiceImpl implements ServicesService {
         boolean isLast = services.isLast();
         Long totalCount = services.getTotalElements();
         return new AdvertisementPageDto(serviceListDto, isLast, totalCount);
+    }
+
+    @Override
+    public String sendRequestToService(Long serviceId, Authentication authentication) {
+        Services service = findServiceById(serviceId);
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+
+        if (service.getAuthor().getId().equals(user.getId())) {
+            throw new SelfPurchaseException("User can't respond to his/her own advertisements");
+        }
+        if (service.getServiceApplicants().stream()
+                .anyMatch(applicant -> applicant.getId().equals(user.getId()))) {
+            throw new ResourceAlreadyExistsException("User has been sent the request to this service already");
+        }
+        service.getServiceApplicants().add(user);
+        serviceRepository.save(service);
+
+        return "User has left a request to service";
     }
 
     private ServiceRequestDto parseAndValidateServiceRequestDto(String serviceDto) {
