@@ -1,5 +1,6 @@
 package kg.neobis.smarttailor.mapper;
 
+import kg.neobis.smarttailor.dtos.PositionCard;
 import kg.neobis.smarttailor.dtos.PositionDto;
 import kg.neobis.smarttailor.entity.Organization;
 import kg.neobis.smarttailor.entity.Position;
@@ -17,6 +18,16 @@ public class PositionMapper {
                 dto.weight(),
                 dto.accessRights(),
                 organization
+        );
+    }
+
+
+    public PositionCard toPositionCard(Position position) {
+        return new PositionCard(
+                position.getId(),
+                position.getName(),
+                position.getWeight(),
+                position.getAccessRights()
         );
     }
 

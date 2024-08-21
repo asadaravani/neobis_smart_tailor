@@ -1,6 +1,7 @@
 package kg.neobis.smarttailor.service;
 
 import kg.neobis.smarttailor.dtos.PositionDto;
+import kg.neobis.smarttailor.dtos.PositionsWeightGroups;
 import kg.neobis.smarttailor.entity.Position;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.enums.PlusMinus;
@@ -12,6 +13,8 @@ import java.util.Set;
 public interface PositionService {
 
     String addPosition(String positionDto, Authentication authentication);
+
+    PositionsWeightGroups getPositionsByWeight(Authentication authentication);
 
     List<PositionDto> getAllPositionsExceptDirector(Authentication authentication);
 

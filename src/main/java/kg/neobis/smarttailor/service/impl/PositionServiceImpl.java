@@ -2,8 +2,11 @@ package kg.neobis.smarttailor.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kg.neobis.smarttailor.dtos.PositionCard;
+import kg.neobis.smarttailor.dtos.PositionsWeightGroups;
 import kg.neobis.smarttailor.dtos.PositionDto;
 import kg.neobis.smarttailor.entity.AppUser;
+import kg.neobis.smarttailor.entity.Organization;
 import kg.neobis.smarttailor.entity.OrganizationEmployee;
 import kg.neobis.smarttailor.entity.Position;
 import kg.neobis.smarttailor.enums.AccessRight;
@@ -38,6 +41,33 @@ public class PositionServiceImpl implements PositionService {
     PositionMapper positionMapper;
     Validator validator;
     PositionRepository positionRepository;
+
+    @Override
+    public PositionsWeightGroups getPositionsByWeight(Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        Organization organization = organizationEmployee.getOrganization();
+
+        List<Position> positions = positionRepository.findAllByOrganizationAndWeightIsLessThan(organization, 6);
+        return new PositionsWeightGroups(
+                extractPositionsByWeightAndMap(5, positions),
+                extractPositionsByWeightAndMap(4, positions),
+                extractPositionsByWeightAndMap(3, positions),
+                extractPositionsByWeightAndMap(2, positions),
+                extractPositionsByWeightAndMap(1, positions)
+        );
+    }
+
+    private List<PositionCard> extractPositionsByWeightAndMap(int weight, List<Position> positions) {
+        List<PositionCard> positionCards = new ArrayList<>();
+        positions.forEach(position -> {
+            if (position.getWeight() == weight) {
+                positionCards.add(positionMapper.toPositionCard(position));
+            }
+        });
+        return positionCards;
+    }
 
     @Override
     public String addPosition(String positionRequestDto, Authentication authentication) {

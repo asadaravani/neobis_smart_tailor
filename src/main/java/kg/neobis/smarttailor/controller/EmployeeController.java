@@ -41,11 +41,6 @@ public class EmployeeController {
         return ResponseEntity.ok(employeeService.getAllEmployees(authentication));
     }
 
-
-    @GetMapping("/employees-by-weight-group")
-    public ResponseEntity<OrganizationEmployees> getEmployeesByWeights(Authentication authentication) {
-        return ResponseEntity.ok(employeeService.getOrganizationEmployeesByWeight(authentication));
-    }
     @Operation(
             summary = "EMPLOYEE'S INFORMATION",
             description = "Returns employee's information",
