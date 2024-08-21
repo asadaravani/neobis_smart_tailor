@@ -45,6 +45,7 @@ public final class EndpointConstants {
             "/swagger-ui.html",
             "/websocket/**",
             "/app/**",
-            "/topic/**"
+            "/topic/**",
+            "/notification/push"
     };
 }

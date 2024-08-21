@@ -6,5 +6,5 @@ import java.util.concurrent.ExecutionException;
 
 public interface FCMService {
 
-    void sendMessageToToken(FirebaseNotificationRequest request)throws InterruptedException, ExecutionException;
+    void sendMessageToToken(FirebaseNotificationRequest request);
 }

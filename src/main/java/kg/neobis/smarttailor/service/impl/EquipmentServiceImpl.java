@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.dtos.AuthorEquipmentDetailedDto;
 import kg.neobis.smarttailor.dtos.EquipmentDetailed;
+import kg.neobis.smarttailor.dtos.FirebaseNotificationRequest;
 import kg.neobis.smarttailor.dtos.ads.equipment.EquipmentRequestDto;
 import kg.neobis.smarttailor.dtos.NotificationDto;
 import kg.neobis.smarttailor.dtos.NotificationPdfDto;
@@ -26,6 +27,7 @@ import kg.neobis.smarttailor.repository.EquipmentRepository;
 import kg.neobis.smarttailor.service.AppUserService;
 import kg.neobis.smarttailor.service.CloudinaryService;
 import kg.neobis.smarttailor.service.EquipmentService;
+import kg.neobis.smarttailor.service.FCMService;
 import kg.neobis.smarttailor.service.NotificationService;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -55,6 +57,7 @@ import java.util.List;
 public class EquipmentServiceImpl implements EquipmentService {
 
     AppUserService appUserService;
+    FCMService fcmService;
     CloudinaryService cloudinaryService;
     EquipmentMapper equipmentMapper;
     EquipmentRepository equipmentRepository;
@@ -98,6 +101,8 @@ public class EquipmentServiceImpl implements EquipmentService {
                 new NotificationDto("Оборудование продано!", equipment.getName() + " был куплен пользователем " + user.getName(), LocalDateTime.now().format(formatter)),
                 new NotificationPdfDto(user.getName() + " " + user.getSurname(), user.getEmail(), equipment.getName(), equipment.getPrice())
         );
+
+            fcmService.sendMessageToToken(new FirebaseNotificationRequest("Оборудование продано!", equipment.getName() + " был куплен пользователем " + user.getName(), "656565ufg"));
 
         return "You have successfully purchased the equipment. Receipt sent to the email. Please check your email";
     }

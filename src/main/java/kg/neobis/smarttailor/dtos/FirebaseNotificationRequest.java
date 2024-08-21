@@ -6,7 +6,6 @@ import lombok.Builder;
 public record FirebaseNotificationRequest(
         String title,
         String body,
-        String topic,
         String token
 ) {
 }
