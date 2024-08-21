@@ -1,23 +1,13 @@
 package kg.neobis.smarttailor.service.impl;
 
-import kg.neobis.smarttailor.dtos.AdvertisementCard;
-import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
-import kg.neobis.smarttailor.dtos.EmployeeDetailedDto;
-import kg.neobis.smarttailor.dtos.EmployeeDto;
-import kg.neobis.smarttailor.dtos.EmployeeListDto;
-import kg.neobis.smarttailor.dtos.EmployeeOrderListDto;
-import kg.neobis.smarttailor.dtos.EmployeesPageDto;
-import kg.neobis.smarttailor.dtos.MyAdvertisementCard;
+import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.*;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.exception.InvalidRequestException;
 import kg.neobis.smarttailor.exception.NoPermissionException;
 import kg.neobis.smarttailor.exception.UserNotInOrganizationException;
 import kg.neobis.smarttailor.mapper.AppUserMapper;
-import kg.neobis.smarttailor.service.AppUserService;
-import kg.neobis.smarttailor.service.EmployeeService;
-import kg.neobis.smarttailor.service.OrderService;
-import kg.neobis.smarttailor.service.OrganizationEmployeeService;
+import kg.neobis.smarttailor.service.*;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -28,6 +18,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -104,6 +95,34 @@ public class EmployeeServiceImpl implements EmployeeService {
         Long totalCount = result.getTotalElements();
 
         return new AdvertisementPageDto(advertisementCardList, isLast, totalCount);
+    }
+
+    @Override
+    public OrganizationEmployees getOrganizationEmployeesByWeight(Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        Organization organization = organizationEmployee.getOrganization();
+        List<OrganizationEmployee> employees = organizationEmployeeService.findAllByOrganization(organization);
+
+        return new OrganizationEmployees(
+                extractEmployeesByWeightAndMap(5, employees),
+                extractEmployeesByWeightAndMap(4, employees),
+                extractEmployeesByWeightAndMap(3, employees),
+                extractEmployeesByWeightAndMap(2, employees),
+                extractEmployeesByWeightAndMap(1, employees)
+        );
+    }
+
+
+    private List<EmployeeCard> extractEmployeesByWeightAndMap(int weight, List<OrganizationEmployee> employees) {
+        List<EmployeeCard> employeeCards = new ArrayList<>();
+        employees.forEach(employee -> {
+            if (employee.getPosition().getWeight() == weight) {
+                employeeCards.add(appUserMapper.toEmployeeCard(employee));
+            }
+        });
+        return employeeCards;
     }
 
     @Override

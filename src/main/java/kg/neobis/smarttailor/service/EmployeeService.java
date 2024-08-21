@@ -1,10 +1,6 @@
 package kg.neobis.smarttailor.service;
 
-import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
-import kg.neobis.smarttailor.dtos.EmployeeDetailedDto;
-import kg.neobis.smarttailor.dtos.EmployeeDto;
-import kg.neobis.smarttailor.dtos.EmployeeListDto;
-import kg.neobis.smarttailor.dtos.EmployeesPageDto;
+import kg.neobis.smarttailor.dtos.*;
 import org.springframework.security.core.Authentication;
 
 import java.util.List;
@@ -20,6 +16,8 @@ public interface EmployeeService {
     String removeEmployee(Long employeeId, Authentication authentication);
 
     AdvertisementPageDto searchAds(String query, int pageNumber, int pageSize, Authentication authentication);
+
+    OrganizationEmployees getOrganizationEmployeesByWeight(Authentication authentication);
 
     EmployeesPageDto searchEmployees(String query, int pageNumber, int pageSize, Authentication authentication);
 }

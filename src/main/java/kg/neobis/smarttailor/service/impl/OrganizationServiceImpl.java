@@ -15,10 +15,7 @@ import kg.neobis.smarttailor.entity.OrganizationEmployee;
 import kg.neobis.smarttailor.entity.Position;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.enums.Role;
-import kg.neobis.smarttailor.exception.InvalidJsonException;
-import kg.neobis.smarttailor.exception.NoPermissionException;
-import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
-import kg.neobis.smarttailor.exception.ResourceNotFoundException;
+import kg.neobis.smarttailor.exception.*;
 import kg.neobis.smarttailor.mapper.OrganizationMapper;
 import kg.neobis.smarttailor.repository.OrganizationRepository;
 import kg.neobis.smarttailor.service.AppUserService;
@@ -69,7 +66,6 @@ public class OrganizationServiceImpl implements OrganizationService {
         InvitationToken token = invitationTokenService.findByToken(invitationToken);
 
         if (LocalDateTime.now().isBefore(token.getExpirationTime())) {
-
             AppUser user = token.getUser();
             user.setEnabled(true);
             appUserService.save(user);
@@ -83,9 +79,10 @@ public class OrganizationServiceImpl implements OrganizationService {
                     .build();
             organizationEmployeeService.save(organizationEmployee);
 
-            return ResponseEntity.ok("You accepted invitation");
+            return ResponseEntity.ok("User accepted invitation");
+        } else {
+            throw new OutOfDateException("Token has been expired");
         }
-        return ResponseEntity.badRequest().body("Token has been expired");
     }
 
     @Override
@@ -95,15 +92,15 @@ public class OrganizationServiceImpl implements OrganizationService {
 
         if (!user.getHasSubscription()) {
             throw new NoPermissionException("User has no subscription");
-        }
-
-        if (organizationRepository.existsOrganizationByDirector(user)) {
+        } else if (organizationRepository.existsOrganizationByDirector(user)) {
             throw new ResourceAlreadyExistsException("User already has an organization");
+        } else if (organizationEmployeeService.existsByEmployeeEmail(user.getEmail())) {
+            throw new ResourceAlreadyExistsException("User is a member of another organization");
         }
 
         OrganizationDto requestDto = parseAndValidateOrganizationDto(organizationRequestDto);
         if (organizationRepository.existsOrganizationByName(requestDto.name())) {
-            throw new ResourceAlreadyExistsException("Organization with name \"".concat(requestDto.name().concat("\" already exists")));
+            throw new ResourceAlreadyExistsException(String.format("Organization with name '%s' already exists", requestDto.name()));
         }
 
         Image image = cloudinaryService.saveImage(organizationImage);
@@ -163,15 +160,12 @@ public class OrganizationServiceImpl implements OrganizationService {
             if (isUserExists) {
                 if (organizationRepository.existsOrganizationByDirectorEmail(employeeInvitationRequest.email())) {
                     throw new ResourceAlreadyExistsException("User has his own organization");
-                }
-                if (organizationEmployeeService.existsByOrganizationAndEmployeeEmail(organizationEmployee.getOrganization(), employeeInvitationRequest.email())) {
+                } else if (organizationEmployeeService.existsByOrganizationAndEmployeeEmail(organizationEmployee.getOrganization(), employeeInvitationRequest.email())) {
                     throw new ResourceAlreadyExistsException("User is already a member of your organization");
-                }
-                if (organizationEmployeeService.existsByEmployeeEmail(employeeInvitationRequest.email())) {
+                } else if (organizationEmployeeService.existsByEmployeeEmail(employeeInvitationRequest.email())) {
                     throw new ResourceAlreadyExistsException("User is already a member of another organization");
                 }
             }
-
             Position position = positionService.getPositionByName(employeeInvitationRequest.position());
             if (position == null) {
                 throw new ResourceNotFoundException("Specified position not found");

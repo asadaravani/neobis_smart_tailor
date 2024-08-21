@@ -74,8 +74,8 @@ public class OrderController {
     }
 
     @Operation(
-            summary = "ASSIGN ORGANIZATION TO ORDER",
-            description = "Accepts order id and organization's name to assign order to specified organization",
+            summary = "ASSIGN USER TO ORDER",
+            description = "Accepts order's and user's IDs to assign order to specified organization",
             responses = {
                     @ApiResponse(responseCode = "200", description = "Order has been assigned to specified organization"),
                     @ApiResponse(responseCode = "400", description = "Required parameter(s) is not present"),
@@ -113,6 +113,18 @@ public class OrderController {
         return ResponseEntity.ok(orderService.changeOrderStatus(orderId, plusMinus, authentication));
     }
 
+    @GetMapping("/organization-order-history")
+    public ResponseEntity<AdvertisementPageDto> getOrganizationOrderHistory(@RequestParam int pageNumber,
+                                                                            @RequestParam int pageSize,
+                                                                            Authentication authentication) {
+        return ResponseEntity.ok(orderService.getOrganizationOrderHistory(pageNumber, pageSize, authentication));
+    }
+
+    @GetMapping("/organization-order-history/{orderId}")
+    public ResponseEntity<OrganizationOrderHistoryDetailedDto> getOrganizationOrderHistoryDetailed(@PathVariable Long orderId,
+                                                                                                   Authentication authentication) {
+        return ResponseEntity.ok(orderService.getOrganizationOrderHistoryDetailed(orderId, authentication));
+    }
     @Operation(
             summary = "COMPLETE ORDER",
             description = "Accepts order's id and changes order status to completed",

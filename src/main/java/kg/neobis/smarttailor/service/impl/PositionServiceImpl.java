@@ -45,13 +45,14 @@ public class PositionServiceImpl implements PositionService {
         PositionDto requestDto = parseAndValidatePositionDto(positionRequestDto);
         AppUser user = appUserService.getUserFromAuthentication(authentication);
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        int positionWeight = organizationEmployee.getPosition().getWeight();
 
         Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.CREATE_POSITION, user.getEmail());
         Set<AccessRight> authenticatedUserAccessRights = organizationEmployee.getPosition().getAccessRights();
 
         if (hasRights) {
             if (!positionRepository.existsPositionByNameAndOrganization(requestDto.positionName(), organizationEmployee.getOrganization())) {
-                if (requestDto.weight() < organizationEmployee.getPosition().getWeight()) {
+                if (requestDto.weight() < positionWeight && requestDto.weight() > 0) {
                     for (AccessRight accessRight: requestDto.accessRights()) {
                         if (!authenticatedUserAccessRights.contains(accessRight)) {
                             throw new NoPermissionException("User can't create position with rights, that he doesn't have");
@@ -61,10 +62,11 @@ public class PositionServiceImpl implements PositionService {
                     positionRepository.save(position);
 
                 } else {
-                    throw new NoPermissionException("User can create position only with weight, that smaller than his position's weight");
+                    throw new NoPermissionException(String.format("Authenticated user's weight: %s. Position's weight must be between 1 and %s",
+                            positionWeight, positionWeight-1));
                 }
             } else {
-                throw new ResourceAlreadyExistsException("Position with name '".concat(requestDto.positionName()).concat("' already exists"));
+                throw new ResourceAlreadyExistsException(String.format("Position with name '%s' already exists", requestDto.positionName()));
             }
         } else {
             throw new NoPermissionException("User has no permission to create position");
@@ -112,7 +114,6 @@ public class PositionServiceImpl implements PositionService {
         return String.format("Position weight is '%s'", positionWeight);
     }
 
-
     @Override
     public List<PositionDto> getAllPositionsExceptDirector(Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
@@ -150,7 +151,6 @@ public class PositionServiceImpl implements PositionService {
     public Set<AccessRight> getAvailableAccessRights(Authentication authentication) {
 
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
 
         return organizationEmployee.getPosition().getAccessRights();

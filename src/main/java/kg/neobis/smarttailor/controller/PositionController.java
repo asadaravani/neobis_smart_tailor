@@ -112,7 +112,7 @@ public class PositionController {
                     @ApiResponse(responseCode = "500", description = "Internal Server Error")
             }
     )
-    @GetMapping("/positions-weights")
+    @GetMapping("/available-weights")
     public ResponseEntity<List<Integer>> getPositionsWithWeightsLessThan(Authentication authentication) {
         return ResponseEntity.ok(positionService.getPositionsWithWeightsLessThan(authentication));
     }
