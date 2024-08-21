@@ -18,7 +18,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -95,34 +94,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         Long totalCount = result.getTotalElements();
 
         return new AdvertisementPageDto(advertisementCardList, isLast, totalCount);
-    }
-
-    @Override
-    public OrganizationEmployees getOrganizationEmployeesByWeight(Authentication authentication) {
-
-        AppUser user = appUserService.getUserFromAuthentication(authentication);
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
-        Organization organization = organizationEmployee.getOrganization();
-        List<OrganizationEmployee> employees = organizationEmployeeService.findAllByOrganization(organization);
-
-        return new OrganizationEmployees(
-                extractEmployeesByWeightAndMap(5, employees),
-                extractEmployeesByWeightAndMap(4, employees),
-                extractEmployeesByWeightAndMap(3, employees),
-                extractEmployeesByWeightAndMap(2, employees),
-                extractEmployeesByWeightAndMap(1, employees)
-        );
-    }
-
-
-    private List<EmployeeCard> extractEmployeesByWeightAndMap(int weight, List<OrganizationEmployee> employees) {
-        List<EmployeeCard> employeeCards = new ArrayList<>();
-        employees.forEach(employee -> {
-            if (employee.getPosition().getWeight() == weight) {
-                employeeCards.add(appUserMapper.toEmployeeCard(employee));
-            }
-        });
-        return employeeCards;
     }
 
     @Override

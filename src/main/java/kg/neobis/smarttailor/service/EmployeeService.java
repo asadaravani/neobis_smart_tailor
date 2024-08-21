@@ -17,7 +17,5 @@ public interface EmployeeService {
 
     AdvertisementPageDto searchAds(String query, int pageNumber, int pageSize, Authentication authentication);
 
-    OrganizationEmployees getOrganizationEmployeesByWeight(Authentication authentication);
-
     EmployeesPageDto searchEmployees(String query, int pageNumber, int pageSize, Authentication authentication);
 }

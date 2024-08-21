@@ -4,10 +4,8 @@ import kg.neobis.smarttailor.enums.AccessRight;
 
 import java.util.Set;
 
-public record EmployeeCard (
+public record PositionCard(
     Long id,
-    String fullName,
-    String email,
     String position,
     int weight,
     Set<AccessRight> accessRights
