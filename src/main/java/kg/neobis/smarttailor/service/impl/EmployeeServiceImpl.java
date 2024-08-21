@@ -85,10 +85,8 @@ public class EmployeeServiceImpl implements EmployeeService {
     @Override
     public AdvertisementPageDto searchAds(String query, int pageNumber, int pageSize, Authentication authentication) {
         AppUser user = appUserService.getUserFromAuthentication(authentication);
-        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
-        Organization organization = organizationEmployee.getOrganization();
         Pageable pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.ASC, "name"));
-        Page<MyAdvertisementCard> result = organizationEmployeeService.searchAcrossTable(query, user.getId(), organization.getId(), pageable);
+        Page<MyAdvertisementCard> result = organizationEmployeeService.searchAcrossTable(query, user.getId(), pageable);
         List<MyAdvertisementCard> advertisementCardList = result.getContent();
         boolean isLast = result.isLast();
         Long totalCount = result.getTotalElements();

@@ -55,8 +55,8 @@ public interface OrganizationEmployeeRepository extends JpaRepository<Organizati
 
     @Query("SELECT o FROM orders o " +
             "WHERE LOWER(o.name) LIKE LOWER(CONCAT('%', :query, '%')) " +
-            "AND o.author.id = :userId AND o.organizationExecutor.id = :organizationId")
-    List<Order> searchOrders(@Param("query") String query, @Param("userId") Long userId, @Param("organizationId") Long organizationId);
+            "AND o.author.id = :userId")
+    List<Order> searchOrders(@Param("query") String query, @Param("userId") Long userId);
 
     @Query("SELECT e FROM Equipment e " +
             "WHERE LOWER(e.name) LIKE LOWER(CONCAT('%', :query, '%')) " +

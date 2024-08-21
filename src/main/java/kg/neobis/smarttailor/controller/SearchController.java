@@ -101,7 +101,7 @@ public class SearchController {
             }
     )
     @GetMapping("/order")
-    public ResponseEntity<OrderPageDto> searchOrders(@RequestParam(name = "query") String query,
+    public ResponseEntity<AdvertisementPageDto> searchOrders(@RequestParam(name = "query") String query,
                                                      @RequestParam int pageNumber,
                                                      @RequestParam int pageSize,
                                                      Authentication authentication) {

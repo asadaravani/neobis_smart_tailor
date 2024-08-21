@@ -33,5 +33,5 @@ public interface OrganizationEmployeeService {
 
     void save(OrganizationEmployee organizationEmployee);
 
-    Page<MyAdvertisementCard> searchAcrossTable(String query, Long userId, Long organizationId, Pageable pageable);
+    Page<MyAdvertisementCard> searchAcrossTable(String query, Long userId, Pageable pageable);
 }
