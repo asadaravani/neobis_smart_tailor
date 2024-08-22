@@ -24,6 +24,9 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT DISTINCT o FROM orders o JOIN o.candidates c WHERE c = :candidate")
     List<Order> findAllByCandidate(@Param("candidate") AppUser candidate);
 
+    @Query("SELECT DISTINCT o FROM orders o JOIN o.orderEmployees c WHERE c = :employee")
+    Page<Order> findAllByEmployee(@Param("employee") AppUser employee, Pageable pageable);
+
     @Query("SELECT DISTINCT o FROM orders o JOIN o.candidates c WHERE c IN :candidates")
     List<Order> findAllByCandidates(@Param("candidates") List<AppUser> candidates);
 
@@ -44,7 +47,7 @@ public interface OrderRepository extends JpaRepository<Order, Long> {
     @Query("SELECT o FROM orders o WHERE o.organizationExecutor = :organization AND o.dateOfCompletion IS NOT NULL")
     Page<Order> findCompletedOrganizationOrders(@Param("organization") Organization organization, Pageable pageable);
 
-    @Query("SELECT o FROM orders o JOIN o.orderEmployees e WHERE e = :user AND o.dateOfStart IS NOT NULL")
+    @Query("SELECT o FROM orders o JOIN o.orderEmployees e WHERE e = :user AND o.dateOfStart IS NOT NULL AND o.dateOfCompletion IS NULL")
     Page<Order> findCurrentEmployeeOrders(@Param("user") AppUser user, Pageable pageable);
 
     @Query("SELECT o FROM orders o JOIN o.orderEmployees e WHERE e = :user AND o.dateOfStart IS NOT NULL")

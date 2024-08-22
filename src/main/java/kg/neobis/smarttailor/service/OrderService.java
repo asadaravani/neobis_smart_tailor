@@ -29,6 +29,8 @@ public interface OrderService {
 
     String deleteOrder(Long orderId, Authentication authentication) throws IOException;
 
+    AdvertisementPageDto getOrganizationOrderHistoryByEmployee(Long employeeId, String stage, int pageNumber, int pageSize, Authentication authentication);
+
     List<Order> findAllByCandidate(AppUser user);
 
     List<Order> findAllByUser(AppUser user);
