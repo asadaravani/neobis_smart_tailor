@@ -39,6 +39,8 @@ public interface OrderService {
 
     List<Order> findCurrentUserOrders(AppUser user);
 
+    String cancelOrder(Long orderId, Authentication authentication);
+
     Order findOrderById(Long id);
 
     List<Order> findUserOrderPurchases(AppUser user);

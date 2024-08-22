@@ -703,4 +703,38 @@ public class OrderServiceImpl implements OrderService {
         Long totalCount = employeeOrders.getTotalElements();
         return new AdvertisementPageDto(orderListDto, isLast, totalCount);
     }
+
+    @Override
+    public String cancelOrder(Long orderId, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Order order = findOrderById(orderId);
+
+        Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.CANCEL_ORDER, user.getEmail());
+        if (!hasRights) {
+            throw new NoPermissionException("User has no permission to cancel orders");
+        }
+
+        if (order.getOrganizationExecutor() == null) {
+            throw new ResourceNotFoundException("Order hasn't been given to anybody yet");
+        }
+
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        if (order.getOrganizationExecutor().getId().equals(organizationEmployee.getOrganization().getId())) {
+            throw new InvalidRequestException("User's organization is not the executor of this order");
+        }
+
+        if (order.getStatus() == OrderStatus.COMPLETED) {
+            throw new InvalidRequestException("User can't cancel order, which is completed already");
+        }
+
+        order.setDateOfStart(null);
+        order.setMainEmployeeExecutor(null);
+        order.setOrganizationExecutor(null);
+        order.setStatus(OrderStatus.NOT_CONFIRMED);
+        order.setOrderEmployees(null);
+        orderRepository.save(order);
+
+        return "Order has been canceled";
+    }
 }
