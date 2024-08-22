@@ -107,6 +107,18 @@ public class OrderMapper {
                 .collect(Collectors.toList());
     }
 
+    public List<OrganizationOrderHistoryPage> entityListToOrganizationOrderHistoryPage(Page<Order> orders, String stage) {
+        return orders.stream().map(order -> OrganizationOrderHistoryPage.builder()
+                        .id(order.getId())
+                        .name(order.getName())
+                        .description(order.getDescription())
+                        .orderImage(order.getFirstImage(order.getImages()))
+                        .orderStatus(order.getStatus())
+                        .date(stage.equals("current") ? order.getDateOfStart() : order.getDateOfExecution())
+                        .build())
+                .collect(Collectors.toList());
+    }
+
     public List<UserOrderHistoryDto> entityListToUserOrderHistoryDto(Page<Order> orders, String stage) {
         return orders.stream().map(order -> UserOrderHistoryDto.builder()
                         .id(order.getId())

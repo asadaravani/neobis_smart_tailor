@@ -367,4 +367,13 @@ public class OrderController {
     public ResponseEntity<String> sendRequestToExecuteOrder(@PathVariable Long orderId, Authentication authentication) {
         return ResponseEntity.status(HttpStatus.OK).body(orderService.sendRequestToExecuteOrder(orderId, authentication));
     }
+
+    @GetMapping("/organization-order-history-by-employee/{employeeId}")
+    public ResponseEntity<AdvertisementPageDto> getOrganizationOrderHistoryByUser(@PathVariable Long employeeId,
+                                                                                  @RequestParam String stage,
+                                                                                  @RequestParam int pageNumber,
+                                                                                  @RequestParam int pageSize,
+                                                                                  Authentication authentication) {
+        return ResponseEntity.ok(orderService.getOrganizationOrderHistoryByEmployee(employeeId, stage, pageNumber, pageSize, authentication));
+    }
 }

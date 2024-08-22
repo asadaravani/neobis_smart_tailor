@@ -668,4 +668,39 @@ public class OrderServiceImpl implements OrderService {
                 .authorContactInfo(order.getContactInfo())
                 .build();
     }
+
+    @Override
+    public AdvertisementPageDto getOrganizationOrderHistoryByEmployee(Long employeeId, String stage, int pageNumber, int pageSize, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        OrganizationEmployee authenticatedOrganizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        Organization organization = authenticatedOrganizationEmployee.getOrganization();
+        AppUser employee = appUserService.findUserById(employeeId);
+
+        Boolean isEmployeeInOrganization = organizationEmployeeService.existsByOrganizationAndEmployeeEmail(organization, employee.getEmail());
+        if (!isEmployeeInOrganization) {
+            throw new UserNotInOrganizationException("Employee is not a member of authenticated user organization");
+        }
+        Pageable pageable;
+        Page<Order> employeeOrders;
+        switch (stage) {
+            case "current" -> {
+                pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "dateOfStart"));
+                employeeOrders = orderRepository.findCurrentEmployeeOrders(employee, pageable);
+            }
+            case "completed" -> {
+                pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "dateOfCompletion"));
+                employeeOrders = orderRepository.findCompletedEmployeeOrders(employee, pageable);
+            }
+            case "all" -> {
+                pageable = PageRequest.of(pageNumber, pageSize, Sort.by(Sort.Direction.DESC, "dateOfExecution"));
+                employeeOrders = orderRepository.findAllByEmployee(employee, pageable);
+            }
+            default -> throw new ResourceNotFoundException("Invalid stage.\nValid states: completed, current");
+        }
+        List<OrganizationOrderHistoryPage> orderListDto = orderMapper.entityListToOrganizationOrderHistoryPage(employeeOrders, stage);
+        boolean isLast = employeeOrders.isLast();
+        Long totalCount = employeeOrders.getTotalElements();
+        return new AdvertisementPageDto(orderListDto, isLast, totalCount);
+    }
 }
