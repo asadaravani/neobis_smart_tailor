@@ -7,18 +7,37 @@ import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import kg.neobis.smarttailor.dtos.FirebaseNotificationRequest;
+import kg.neobis.smarttailor.entity.DeviceToken;
+import kg.neobis.smarttailor.service.DeviceTokenService;
 import kg.neobis.smarttailor.service.FCMService;
+import lombok.RequiredArgsConstructor;
+import org.mapstruct.ap.shaded.freemarker.debug.impl.DebuggerService;
 import org.springframework.stereotype.Service;
 
-@Service
-public class FCMServiceImpl implements FCMService {
-    @Override
-    public void sendMessageToToken(FirebaseNotificationRequest request)  {
+import java.util.List;
 
+@Service
+@RequiredArgsConstructor
+public class FCMServiceImpl implements FCMService {
+
+    DeviceTokenService deviceTokenService;
+
+    @Override
+    public void sendNotification(FirebaseNotificationRequest request) {
+        List<DeviceToken> tokens = deviceTokenService.findAll();
+        if(!tokens.isEmpty()){
+            for (DeviceToken token : tokens) {
+                sendNotificationToToken(token.getToken(), request.title(), request.body());
+            }
+        }
+    }
+
+
+    public void sendNotificationToToken(String token, String title, String body) {
 
         Notification notification = Notification.builder()
-                .setTitle(request.title())
-                .setBody(request.body())
+                .setTitle(title)
+                .setBody(body)
                 .build();
 
 
@@ -36,19 +55,17 @@ public class FCMServiceImpl implements FCMService {
                 .build();
 
         Message message = Message.builder()
-                .setToken(request.token())
+                .setToken(token)
                 .setNotification(notification)
                 .setAndroidConfig(androidConfig)
                 .setApnsConfig(apnsConfig)
                 .build();
 
-
         try {
-                String response = FirebaseMessaging.getInstance().send(message);
-                System.out.println("Successfully sent message: " + response);
-            } catch (Exception e) {
-                System.out.println(e.getMessage());;
-            }
+            String response = FirebaseMessaging.getInstance().send(message);
+            System.out.println("Successfully sent message: " + response);
+        } catch (Exception e) {
+            System.out.println("Error sending message to token " + token + ": " + e.getMessage());
         }
-
+    }
 }

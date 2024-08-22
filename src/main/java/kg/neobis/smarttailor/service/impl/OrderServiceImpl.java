@@ -190,7 +190,7 @@ public class OrderServiceImpl implements OrderService {
         notificationService.sendNotification(
                 new NotificationDto("Статус заказа изменено!", notificationMessage, LocalDateTime.now().format(formatter))
         );
-        fcmService.sendMessageToToken(new FirebaseNotificationRequest("Статус заказа изменено!", notificationMessage, "656565ufg"));
+        fcmService.sendNotification(new FirebaseNotificationRequest("Статус заказа изменено!", notificationMessage));
 
         return String.format("Order status has been changed from '%s' to '%s'", statusArray[currentIndex], statusArray[newStatusIndex]);
     }
