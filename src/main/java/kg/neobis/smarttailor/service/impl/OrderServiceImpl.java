@@ -4,13 +4,41 @@ import com.cloudinary.utils.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
-import kg.neobis.smarttailor.dtos.*;
+import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
+import kg.neobis.smarttailor.dtos.AuthorOrderDetailedDto;
+import kg.neobis.smarttailor.dtos.CurrentOrderDetailed;
+import kg.neobis.smarttailor.dtos.CurrentOrganizationOrders;
+import kg.neobis.smarttailor.dtos.EmployeeOrderListDto;
+import kg.neobis.smarttailor.dtos.EmployeePageDto;
+import kg.neobis.smarttailor.dtos.EmployeeStageOrderListDto;
+import kg.neobis.smarttailor.dtos.FirebaseNotificationRequest;
+import kg.neobis.smarttailor.dtos.MyAdvertisement;
+import kg.neobis.smarttailor.dtos.NotificationDto;
+import kg.neobis.smarttailor.dtos.OrderCard;
+import kg.neobis.smarttailor.dtos.OrderDetailed;
+import kg.neobis.smarttailor.dtos.OrderListDto;
+import kg.neobis.smarttailor.dtos.OrganizationOrderHistoryDetailedDto;
+import kg.neobis.smarttailor.dtos.OrganizationOrderHistoryPage;
+import kg.neobis.smarttailor.dtos.OrganizationOrdersDto;
+import kg.neobis.smarttailor.dtos.OrganizationPageDto;
+import kg.neobis.smarttailor.dtos.UserOrderHistoryDto;
 import kg.neobis.smarttailor.dtos.ads.order.OrderRequestDto;
-import kg.neobis.smarttailor.entity.*;
+import kg.neobis.smarttailor.entity.AppUser;
+import kg.neobis.smarttailor.entity.Image;
+import kg.neobis.smarttailor.entity.Order;
+import kg.neobis.smarttailor.entity.Organization;
+import kg.neobis.smarttailor.entity.OrganizationEmployee;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.enums.OrderStatus;
 import kg.neobis.smarttailor.enums.PlusMinus;
-import kg.neobis.smarttailor.exception.*;
+import kg.neobis.smarttailor.exception.InvalidJsonException;
+import kg.neobis.smarttailor.exception.InvalidRequestException;
+import kg.neobis.smarttailor.exception.NoPermissionException;
+import kg.neobis.smarttailor.exception.OutOfDateException;
+import kg.neobis.smarttailor.exception.ResourceAlreadyExistsException;
+import kg.neobis.smarttailor.exception.ResourceNotFoundException;
+import kg.neobis.smarttailor.exception.SelfPurchaseException;
+import kg.neobis.smarttailor.exception.UserNotInOrganizationException;
 import kg.neobis.smarttailor.mapper.AppUserMapper;
 import kg.neobis.smarttailor.mapper.OrderMapper;
 import kg.neobis.smarttailor.repository.OrderRepository;
@@ -218,6 +246,13 @@ public class OrderServiceImpl implements OrderService {
                         order.setDateOfCompletion(LocalDate.now());
                         order.setStatus(OrderStatus.COMPLETED);
                         orderRepository.save(order);
+
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+                        notificationService.sendNotification(
+                                new NotificationDto("Заказ выполнен!", "Заказ "+ order.getName() + " был выполнен. Сейчас готов к выдаче.", LocalDateTime.now().format(formatter))
+
+                                );
+                        fcmService.sendNotification(new FirebaseNotificationRequest("Заказ выполнен!", "Заказ "+ order.getName() + " был выполнен. Сейчас готов к выдаче."));
 
                         return "Order has been completed";
                     } else {
@@ -734,6 +769,13 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(OrderStatus.NOT_CONFIRMED);
         order.setOrderEmployees(null);
         orderRepository.save(order);
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        notificationService.sendNotification(
+                new NotificationDto("Заказ отменен!", order.getName() + " был отменен пользователем " + user.getName(), LocalDateTime.now().format(formatter))
+
+        );
+        fcmService.sendNotification(new FirebaseNotificationRequest("Заказ отменен!", order.getName() + " был отменен пользователем " + user.getName()));
 
         return "Order has been canceled";
     }
