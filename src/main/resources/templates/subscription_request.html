@@ -12,12 +12,13 @@
     <div style="background-color: #ffffff; text-align: center;">
         <h1 style="padding-top: 50px; margin-bottom: 20px; color: #292929;">Запрос на подписку</h1>
         <p>ФИО: <span th:text="${fullName}"></span></p>
+        <h2 style="padding-top: 50px; margin-bottom: 20px; color: #292929;">Контактные данные</h2>
         <p>Почта: <span th:text="${email}"></span></p>
         <p>Номер телефона: <span th:text="${phoneNumber}"></span></p>
         <br/>
         <a th:href="@{'https://smarttailor.xyz/api/app-user/confirm-subscription-request?token=' + ${subscriptionToken}}"
            style="display: inline-block; background-color: #292929; color: #ffffff; text-decoration: none; padding: 12px 24px; border-radius: 25px; transition: background-color 0.3s ease;">
-            Подтвердите запрос на подписку
+            Подтвердить запрос на подписку
         </a>
         <div style="margin-top: 20px; color: #666666;">Команда <b>Smart Tailor!</b></div>
         <img src="https://res.cloudinary.com/drbxd4tkj/image/upload/v1718629562/wwt7altwplftmhmrhwt9.png" alt="photo" style="width: 100%; height: 450px; border-radius: 70px; margin-top: 40px;">
