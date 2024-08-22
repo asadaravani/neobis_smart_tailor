@@ -2,9 +2,7 @@ package kg.neobis.smarttailor.service.impl;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import kg.neobis.smarttailor.dtos.PositionCard;
-import kg.neobis.smarttailor.dtos.PositionsWeightGroups;
-import kg.neobis.smarttailor.dtos.PositionDto;
+import kg.neobis.smarttailor.dtos.*;
 import kg.neobis.smarttailor.entity.AppUser;
 import kg.neobis.smarttailor.entity.Organization;
 import kg.neobis.smarttailor.entity.OrganizationEmployee;
@@ -208,5 +206,53 @@ public class PositionServiceImpl implements PositionService {
         } catch (JsonProcessingException e) {
             throw new InvalidJsonException(e.getMessage());
         }
+    }
+
+    @Override
+    public Set<AccessRight> getPositionAccessRights(Long positionId) {
+
+        Position position = positionRepository.findById(positionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Position not found"));
+
+        return position.getAccessRights();
+    }
+
+    @Override
+    public String changeAccessRights(Long positionId, UpdatePositionAccessRightsRequest request, Authentication authentication) {
+
+        AppUser user = appUserService.getUserFromAuthentication(authentication);
+        Position position = positionRepository.findById(positionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Position not found"));
+
+        OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
+        Boolean hasRights = organizationEmployeeService.existsByAccessRightAndEmployeeEmail(AccessRight.CHANGE_POSITION_ACCESS_RIGHTS, user.getEmail());
+
+        if (!hasRights) {
+            throw new NoPermissionException("User has no permission to change position's access rights");
+        }
+        if (!position.getOrganization().getId()
+                .equals(organizationEmployee.getOrganization().getId())) {
+            throw new UserNotInOrganizationException("User can't change access rights for another organization's position");
+        }
+        if (position.getWeight() >= organizationEmployee.getPosition().getWeight()) {
+            throw new NoPermissionException("User can't change access rights for position, which weight more than his");
+        }
+
+        Set<AccessRight> requestAccessRights = request.accessRights();
+        Set<AccessRight> positionAccessRights = getPositionAccessRights(positionId);
+        Set<AccessRight> availableAccessRights = getAvailableAccessRights(authentication);
+
+        availableAccessRights.addAll(positionAccessRights);
+
+        for (AccessRight accessRight: requestAccessRights) {
+            if (!availableAccessRights.contains(accessRight)) {
+                throw new InvalidRequestException(String.format("Unavailable access right in request: %s", accessRight));
+            }
+        }
+
+        position.setAccessRights(requestAccessRights);
+        positionRepository.save(position);
+
+        return "Position's access rights has been changed";
     }
 }

@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import kg.neobis.smarttailor.constants.EndpointConstants;
 import kg.neobis.smarttailor.dtos.PositionDto;
 import kg.neobis.smarttailor.dtos.PositionsWeightGroups;
+import kg.neobis.smarttailor.dtos.UpdatePositionAccessRightsRequest;
 import kg.neobis.smarttailor.enums.AccessRight;
 import kg.neobis.smarttailor.enums.PlusMinus;
 import kg.neobis.smarttailor.service.PositionService;
@@ -121,5 +122,17 @@ public class PositionController {
     @GetMapping("/positions-by-weight-group")
     public ResponseEntity<PositionsWeightGroups> getPositionsByWeight(Authentication authentication) {
         return ResponseEntity.ok(positionService.getPositionsByWeight(authentication));
+    }
+
+    @GetMapping("/position-access-rights/{positionId}")
+    public ResponseEntity<Set<AccessRight>> getPositionAccessRights(@PathVariable Long positionId) {
+        return ResponseEntity.ok(positionService.getPositionAccessRights(positionId));
+    }
+
+    @PutMapping("/change-position-access-rights/{positionId}")
+    public ResponseEntity<String> updatePositionAccessRights(@PathVariable Long positionId,
+                                                             @RequestBody UpdatePositionAccessRightsRequest accessRights,
+                                                             Authentication authentication) {
+        return ResponseEntity.ok(positionService.changeAccessRights(positionId, accessRights, authentication));
     }
 }
