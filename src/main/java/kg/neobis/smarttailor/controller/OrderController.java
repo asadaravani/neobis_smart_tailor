@@ -376,4 +376,9 @@ public class OrderController {
                                                                                   Authentication authentication) {
         return ResponseEntity.ok(orderService.getOrganizationOrderHistoryByEmployee(employeeId, stage, pageNumber, pageSize, authentication));
     }
+
+    @PutMapping("/cancel/{orderId}")
+    public ResponseEntity<String> cancelOrder(@PathVariable Long orderId, Authentication authentication) {
+        return ResponseEntity.ok(orderService.cancelOrder(orderId, authentication));
+    }
 }
