@@ -26,7 +26,7 @@ public final class EndpointConstants {
 
     public static final String SERVICE_ENDPOINT = API_PREFIX + "/service";
     public static final String SEARCH_ENDPOINT = API_PREFIX + "/search";
-    public static final String NOTIFICATION_ENDPOINT = API_PREFIX + "/notification ";
+    public static final String NOTIFICATION_ENDPOINT = API_PREFIX + "/notification";
 
 
 
