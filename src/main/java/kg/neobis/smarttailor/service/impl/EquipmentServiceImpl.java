@@ -102,7 +102,7 @@ public class EquipmentServiceImpl implements EquipmentService {
                 new NotificationPdfDto(user.getName() + " " + user.getSurname(), user.getEmail(), equipment.getName(), equipment.getPrice())
         );
 
-            fcmService.sendMessageToToken(new FirebaseNotificationRequest("Оборудование продано!", equipment.getName() + " был куплен пользователем " + user.getName(), "656565ufg"));
+            fcmService.sendNotification(new FirebaseNotificationRequest("Оборудование продано!", equipment.getName() + " был куплен пользователем " + user.getName()));
 
         return "You have successfully purchased the equipment. Receipt sent to the email. Please check your email";
     }
