@@ -47,7 +47,7 @@ rabbitmq:
   host: 46.101.135.225
 
 app:
-  firebase-configuration-file : "firebase/smarttailorfirebase-firebase-adminsdk-bm52t-751b36d6eb.json"
+  firebase-configuration-file : "firebase/smarttailorapp-612ac-firebase-adminsdk-xi8gq-e48902bbfb.json"
 
 user:
   default:
