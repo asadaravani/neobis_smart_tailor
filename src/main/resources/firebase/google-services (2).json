@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "1093751900916",
-    "project_id": "smarttailorfirebase",
-    "storage_bucket": "smarttailorfirebase.appspot.com"
+    "project_number": "464608460613",
+    "project_id": "smarttailorapp-612ac",
+    "storage_bucket": "smarttailorapp-612ac.appspot.com"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:1093751900916:android:75fe1633ab018c02322ca1",
+        "mobilesdk_app_id": "1:464608460613:android:88bff1b6cd7f9c1928c82c",
         "android_client_info": {
-          "package_name": "com.akzhol.smarttailor"
+          "package_name": "com.example.neobis_smart_tailor"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAQf_fp48olxu6FbDIodq2M910ncl6ETq0"
+          "current_key": "AIzaSyBWk72xaPXAiW2z83rJYyRWsRH7QwioVgQ"
         }
       ],
       "services": {
