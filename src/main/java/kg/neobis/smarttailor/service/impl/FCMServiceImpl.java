@@ -10,7 +10,9 @@ import kg.neobis.smarttailor.dtos.FirebaseNotificationRequest;
 import kg.neobis.smarttailor.entity.DeviceToken;
 import kg.neobis.smarttailor.service.DeviceTokenService;
 import kg.neobis.smarttailor.service.FCMService;
+import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.mapstruct.ap.shaded.freemarker.debug.impl.DebuggerService;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +20,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class FCMServiceImpl implements FCMService {
 
     DeviceTokenService deviceTokenService;

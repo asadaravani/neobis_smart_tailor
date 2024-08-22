@@ -3,12 +3,17 @@ package kg.neobis.smarttailor.service.impl;
 import kg.neobis.smarttailor.entity.DeviceToken;
 import kg.neobis.smarttailor.repository.DeviceTokenRepository;
 import kg.neobis.smarttailor.service.DeviceTokenService;
+import lombok.AccessLevel;
+import lombok.RequiredArgsConstructor;
+import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
+@FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
 public class DeviceTokenServiceImpl implements DeviceTokenService {
 
     DeviceTokenRepository deviceTokenRepository;
