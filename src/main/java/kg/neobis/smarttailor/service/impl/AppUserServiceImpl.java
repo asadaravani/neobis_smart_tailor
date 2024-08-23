@@ -74,20 +74,21 @@ public class AppUserServiceImpl implements AppUserService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found with id: ".concat(String.valueOf(id))));
     }
 
+
     @Override
     public AppUser getUserFromAuthentication(Authentication authentication) {
-
         if (authentication != null && authentication.isAuthenticated()) {
             Object principal = authentication.getPrincipal();
 
             if (principal instanceof AppUser appUser) {
-                return entityManager.find(AppUser.class, appUser.getId());
+                return appUser;
             } else {
                 throw new IllegalArgumentException("Principal is not an instance of AppUser");
             }
         }
         throw new UnauthorizedException("Authentication required!");
     }
+
 
     @Override
     public AppUser save(AppUser appUser) {
