@@ -3,6 +3,7 @@ package kg.neobis.smarttailor.service.impl;
 import com.cloudinary.utils.StringUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.persistence.EntityManager;
 import kg.neobis.smarttailor.dtos.AdvertisementPageDto;
 import kg.neobis.smarttailor.dtos.AuthorEquipmentDetailedDto;
 import kg.neobis.smarttailor.dtos.EquipmentDetailed;
@@ -57,6 +58,7 @@ import java.util.List;
 public class EquipmentServiceImpl implements EquipmentService {
 
     AppUserService appUserService;
+    EntityManager entityManager;
     FCMService fcmService;
     CloudinaryService cloudinaryService;
     EquipmentMapper equipmentMapper;
@@ -91,6 +93,8 @@ public class EquipmentServiceImpl implements EquipmentService {
         validatePurchase(equipment, user);
 
         updateEquipmentStock(equipment);
+
+        user = entityManager.find(AppUser.class, user.getId());
 
         equipment.getEquipmentBuyers().add(user);
         equipmentRepository.save(equipment);
