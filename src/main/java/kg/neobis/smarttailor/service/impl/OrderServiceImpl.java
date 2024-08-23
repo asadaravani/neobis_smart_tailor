@@ -604,19 +604,6 @@ public class OrderServiceImpl implements OrderService {
             return orderRepository.findByNameContainingIgnoreCase(name, pageable);
     }
 
-    private boolean isNumeric(String str) {
-        if (str == null) {
-            return false;
-        }
-        try {
-            Long.parseLong(str);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
-        }
-    }
-
-
     private List<OrderCard> extractOrdersByStatusAndMap(OrderStatus status, List<Order> orders) {
         List<OrderCard> orderToReturn = new ArrayList<>();
         orders.forEach(order -> {
@@ -755,7 +742,7 @@ public class OrderServiceImpl implements OrderService {
         }
 
         OrganizationEmployee organizationEmployee = organizationEmployeeService.findByEmployeeEmail(user.getEmail());
-        if (order.getOrganizationExecutor().getId().equals(organizationEmployee.getOrganization().getId())) {
+        if (!order.getOrganizationExecutor().getId().equals(organizationEmployee.getOrganization().getId())) {
             throw new InvalidRequestException("User's organization is not the executor of this order");
         }
 
