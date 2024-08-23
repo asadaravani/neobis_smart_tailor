@@ -1,6 +1,7 @@
 package kg.neobis.smarttailor.entity;
 
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.MappedSuperclass;
 import lombok.AccessLevel;
@@ -19,5 +20,6 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 public class DeviceToken extends BaseEntity{
 
+    @Column(unique = true)
     String token;
 }
