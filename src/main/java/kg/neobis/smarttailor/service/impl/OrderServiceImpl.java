@@ -154,7 +154,7 @@ public class OrderServiceImpl implements OrderService {
         if (order.getOrganizationExecutor() != null) {
             throw new ResourceAlreadyExistsException(String.format("Order is already given to '%s' organization", executorOrganization.getName()));
         }
-        if (order.getCandidates().stream().noneMatch(org -> org.getId().equals(executor.getId()))) {
+        if (!order.getCandidates().contains(executor)) {
             throw new ResourceNotFoundException(String.format("User %s hasn't sent request to execute the order", executor.getFullName()));
         }
         order.getOrderEmployees().add(executor);
